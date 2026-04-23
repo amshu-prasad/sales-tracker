@@ -213,23 +213,26 @@ async def create_entry(body: EntryCreate, current_user: str = Depends(get_curren
     del doc["_id"]
     return doc
 
-
 @app.get("/entries")
 async def get_entries(
     month: Optional[str] = None,
     week: Optional[str] = None,
-    date: Optional[str] = None,
-    from_date: Optional[str] = None,   # ✅ NEW
-    to_date: Optional[str] = None,     # ✅ NEW
     type: Optional[str] = None,
+    date: Optional[str] = None,
+    from_date: Optional[str] = None,
+    to_date: Optional[str] = None, 
     current_user: str = Depends(get_current_user)
 ):
-    query = {"is_deleted": {"$ne": True}}
-
+    query = {"is_deleted": {"$ne": True}}  # ← added
     if current_user != "manager":
         query["am"] = current_user
+    # if month and month != "ALL":
+    #     query["month"] = month
+    # if week and week != "ALL":
+    #     query["week"] = week
+    if type:
+        query["type"] = type
 
-    # ✅ PRIORITY 1: DATE RANGE
     if from_date and to_date:
         query["date"] = {
             "$gte": from_date,
@@ -247,64 +250,9 @@ async def get_entries(
         if week and week != "ALL":
             query["week"] = week
 
-    if type:
-        query["type"] = type
-        
     cursor = db.entries.find(query).sort("date", -1)
     docs = await cursor.to_list(length=2000)
     return [serialize(d) for d in docs]
-        
-# @app.get("/entries")
-# async def get_entries(
-#     month: Optional[str] = None,
-#     week: Optional[str] = None,
-#     date: Optional[str] = None,   # ✅ NEW
-#     type: Optional[str] = None,
-#     current_user: str = Depends(get_current_user)
-# ):
-#     query = {"is_deleted": {"$ne": True}}
-
-#     if current_user != "manager":
-#         query["am"] = current_user
-
-#     # ✅ PRIORITY: DATE FILTER
-#     if date:
-#         query["date"] = date
-
-#     else:
-#         # fallback to month/week
-#         if month and month != "ALL":
-#             query["month"] = month
-#         if week and week != "ALL":
-#             query["week"] = week
-
-#     if type:
-#         query["type"] = type
-
-#     cursor = db.entries.find(query).sort("date", -1)
-#     docs = await cursor.to_list(length=2000)
-#     return [serialize(d) for d in docs]
-
-# @app.get("/entries")
-# async def get_entries(
-#     month: Optional[str] = None,
-#     week: Optional[str] = None,
-#     type: Optional[str] = None,
-#     current_user: str = Depends(get_current_user)
-# ):
-#     query = {"is_deleted": {"$ne": True}}  # ← added
-#     if current_user != "manager":
-#         query["am"] = current_user
-#     if month and month != "ALL":
-#         query["month"] = month
-#     if week and week != "ALL":
-#         query["week"] = week
-#     if type:
-#         query["type"] = type
-
-#     cursor = db.entries.find(query).sort("date", -1)
-#     docs = await cursor.to_list(length=2000)
-#     return [serialize(d) for d in docs]
 
 @app.get("/entries/{entry_id}")
 async def get_entry(entry_id: str, current_user: str = Depends(get_current_user)):
