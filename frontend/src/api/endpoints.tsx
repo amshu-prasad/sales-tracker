@@ -1,0 +1,14 @@
+const HINTON_DASHBOARD = `${import.meta.env.VITE_SMART_TA_URL}`;
+
+
+
+export const DASHBOARD_URL = `${HINTON_DASHBOARD}/dashboard`;
+export const AUTH_API_BASE_URL = `${HINTON_DASHBOARD}/api/v1`;
+
+export const AUTH_TOKEN_REFRESH = `http://localhost/smart-auth-be/api/v1/refresh`
+// export const AUTH_TOKEN_REFRESH = `http://192.68.21.49/smart-auth-be/api/v1/refresh`
+
+
+
+
+
