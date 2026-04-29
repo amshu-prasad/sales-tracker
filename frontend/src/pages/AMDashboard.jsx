@@ -4,7 +4,7 @@ import { MetricCard, Badge, Bar, Empty, Spinner } from "../components/UI";
 import EntryForm from "../components/EntryForm";
 import { CSVLink } from "react-csv";
 
-const AMS_PEER = ["Shalini", "Shubha", "Shataveeresh", "Sathvik", "Sweatha", "Subhashini", "Jaibheema", "xxx", "yyy", "zzz"];
+// const AMS_PEER = ["Shalini", "Shubha", "Shataveeresh", "Sathvik", "Sweatha", "Subhashini", "Jaibheema", "xxx", "yyy", "zzz"];
 
 function fmt(d) {
   if (!d) return "—";
@@ -155,7 +155,7 @@ export default function AMDashboard({ user, onToast }) {
               </select>
             </div>
           </div>
-          {AMS_PEER.filter(am => am !== user.username).map(am => {
+          {/* {AMS_PEER.filter(am => am !== user.username).map(am => {
             const d = allEntries.filter(r => r.am === am && (teamMonth === "ALL" || r.month === teamMonth) && (teamWeek === "ALL" || r.week === teamWeek));
             if (!d.length) return null;
             const sel = d.filter(r => r.type === "selection"), ob = d.filter(r => r.type === "onboarding"), off = d.filter(r => r.type === "offboarding");
@@ -176,6 +176,53 @@ export default function AMDashboard({ user, onToast }) {
               </div>
             );
           })}
+           */}
+          {(meta.ams || [])
+            .filter(am => am !== user.username)
+            .map(am => {
+              const d = allEntries.filter(
+                r =>
+                  r.am === am &&
+                  (teamMonth === "ALL" || r.month === teamMonth) &&
+                  (teamWeek === "ALL" || r.week === teamWeek)
+              );
+
+              if (!d.length) return null;
+
+              const sel = d.filter(r => r.type === "selection");
+              const ob = d.filter(r => r.type === "onboarding");
+              const off = d.filter(r => r.type === "offboarding");
+
+              const clients = [...new Set(d.map(r => r.client))];
+              const weeks = [...new Set(d.map(r => r.week))].sort();
+
+              return (
+                <div key={am} className="team-card">
+                  <div className="team-card-header">
+                    <span className="team-name">{am}</span>
+
+                    <div className="flex gap-2 items-center">
+                      <Badge type="selection" />
+                      <span className="badge-count">{sel.length}</span>
+
+                      <Badge type="onboarding" />
+                      <span className="badge-count">{ob.length}</span>
+
+                      <Badge type="offboarding" />
+                      <span className="badge-count">{off.length}</span>
+                    </div>
+                  </div>
+
+                  {clients.length > 0 && (
+                    <p className="team-meta">Clients: {clients.join(", ")}</p>
+                  )}
+
+                  {weeks.length > 0 && (
+                    <p className="team-meta">Weeks: {weeks.join(", ")}</p>
+                  )}
+                </div>
+              );
+            })}
         </>
       )}
     </div>
@@ -280,15 +327,22 @@ function MyRecordsSection({ entries: initialEntries, setEntries: setParentEntrie
           className="no-underline"
         >
           <button
+  disabled={!csvData.length}
+  className="btn-export"
+>
+  ⬇️ Export CSV
+</button>
+          {/* <button
             disabled={!csvData.length}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition
-    ${csvData.length
-                ? "bg-blue-600 text-white hover:bg-blue-700 shadow-sm"
-                : "bg-gray-300 text-gray-500 cursor-not-allowed"}
-  `}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium
+  border transition-all duration-200
+  ${csvData.length
+                ? "border-blue-600 text-blue-600 hover:bg-blue-50 hover:border-blue-700"
+                : "border-gray-300 text-gray-400 cursor-not-allowed"
+              }`}
           >
-            ⬇️ Export
-          </button>
+            ⬇️ Export CSV
+          </button> */}
         </CSVLink>
       </div>
 
