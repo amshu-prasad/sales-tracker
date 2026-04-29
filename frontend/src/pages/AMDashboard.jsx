@@ -327,22 +327,11 @@ function MyRecordsSection({ entries: initialEntries, setEntries: setParentEntrie
           className="no-underline"
         >
           <button
-  disabled={!csvData.length}
-  className="btn-export"
->
-  ⬇️ Export CSV
-</button>
-          {/* <button
             disabled={!csvData.length}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium
-  border transition-all duration-200
-  ${csvData.length
-                ? "border-blue-600 text-blue-600 hover:bg-blue-50 hover:border-blue-700"
-                : "border-gray-300 text-gray-400 cursor-not-allowed"
-              }`}
+            className="btn-export"
           >
             ⬇️ Export CSV
-          </button> */}
+          </button>
         </CSVLink>
       </div>
 
