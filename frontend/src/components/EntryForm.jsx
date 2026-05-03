@@ -3,7 +3,7 @@ import { api } from "../utils/api";
 
 export default function EntryForm({ type, onSave, onCancel }) {
   const today = new Date().toISOString().slice(0, 10);
-  const [form, setForm] = useState({ date: today, client: "", vertical: "", source: "", empType: "", remarks: "", candidateName: "" });
+  const [form, setForm] = useState({ date: today, onboardingDate: "", client: "", vertical: "", source: "", empType: "", remarks: "", candidateName: "" });
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -16,7 +16,6 @@ export default function EntryForm({ type, onSave, onCancel }) {
       .then(m => { setClients(m.clients); setVerticals(m.verticals); })
       .catch(() => { });
   }, []);
-  console.log(clients,"clie",verticals)
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   const typeLabels = {
@@ -29,11 +28,18 @@ export default function EntryForm({ type, onSave, onCancel }) {
   const typeColor = { selection: "#1d4ed8", onboarding: "#065f46", offboarding: "#991b1b" }[type] || "#1d4ed8";
 
   const submit = async () => {
-    if (!form.date || !form.client || !form.vertical || !form.source || !form.empType || !form.candidateName) {
+    if (
+      !form.date ||
+      !form.client ||
+      !form.vertical ||
+      !form.source ||
+      !form.empType ||
+      !form.candidateName ||
+      !form.onboardingDate
+    ) {
       setError("Please fill all required fields (*)");
       return;
     }
-    console.log(form.candidateName, "scasx")
 
     setError("");
     setSaving(true);
@@ -57,6 +63,14 @@ export default function EntryForm({ type, onSave, onCancel }) {
         <div className="field">
           <label>{dateLabel} *</label>
           <input type="date" value={form.date} onChange={e => set("date", e.target.value)} />
+        </div>
+        <div className="field">
+          <label>Onboarding Date *</label>
+          <input
+            type="date"
+            value={form.onboardingDate}
+            onChange={e => set("onboardingDate", e.target.value)}
+          />
         </div>
         <div className="field">
           <label>Client *</label>

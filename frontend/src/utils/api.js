@@ -29,7 +29,6 @@ function getToken() {
 
 
 async function request(path, options = {}, isRetry = false) {
-  console.log(path,"ss")
   const token = getToken();
   const headers = {
     "Content-Type": "application/json",

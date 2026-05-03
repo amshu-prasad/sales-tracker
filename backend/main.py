@@ -149,6 +149,7 @@ class LoginRequest(BaseModel):
 
 class EntryCreate(BaseModel):
     date: str
+    onboardingDate: Optional[str] = None
     client: str
     vertical: str
     source: str          # Bench | Partner
@@ -159,6 +160,7 @@ class EntryCreate(BaseModel):
 
 class EntryUpdate(BaseModel):
     date: Optional[str] = None
+    onboardingDate: Optional[str] = None 
     client: Optional[str] = None
     vertical: Optional[str] = None
     source: Optional[str] = None
@@ -202,16 +204,67 @@ async def update_meta(body: dict, current_user: str = Depends(get_current_user))
 @app.post("/entries", status_code=201)
 async def create_entry(body: EntryCreate, current_user: str = Depends(get_current_user)):
     
-    doc = body.dict()
-    doc["am"] = current_user
-    doc["week"] = get_week(body.date)
-    doc["month"] = get_month(body.date)
-    doc["quarter"] = get_quarter(body.date)
-    doc["created_at"] = datetime.utcnow().isoformat()
-    result = await db.entries.insert_one(doc)
-    doc["id"] = str(result.inserted_id)
-    del doc["_id"]
-    return doc
+    # ── 1. Create SELECTION entry
+    base_doc = body.dict()
+
+    # ❗ REMOVE onboardingDate from selection entry
+    base_doc.pop("onboardingDate", None)
+
+    base_doc["am"] = current_user
+    base_doc["week"] = get_week(body.date)
+    base_doc["month"] = get_month(body.date)
+    base_doc["quarter"] = get_quarter(body.date)
+    base_doc["created_at"] = datetime.utcnow().isoformat()
+
+    result1 = await db.entries.insert_one(base_doc)
+
+    selection_doc = base_doc.copy()
+    selection_doc["_id"] = result1.inserted_id
+
+    # ── 2. Create ONBOARDING entry
+    onboarding_doc = None
+
+    if body.type == "selection" and body.onboardingDate:
+        onboarding_doc = body.dict()  # 🔥 fresh copy (cleaner)
+
+        onboarding_doc["type"] = "onboarding"
+        onboarding_doc["date"] = body.onboardingDate
+
+        # keep onboardingDate ONLY here
+        onboarding_doc["am"] = current_user
+
+        onboarding_doc["week"] = get_week(body.onboardingDate)
+        onboarding_doc["month"] = get_month(body.onboardingDate)
+        onboarding_doc["quarter"] = get_quarter(body.onboardingDate)
+
+        onboarding_doc["created_at"] = datetime.utcnow().isoformat()
+
+        # ❗ remove any id if present (safety)
+        onboarding_doc.pop("_id", None)
+        onboarding_doc.pop("id", None)
+
+        result2 = await db.entries.insert_one(onboarding_doc)
+
+        onboarding_doc["_id"] = result2.inserted_id
+
+    # ── response
+    return {
+        "selection": serialize(selection_doc),
+        "onboarding": serialize(onboarding_doc) if onboarding_doc else None
+    }
+# @app.post("/entries", status_code=201)
+# async def create_entry(body: EntryCreate, current_user: str = Depends(get_current_user)):
+    
+#     doc = body.dict()
+#     doc["am"] = current_user
+#     doc["week"] = get_week(body.date)
+#     doc["month"] = get_month(body.date)
+#     doc["quarter"] = get_quarter(body.date)
+#     doc["created_at"] = datetime.utcnow().isoformat()
+#     result = await db.entries.insert_one(doc)
+#     doc["id"] = str(result.inserted_id)
+#     del doc["_id"]
+#     return doc
 
 @app.get("/entries")
 async def get_entries(
