@@ -1,6 +1,23 @@
 import { useState, useEffect, useCallback } from "react";
 import { api } from "../utils/api";
 import { MetricCard, Bar, Badge, Empty, Spinner, FilterBar } from "../components/UI";
+import { Chart } from "react-google-charts";
+
+function DynamicChart({ type, data }) {
+  return (
+    <Chart
+      chartType={type}
+      width="100%"
+      height="250px"
+      data={data}
+      options={{
+        legend: { position: "top" },
+        chartArea: { width: "80%", height: "70%" },
+        pieHole: type === "PieChart" ? 0.4 : undefined,
+      }}
+    />
+  );
+}
 
 function fmt(d) {
   if (!d) return "—";
@@ -16,59 +33,44 @@ export default function ManagerDashboard({ onToast }) {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(false);
   const [meta, setMeta] = useState({ clients: [], verticals: [], ams: [] });
-  // const [date, setDate] = useState("");
-
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+
+  const [selChart, setSelChart] = useState("ColumnChart");
+  const [obChart, setObChart] = useState("ColumnChart");
+  const [vertChart, setVertChart] = useState("ColumnChart");
 
   // fetch meta once on mount
   useEffect(() => {
     api.meta().then(m => setMeta(m)).catch(() => { });
   }, []);
 
-const load = useCallback(async (showToast = false) => {
-  setLoading(true);
-  try {
-    let params = {};
+  const load = useCallback(async (showToast = false) => {
+    setLoading(true);
+    try {
+      let params = {};
 
-    if (fromDate && toDate) {
-      params = { from_date: fromDate, to_date: toDate };
-    } else {
-      params = { month, week };
+      if (fromDate && toDate) {
+        params = { from_date: fromDate, to_date: toDate };
+      } else {
+        params = { month, week };
+      }
+
+      const [e, m] = await Promise.all([
+        api.getEntries(params),
+        api.months()
+      ]);
+
+      setEntries(e);
+      setMonths(m);
+
+      if (showToast) onToast("Data refreshed ✓");
+    } catch (err) {
+      console.error("LOAD ERROR:", err);   // ✅ add this
+      if (showToast) onToast("Error loading data");
     }
-
-    const [e, m] = await Promise.all([
-      api.getEntries(params),
-      api.months()
-    ]);
-
-    setEntries(e);
-    setMonths(m);
-
-    if (showToast) onToast("Data refreshed ✓");
-  } catch (err) {
-    console.error("LOAD ERROR:", err);   // ✅ add this
-    if (showToast) onToast("Error loading data");
-  }
-  setLoading(false);
-}, [month, week, fromDate, toDate]);
-
-
-  // const load = useCallback(async (showToast = false) => {
-  //   setLoading(true);
-  //   try {
-  //     const [e, m] = await Promise.all([
-  //       api.getEntries({ month, week, date }), // ✅ added date
-  //       api.months()
-  //     ]);
-  //     setEntries(e);
-  //     setMonths(m);
-  //     if (showToast) onToast("Data refreshed ✓");
-  //   } catch {
-  //     if (showToast) onToast("Error loading data");
-  //   }
-  //   setLoading(false);
-  // }, [month, week, date]); // ✅ add date dependency
+    setLoading(false);
+  }, [month, week, fromDate, toDate]);
 
   // const load = useCallback(async (showToast = false) => {
   //   setLoading(true);
@@ -81,10 +83,7 @@ const load = useCallback(async (showToast = false) => {
   //   setLoading(false);
   // }, [month, week]);
 
-  // useEffect(() => { load(); }, [load]);
-  useEffect(() => {
-  load();
-}, [load]);
+  useEffect(() => { load(); }, [load]);
 
   const sel = entries.filter(r => r.type === "selection");
   const ob = entries.filter(r => r.type === "onboarding");
@@ -101,6 +100,7 @@ const load = useCallback(async (showToast = false) => {
         ))}
       </div>
 
+      {/* <FilterBar month={month} week={week} months={months} onMonth={setMonth} onWeek={setWeek} onRefresh={() => load(true)} loading={loading} /> */}
       <FilterBar
         month={month}
         week={week}
@@ -114,48 +114,91 @@ const load = useCallback(async (showToast = false) => {
         onFromDateChange={setFromDate}
         onToDateChange={setToDate}
       />
-      {/* <FilterBar
-        month={month}
-        week={week}
-        months={months}
-        onMonth={setMonth}
-        onWeek={setWeek}
-        onRefresh={() => load(true)}
-        loading={loading}
-        date={date}                 // ✅ new
-        onDateChange={setDate}      // ✅ new
-      /> */}
-      {/* <FilterBar month={month} week={week} months={months} onMonth={setMonth} onWeek={setWeek} onRefresh={() => load(true)} loading={loading} /> */}
       {loading && <div style={{ marginBottom: 12 }}><Spinner /></div>}
 
       {/* ── SUMMARY ── */}
       {tab === "summary" && (
         <>
+          {/* Metrics */}
           <div className="metric-grid">
             <MetricCard label="Selections" value={sel.length} color="blue" />
             <MetricCard label="Onboardings" value={ob.length} color="green" />
             <MetricCard label="Offboardings" value={off.length} color="red" />
-            <MetricCard label="Net Active" value={(net > 0 ? "+" : "") + net} color="purple" />
+            <MetricCard
+              label="Net Active"
+              value={(net > 0 ? "+" : "") + net}
+              color="purple"
+            />
           </div>
+
           <div className="grid-2">
+
+            {/* Selections */}
             <div className="card">
-              <h3>Selections — Bench vs Partner</h3>
-              <Bar label="Bench" value={sel.filter(r => r.source === "Bench").length} max={sel.length || 1} color="#1a7a4a" />
-              <Bar label="Partner" value={sel.filter(r => r.source === "Partner").length} max={sel.length || 1} color="#c8922a" />
+              <div className="flex justify-between items-center mb-2">
+                <h3>Selections — Bench vs Partner</h3>
+
+                <select value={selChart} onChange={(e) => setSelChart(e.target.value)}>
+                  <option value="ColumnChart">Bar</option>
+                  <option value="LineChart">Line</option>
+                  <option value="PieChart">Pie</option>
+                </select>
+              </div>
+
+              <DynamicChart
+                type={selChart}
+                data={[
+                  ["Source", "Count"],
+                  ["Bench", sel.filter(r => r.source === "Bench").length],
+                  ["Partner", sel.filter(r => r.source === "Partner").length],
+                ]}
+              />
             </div>
+
+            {/* Onboardings */}
             <div className="card">
-              <h3>Onboardings — Bench vs Partner</h3>
-              <Bar label="Bench" value={ob.filter(r => r.source === "Bench").length} max={ob.length || 1} color="#1a7a4a" />
-              <Bar label="Partner" value={ob.filter(r => r.source === "Partner").length} max={ob.length || 1} color="#c8922a" />
+              <div className="flex justify-between items-center mb-2">
+                <h3>Onboardings — Bench vs Partner</h3>
+
+                <select value={obChart} onChange={(e) => setObChart(e.target.value)}>
+                  <option value="BarChart">Bar</option>
+                  <option value="LineChart">Line</option>
+                  <option value="PieChart">Pie</option>
+                </select>
+              </div>
+
+              <DynamicChart
+                type={obChart}
+                data={[
+                  ["Source", "Count"],
+                  ["Bench", ob.filter(r => r.source === "Bench").length],
+                  ["Partner", ob.filter(r => r.source === "Partner").length],
+                ]}
+              />
             </div>
           </div>
+
+          {/* Vertical */}
           <div className="card">
-            <h3>Selections by Vertical</h3>
-            {meta.verticals.map(v => {
-              const n = sel.filter(r => r.vertical === v).length;
-              return n ? <Bar key={v} label={v} value={n} max={sel.length || 1} color="#1f6fbf" /> : null;
-            })}
-            {!sel.length && <Empty />}
+            <div className="flex justify-between items-center mb-2">
+              <h3>Selections by Vertical</h3>
+
+              <select value={vertChart} onChange={(e) => setVertChart(e.target.value)}>
+                <option value="BarChart">Bar</option>
+                <option value="LineChart">Line</option>
+                <option value="PieChart">Pie</option>
+              </select>
+            </div>
+
+            <DynamicChart
+              type={vertChart}
+              data={[
+                ["Vertical", "Selections"],
+                ...meta.verticals
+                  .map(v => [v, sel.filter(r => r.vertical === v).length])
+                  .filter(([, val]) => val > 0),
+              ]}
+            />
           </div>
         </>
       )}
