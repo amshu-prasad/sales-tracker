@@ -36,9 +36,9 @@ export default function ManagerDashboard({ onToast }) {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
 
-  const [selChart, setSelChart] = useState("BarChart");
-  const [obChart, setObChart] = useState("BarChart");
-  const [vertChart, setVertChart] = useState("BarChart");
+  const [selChart, setSelChart] = useState("ColumnChart");
+  const [obChart, setObChart] = useState("ColumnChart");
+  const [vertChart, setVertChart] = useState("ColumnChart");
 
   // fetch meta once on mount
   useEffect(() => {
@@ -139,7 +139,7 @@ export default function ManagerDashboard({ onToast }) {
                 <h3>Selections — Bench vs Partner</h3>
 
                 <select value={selChart} onChange={(e) => setSelChart(e.target.value)}>
-                  <option value="BarChart">Bar</option>
+                  <option value="ColumnChart">Bar</option>
                   <option value="LineChart">Line</option>
                   <option value="PieChart">Pie</option>
                 </select>

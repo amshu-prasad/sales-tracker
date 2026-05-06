@@ -60,7 +60,7 @@ export default function AMDashboard({ user, onToast }) {
   return (
     <div className="page">
       <div className="tab-bar">
-        {[["log", "Log Entry"], ["records", "My Records"], ["rollup", "Week → Year"], ["team", "Team View"]].map(([id, label]) => (
+        {[["log", "Log Entry"], ["records", "My Records"], ["rollup", "Week → Year"]].map(([id, label]) => (
           <button key={id} className={`tab ${tab === id ? "active" : ""}`} onClick={() => { setTab(id); if (id !== "log") load(); }}>
             {label}
           </button>
@@ -73,11 +73,21 @@ export default function AMDashboard({ user, onToast }) {
           {!activeForm && (
             <div className="log-cards">
               {[
-                { type: "selection", color: "#1d4ed8", bg: "#eff6ff", border: "#bfdbfe", title: "Selection", sub: "Engineer selected by client" },
-                { type: "onboarding", color: "#065f46", bg: "#f0fdf4", border: "#a7f3d0", title: "Onboarding", sub: "Engineer joined client" },
-                { type: "offboarding", color: "#991b1b", bg: "#fff5f5", border: "#fecaca", title: "Offboarding", sub: "Engineer exited client" },
+                {
+                  type: "selection",
+                  color: "#1d4ed8",
+                  bg: "#eff6ff",
+                  border: "#bfdbfe",
+                  title: "Selection",
+                  sub: "Engineer selected by client",
+                },
               ].map(({ type, color, bg, border, title, sub }) => (
-                <div key={type} className="log-card" style={{ background: bg, borderColor: border }} onClick={() => setActiveForm(type)}>
+                <div
+                  key={type}
+                  className="log-card"
+                  style={{ background: bg, borderColor: border }}
+                  onClick={() => setActiveForm(type)}
+                >
                   <p className="log-card-pre">Log a</p>
                   <p className="log-card-title" style={{ color }}>{title}</p>
                   <p className="log-card-sub">{sub}</p>
@@ -130,110 +140,18 @@ export default function AMDashboard({ user, onToast }) {
           <RollupTable entries={entries} />
         </>
       )}
-
-      {/* ── TEAM VIEW ── */}
-      {tab === "team" && (
-        <>
-          <div className="peer-notice">
-            <span className="badge badge-sel" style={{ background: "#f1f0fe", color: "#5b4fcf" }}>Peer View</span>
-            &nbsp;Only counts, clients and weeks visible. Details are private.
-          </div>
-          <div className="filter-bar">
-            <div className="filter-group">
-              <label>Month</label>
-              <select value={teamMonth} onChange={e => setTeamMonth(e.target.value)}>
-                <option value="ALL">All months</option>
-                {months.map(m => <option key={m}>{m}</option>)}
-              </select>
-            </div>
-            <div className="filter-group">
-              <label>Week</label>
-              <select value={teamWeek} onChange={e => setTeamWeek(e.target.value)}>
-                {["ALL", "W1", "W2", "W3", "W4"].map(w => (
-                  <option key={w} value={w}>{w === "ALL" ? "All weeks" : w}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-          {/* {AMS_PEER.filter(am => am !== user.username).map(am => {
-            const d = allEntries.filter(r => r.am === am && (teamMonth === "ALL" || r.month === teamMonth) && (teamWeek === "ALL" || r.week === teamWeek));
-            if (!d.length) return null;
-            const sel = d.filter(r => r.type === "selection"), ob = d.filter(r => r.type === "onboarding"), off = d.filter(r => r.type === "offboarding");
-            const clients = [...new Set(d.map(r => r.client))];
-            const weeks = [...new Set(d.map(r => r.week))].sort();
-            return (
-              <div key={am} className="team-card">
-                <div className="team-card-header">
-                  <span className="team-name">{am}</span>
-                  <div style={{ display: "flex", gap: 5 }}>
-                    <Badge type="selection" /><span className="badge-count">{sel.length}</span>
-                    <Badge type="onboarding" /><span className="badge-count">{ob.length}</span>
-                    <Badge type="offboarding" /><span className="badge-count">{off.length}</span>
-                  </div>
-                </div>
-                {clients.length > 0 && <p className="team-meta">Clients: {clients.join(", ")}</p>}
-                {weeks.length > 0 && <p className="team-meta">Weeks: {weeks.join(", ")}</p>}
-              </div>
-            );
-          })}
-           */}
-          {(meta.ams || [])
-            .filter(am => am !== user.username)
-            .map(am => {
-              const d = allEntries.filter(
-                r =>
-                  r.am === am &&
-                  (teamMonth === "ALL" || r.month === teamMonth) &&
-                  (teamWeek === "ALL" || r.week === teamWeek)
-              );
-
-              if (!d.length) return null;
-
-              const sel = d.filter(r => r.type === "selection");
-              const ob = d.filter(r => r.type === "onboarding");
-              const off = d.filter(r => r.type === "offboarding");
-
-              const clients = [...new Set(d.map(r => r.client))];
-              const weeks = [...new Set(d.map(r => r.week))].sort();
-
-              return (
-                <div key={am} className="team-card">
-                  <div className="team-card-header">
-                    <span className="team-name">{am}</span>
-
-                    <div className="flex gap-2 items-center">
-                      <Badge type="selection" />
-                      <span className="badge-count">{sel.length}</span>
-
-                      <Badge type="onboarding" />
-                      <span className="badge-count">{ob.length}</span>
-
-                      <Badge type="offboarding" />
-                      <span className="badge-count">{off.length}</span>
-                    </div>
-                  </div>
-
-                  {clients.length > 0 && (
-                    <p className="team-meta">Clients: {clients.join(", ")}</p>
-                  )}
-
-                  {weeks.length > 0 && (
-                    <p className="team-meta">Weeks: {weeks.join(", ")}</p>
-                  )}
-                </div>
-              );
-            })}
-        </>
-      )}
     </div>
   );
 }
 
 /* ── MY RECORDS SECTION ── */
 function MyRecordsSection({ entries: initialEntries, setEntries: setParentEntries, meta, loading, onToast }) {
+  // const [entries, setEntries] = useState(initialEntries);
+  // const [editingId, setEditingId] = useState(null);
+  // const [editData, setEditData] = useState({});
+  // const [deletingId, setDeletingId] = useState(null);
   const [entries, setEntries] = useState(initialEntries);
-  const [editingId, setEditingId] = useState(null);
-  const [editData, setEditData] = useState({});
+  const [editingEntry, setEditingEntry] = useState(null); // { id, data } or null
   const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => { setEntries(initialEntries); }, [initialEntries]);
@@ -266,30 +184,36 @@ function MyRecordsSection({ entries: initialEntries, setEntries: setParentEntrie
     { label: "Candidate", key: "Candidate" },
     { label: "Remarks", key: "Remarks" },
   ];
-
-  const startEdit = (r) => {
-    setEditingId(r.id);
-    setEditData({
-      date: r.date ?? "",
-      client: r.client ?? "",
-      vertical: r.vertical ?? "",
-      source: r.source ?? "",
-      empType: r.empType ?? "",
-      candidateName: r.candidateName ?? "",
-      remarks: r.remarks ?? "",
-    });
+  const startEdit = (r) => setEditingEntry(r);
+  const cancelEdit = () => setEditingEntry(null);
+  const handleEditSave = (updated) => {
+    sync(entries.map(r => r.id === updated.id ? { ...r, ...updated } : r));
+    setEditingEntry(null);
+    onToast("Entry updated ✓");
   };
+  // const startEdit = (r) => {
+  //   setEditingId(r.id);
+  //   setEditData({
+  //     date: r.date ?? "",
+  //     client: r.client ?? "",
+  //     vertical: r.vertical ?? "",
+  //     source: r.source ?? "",
+  //     empType: r.empType ?? "",
+  //     candidateName: r.candidateName ?? "",
+  //     remarks: r.remarks ?? "",
+  //   });
+  // };
 
-  const cancelEdit = () => { setEditingId(null); setEditData({}); };
+  // const cancelEdit = () => { setEditingId(null); setEditData({}); };
 
-  const saveEdit = async (id) => {
-    try {
-      const updated = await api.updateEntry(id, editData);
-      sync(entries.map(r => r.id === id ? { ...r, ...updated } : r));
-      setEditingId(null);
-      onToast("Entry updated ✓");
-    } catch { alert("Failed to save."); }
-  };
+  // const saveEdit = async (id) => {
+  //   try {
+  //     const updated = await api.updateEntry(id, editData);
+  //     sync(entries.map(r => r.id === id ? { ...r, ...updated } : r));
+  //     setEditingId(null);
+  //     onToast("Entry updated ✓");
+  //   } catch { alert("Failed to save."); }
+  // };
 
   const confirmDelete = (id) => setDeletingId(id);
   const cancelDelete = () => setDeletingId(null);
@@ -334,6 +258,44 @@ function MyRecordsSection({ entries: initialEntries, setEntries: setParentEntrie
           </button>
         </CSVLink>
       </div>
+      {editingEntry && (
+        <div
+          className="modal-overlay"
+          onClick={cancelEdit}
+        >
+          <div
+            className="modal"
+            style={{
+              maxWidth: 640,
+              width: "100%",
+              padding: 0,
+              maxHeight: "90vh",        // ← cap at 90% of viewport height
+              overflowY: "auto",        // ← scroll when content exceeds maxHeight
+              borderRadius: "var(--border-radius-lg)",
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <EntryForm
+              type={editingEntry.type}
+              entryId={editingEntry.id}
+              initialData={{
+                date: editingEntry.date ?? "",
+                onboardingDate: editingEntry.onboardingDate ?? "",
+                offboardingDate: editingEntry.offboardingDate ?? "",
+                client: editingEntry.client ?? "",
+                vertical: editingEntry.vertical ?? "",
+                source: editingEntry.source ?? "",
+                empType: editingEntry.empType ?? "",
+                candidateName: editingEntry.candidateName ?? "",
+                managerName: editingEntry.managerName ?? "",
+                remarks: editingEntry.remarks ?? "",
+              }}
+              onSave={handleEditSave}
+              onCancel={cancelEdit}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Delete confirmation modal */}
       {deletingId && (
@@ -381,40 +343,20 @@ function MyRecordsSection({ entries: initialEntries, setEntries: setParentEntrie
                 {entries.filter(r => r.type === type).length === 0
                   ? <tr><td colSpan="8" className="empty-cell">No entries yet</td></tr>
                   : entries.filter(r => r.type === type).map(r => (
-                    <tr key={r.id} style={{ background: editingId === r.id ? "#f8faff" : undefined }}>
-                      {editingId === r.id ? (
-                        <>
-                          <td>{field("date")}</td>
-                          <td>{field("client", meta.clients)}</td>
-                          <td>{field("vertical", meta.verticals)}</td>
-                          <td>{field("source", ["Bench", "Partner"])}</td>
-                          <td>{field("empType", ["T&M", "ODC"])}</td>
-                          <td>{field("candidateName")}</td>
-                          <td>{field("remarks")}</td>
-                          <td>
-                            <div style={{ display: "flex", gap: 4 }}>
-                              <button className="btn-save" onClick={() => saveEdit(r.id)}>✓</button>
-                              <button className="btn-ghost" onClick={cancelEdit}>✕</button>
-                            </div>
-                          </td>
-                        </>
-                      ) : (
-                        <>
-                          <td>{fmt(r.date)}</td>
-                          <td><strong>{r.client}</strong></td>
-                          <td>{r.vertical}</td>
-                          <td><Badge type={r.source} /></td>
-                          <td>{r.empType || "—"}</td>
-                          <td>{r.candidateName || "—"}</td>
-                          <td className="muted">{r.remarks || "—"}</td>
-                          <td>
-                            <div style={{ display: "flex", gap: 4 }}>
-                              <button className="btn-edit" onClick={() => startEdit(r)}>✏️</button>
-                              <button className="btn-danger" onClick={() => confirmDelete(r.id)}>🗑️</button>
-                            </div>
-                          </td>
-                        </>
-                      )}
+                    <tr key={r.id}>
+                      <td>{fmt(r.date)}</td>
+                      <td><strong>{r.client}</strong></td>
+                      <td>{r.vertical}</td>
+                      <td><Badge type={r.source} /></td>
+                      <td>{r.empType || "—"}</td>
+                      <td>{r.candidateName || "—"}</td>
+                      <td className="muted">{r.remarks || "—"}</td>
+                      <td>
+                        <div style={{ display: "flex", gap: 4 }}>
+                          <button className="btn-edit" onClick={() => startEdit(r)}>✏️</button>
+                          <button className="btn-danger" onClick={() => confirmDelete(r.id)}>🗑️</button>
+                        </div>
+                      </td>
                     </tr>
                   ))
                 }
