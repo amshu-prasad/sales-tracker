@@ -126,11 +126,15 @@ body {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 1.1rem 1rem;
-  text-align: center;
   box-shadow: var(--shadow);
   transition: transform .15s;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
 }
 .metric-card:hover { transform: translateY(-1px); }
+/* numeric styles used by app-wide metric cards */
 .metric-num  { font-size: 30px; font-weight: 700; line-height: 1; }
 .metric-label{ font-size: 11px; color: var(--text-muted); margin-top: 5px; font-weight: 500; letter-spacing: .02em; }
 .metric-sub  { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
@@ -140,6 +144,13 @@ body {
 .metric-red    .metric-num { color: var(--red); }
 .metric-purple .metric-num { color: var(--purple); }
 .metric-neutral .metric-num { color: var(--text); }
+/* colour variants used by OpportunityTracker metric cards */
+.metric-card.blue    { border-color: #bfdbfe; background: #eff6ff; }
+.metric-card.green   { border-color: #bbf7d0; background: #f0fdf4; }
+.metric-card.amber   { border-color: #fde68a; background: #fffbeb; }
+.metric-card.neutral { border-color: #e5e7eb; background: #f9fafb; }
+/* large bold value inside OT metric cards */
+.metric-value { font-size: 26px; font-weight: 800; color: #111827; line-height: 1; }
 
 /* ── Badges ─────────────────────────────────────────────────── */
 .badge {
@@ -405,57 +416,220 @@ textarea { resize: vertical; min-height: 60px; }
   .page { padding: .75rem; }
 }
 
-
-/* Inline edit inputs */
+/* ── Inline edit inputs ──────────────────────────────────────── */
 .edit-select { width: 100%; min-width: 125px; padding: 3px 4px; border: 1px solid #93c5fd; border-radius: 4px; font-size: 13px; }
 .edit-input  { width: 100%; min-width: 110px; padding: 3px 6px; border: 1px solid #93c5fd; border-radius: 4px; font-size: 13px; }
-/* .edit-input  { width: 100%; padding: 3px 6px; border: 1px solid #93c5fd; border-radius: 4px; font-size: 13px; }
-.edit-select { width: 100%; padding: 3px 4px; border: 1px solid #93c5fd; border-radius: 4px; font-size: 13px; } */
 
-/* Action buttons */
+/* ── Action buttons ──────────────────────────────────────────── */
 .btn-edit   { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; border-radius: 4px; padding: 3px 7px; cursor: pointer; font-size: 13px; }
 .btn-save   { background: #f0fdf4; color: #15803d; border: 1px solid #a7f3d0; border-radius: 4px; padding: 3px 7px; cursor: pointer; font-size: 13px; font-weight: 700; }
 .btn-danger { background: #fff5f5; color: #b91c1c; border: 1px solid #fecaca; border-radius: 4px; padding: 3px 7px; cursor: pointer; font-size: 13px; }
 .btn-ghost  { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 4px; padding: 3px 7px; cursor: pointer; font-size: 13px; }
 
-/* Delete confirmation modal */
+/* ── Modal ───────────────────────────────────────────────────── */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; z-index: 100; }
 .modal         { background: #fff; border-radius: 10px; padding: 24px; min-width: 280px; box-shadow: 0 8px 32px rgba(0,0,0,0.18); }
 
-/* Export Button - Green */
+/* ── Export button ───────────────────────────────────────────── */
 .btn-export {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border-radius: 10px;
-  font-size: 13px;
-  font-weight: 600;
-  font-family: var(--font);
-  border: none;
-  cursor: pointer;
-  color: #fff;
-  background: linear-gradient(135deg, #16a34a, #15803d); /* green gradient */
-  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.25);
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 10px;
+  font-size: 13px; font-weight: 600; font-family: var(--font);
+  border: none; cursor: pointer; color: #fff;
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  box-shadow: 0 2px 8px rgba(22,163,74,.25);
   transition: all 0.2s ease;
 }
-
-/* Hover */
 .btn-export:hover:not(:disabled) {
   background: linear-gradient(135deg, #15803d, #166534);
-  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.35);
+  box-shadow: 0 4px 14px rgba(22,163,74,.35);
   transform: translateY(-1px);
 }
+.btn-export:active:not(:disabled) { transform: scale(0.96); }
+.btn-export:disabled { background: #e5e7eb; color: #9ca3af; cursor: not-allowed; box-shadow: none; }
 
-/* Click */
-.btn-export:active:not(:disabled) {
-  transform: scale(0.96);
+/* ── OpportunityTracker — Fields ─────────────────────────────── */
+.ot-field { display: flex; flex-direction: column; gap: 4px; }
+.ot-label { font-size: 11px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.04em; text-transform: uppercase; font-family: var(--font); }
+.ot-required { color: var(--red); margin-left: 2px; }
+.ot-input {
+  width: 100%; box-sizing: border-box;
+  padding: 9px 12px; border: 1.5px solid var(--border);
+  border-radius: var(--radius); font-size: 13px; color: var(--text);
+  background: var(--surface); transition: border-color .15s, box-shadow .15s;
+  font-family: var(--font);
+}
+.ot-input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(31,111,191,.12); }
+.ot-textarea { resize: vertical; min-height: 72px; }
+
+/* ── OpportunityTracker — Multi-select chips ─────────────────── */
+.ot-multiselect { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.ot-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;
+  border: 1.5px solid var(--border); background: var(--bg); color: var(--text-muted);
+  cursor: pointer; transition: all .15s; font-family: var(--font);
+}
+.ot-chip:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-light); }
+.ot-chip-active { border-color: var(--blue); background: var(--blue-light); color: var(--blue); }
+.ot-chip-check { font-size: 11px; color: var(--blue); }
+
+/* ── OpportunityTracker — Form chrome ───────────────────────── */
+.ot-form-wrap { display: flex; flex-direction: column; height: 100%; }
+.ot-form-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 24px; border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; background: var(--surface); z-index: 10;
+}
+.ot-form-heading { font-size: 16px; font-weight: 600; color: var(--text); margin: 0; font-family: var(--font); }
+.ot-close-btn {
+  width: 32px; height: 32px; border-radius: var(--radius); border: 1.5px solid var(--border);
+  background: var(--bg); color: var(--text-muted); font-size: 14px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; transition: all .15s;
+}
+.ot-close-btn:hover { background: var(--red-light); border-color: var(--red); color: var(--red); }
+.ot-form-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; }
+.ot-form-footer {
+  display: flex; gap: 10px; justify-content: flex-end;
+  padding: 16px 24px; border-top: 1px solid var(--border);
+  position: sticky; bottom: 0; background: var(--surface); z-index: 10;
+}
+.ot-save-btn {
+  padding: 8px 18px; border-radius: var(--radius); border: none;
+  background: var(--blue); color: #fff; font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: background .15s; font-family: var(--font);
+}
+.ot-save-btn:hover { background: #185fa5; }
+
+/* ── OpportunityTracker — Section headers ────────────────────── */
+.ot-section-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 0 4px; border-bottom: 2px solid var(--border); margin-top: 4px;
+}
+.ot-section-icon { font-size: 15px; }
+.ot-section-title { font-size: 11px; font-weight: 700; color: var(--blue); letter-spacing: 0.07em; text-transform: uppercase; font-family: var(--font); }
+
+/* ── OpportunityTracker — Grids ──────────────────────────────── */
+.ot-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.ot-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+@media (max-width: 600px) {
+  .ot-grid-2, .ot-grid-3 { grid-template-columns: 1fr; }
 }
 
-/* Disabled */
-.btn-export:disabled {
-  background: #e5e7eb;
-  color: #9ca3af;
-  cursor: not-allowed;
-  box-shadow: none;
+/* ── OpportunityTracker — File upload ────────────────────────── */
+.ot-file-row { display: flex; align-items: center; gap: 8px; }
+.ot-upload-btn {
+  padding: 8px 14px; border-radius: var(--radius); border: 1.5px dashed var(--border);
+  background: var(--bg); color: var(--text-muted); font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: all .15s; white-space: nowrap; font-family: var(--font);
+  overflow: hidden; max-width: 320px; text-overflow: ellipsis;
+}
+.ot-upload-btn:hover { border-color: var(--blue); background: var(--blue-light); color: var(--blue); }
+.ot-remove-file {
+  width: 28px; height: 28px; border-radius: var(--radius); border: 1.5px solid var(--red);
+  background: var(--red-light); color: var(--red); font-size: 12px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ── OpportunityTracker — Badges ─────────────────────────────── */
+.ot-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600;
+  white-space: nowrap; font-family: var(--font); letter-spacing: .02em;
+}
+.ot-badge-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.ot-badge-empty { color: var(--text-muted); font-size: 13px; }
+
+/* ── OpportunityTracker — Action bar ─────────────────────────── */
+.ot-action-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap; margin-bottom: 14px;
+}
+.ot-new-btn {
+  padding: 8px 18px; border-radius: var(--radius); border: 1.5px solid var(--blue);
+  background: var(--blue); color: #fff; font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: background .15s; white-space: nowrap; flex-shrink: 0;
+  font-family: var(--font);
+}
+.ot-new-btn:hover { background: #185fa5; border-color: #185fa5; }
+
+/* ── OpportunityTracker — Filters ────────────────────────────── */
+.ot-filters { display: flex; gap: 8px; flex-wrap: wrap; flex: 1; }
+.ot-filter-select {
+  padding: 7px 10px; border-radius: var(--radius); border: 1.5px solid var(--border);
+  background: var(--surface); font-size: 13px; color: var(--text); cursor: pointer;
+  font-family: var(--font);
+}
+.ot-filter-search {
+  padding: 12px 14px; /* increased vertical padding */
+  border-radius: var(--radius);
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  font-size: 14px;
+  color: var(--text);
+  font-family: var(--font);
+  min-width: 180px;
+  flex: 1;
+  min-height: 46px; /* added height */
+}
+
+.ot-filter-search:focus,
+.ot-filter-select:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(31,111,191,.12);
+}
+
+/* ── OpportunityTracker — Cards ──────────────────────────────── */
+.ot-list { display: flex; flex-direction: column; gap: 10px; }
+.ot-card {
+  border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface);
+  overflow: hidden; transition: box-shadow .15s, border-color .15s; box-shadow: var(--shadow);
+}
+.ot-card:hover { border-color: var(--blue); box-shadow: 0 4px 16px rgba(31,111,191,.1); }
+.ot-card-expanded { border-color: var(--blue); }
+.ot-card-top {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; cursor: pointer; gap: 12px;
+}
+.ot-card-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; flex: 1; }
+.ot-card-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; flex-wrap: wrap; }
+.ot-card-client { font-size: 14px; font-weight: 600; color: var(--text); font-family: var(--font); }
+.ot-card-vert {
+  font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 20px;
+  background: var(--bg); color: var(--text-muted); border: 1px solid var(--border);
+}
+.ot-card-skill { font-size: 12px; color: var(--text-muted); font-family: var(--font); }
+.ot-card-locs { font-size: 12px; color: var(--text-muted); }
+.ot-card-am { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+.ot-expand-icon { font-size: 11px; color: var(--text-muted); margin-left: 4px; }
+
+/* ── OpportunityTracker — Card body ──────────────────────────── */
+.ot-card-body { padding: 14px 16px; border-top: 1px solid var(--border-light); background: var(--bg); }
+.ot-detail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-bottom: 12px; }
+.ot-detail-item { display: flex; flex-direction: column; gap: 2px; }
+.ot-detail-key { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; font-family: var(--font); }
+.ot-detail-val { font-size: 13px; color: var(--text); font-weight: 500; font-family: var(--font); }
+.ot-detail-block { margin-top: 10px; }
+.ot-detail-text { font-size: 13px; color: var(--text); margin: 4px 0 0; line-height: 1.5; white-space: pre-wrap; font-family: var(--font); }
+.ot-jd-link { font-size: 13px; color: var(--blue); text-decoration: none; font-weight: 500; font-family: var(--font); }
+.ot-jd-link:hover { text-decoration: underline; }
+.ot-card-actions { display: flex; gap: 8px; margin-top: 14px; justify-content: flex-end; }
+
+
+.ot-page-header {
+  margin-bottom: 20px;
+}
+
+.ot-page-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.ot-page-subtitle {
+  margin-top: 6px;
+  font-size: 14px;
+  color: var(--muted-text, #6b7280);
 }

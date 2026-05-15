@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { api } from "../utils/api";
 import { MetricCard, Badge, Bar, Empty, Spinner } from "../components/UI";
 import EntryForm from "../components/EntryForm";
+import OpportunityTracker from "../components/OpportunityTracker";
 import { CSVLink } from "react-csv";
 
 // const AMS_PEER = ["Shalini", "Shubha", "Shataveeresh", "Sathvik", "Sweatha", "Subhashini", "Jaibheema", "xxx", "yyy", "zzz"];
@@ -60,14 +61,23 @@ export default function AMDashboard({ user, onToast }) {
   return (
     <div className="page">
       <div className="tab-bar">
-        {[["log", "Log Entry"], ["records", "My Records"], ["rollup", "Week → Year"]].map(([id, label]) => (
-          <button key={id} className={`tab ${tab === id ? "active" : ""}`} onClick={() => { setTab(id); if (id !== "log") load(); }}>
+        {[
+          ["log",      "Employee Lifecycle Tracker"],
+          ["records",  "My Records"],
+          ["rollup",   "Week → Year"],
+          ["opps",     "Opportunity Tracker"],   // ← NEW TAB
+        ].map(([id, label]) => (
+          <button
+            key={id}
+            className={`tab ${tab === id ? "active" : ""}`}
+            onClick={() => { setTab(id); if (id !== "log" && id !== "opps") load(); }}
+          >
             {label}
           </button>
         ))}
       </div>
 
-      {/* ── LOG ENTRY ── */}
+      {/* ── EMPLOYEE LIFECYCLE TRACKER ── */}
       {tab === "log" && (
         <>
           {!activeForm && (
@@ -140,25 +150,26 @@ export default function AMDashboard({ user, onToast }) {
           <RollupTable entries={entries} />
         </>
       )}
+
+      {/* ── OPPORTUNITY TRACKER ── */}
+      {tab === "opps" && (
+        <OpportunityTracker onToast={onToast} />
+      )}
     </div>
   );
 }
 
 /* ── MY RECORDS SECTION ── */
 function MyRecordsSection({ entries: initialEntries, setEntries: setParentEntries, meta, loading, onToast }) {
-  // const [entries, setEntries] = useState(initialEntries);
-  // const [editingId, setEditingId] = useState(null);
-  // const [editData, setEditData] = useState({});
-  // const [deletingId, setDeletingId] = useState(null);
   const [entries, setEntries] = useState(initialEntries);
-  const [editingEntry, setEditingEntry] = useState(null); // { id, data } or null
+  const [editingEntry, setEditingEntry] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => { setEntries(initialEntries); }, [initialEntries]);
 
   const sync = (updated) => {
     setEntries(updated);
-    setParentEntries(updated); // keep parent in sync for log tab counts
+    setParentEntries(updated);
   };
 
   // ✅ CSV DATA
@@ -173,7 +184,6 @@ function MyRecordsSection({ entries: initialEntries, setEntries: setParentEntrie
     Remarks: r.remarks || "",
   }));
 
-  // ✅ HEADERS
   const headers = [
     { label: "Date", key: "Date" },
     { label: "Type", key: "Type" },
@@ -184,6 +194,7 @@ function MyRecordsSection({ entries: initialEntries, setEntries: setParentEntrie
     { label: "Candidate", key: "Candidate" },
     { label: "Remarks", key: "Remarks" },
   ];
+
   const startEdit = (r) => setEditingEntry(r);
   const cancelEdit = () => setEditingEntry(null);
   const handleEditSave = (updated) => {
@@ -191,29 +202,6 @@ function MyRecordsSection({ entries: initialEntries, setEntries: setParentEntrie
     setEditingEntry(null);
     onToast("Entry updated ✓");
   };
-  // const startEdit = (r) => {
-  //   setEditingId(r.id);
-  //   setEditData({
-  //     date: r.date ?? "",
-  //     client: r.client ?? "",
-  //     vertical: r.vertical ?? "",
-  //     source: r.source ?? "",
-  //     empType: r.empType ?? "",
-  //     candidateName: r.candidateName ?? "",
-  //     remarks: r.remarks ?? "",
-  //   });
-  // };
-
-  // const cancelEdit = () => { setEditingId(null); setEditData({}); };
-
-  // const saveEdit = async (id) => {
-  //   try {
-  //     const updated = await api.updateEntry(id, editData);
-  //     sync(entries.map(r => r.id === id ? { ...r, ...updated } : r));
-  //     setEditingId(null);
-  //     onToast("Entry updated ✓");
-  //   } catch { alert("Failed to save."); }
-  // };
 
   const confirmDelete = (id) => setDeletingId(id);
   const cancelDelete = () => setDeletingId(null);
@@ -227,20 +215,6 @@ function MyRecordsSection({ entries: initialEntries, setEntries: setParentEntrie
     } catch { alert("Failed to delete."); }
   };
 
-  const field = (key, opts) => opts
-    ? <select
-      value={editData[key] ?? ""}
-      onChange={e => setEditData(p => ({ ...p, [key]: e.target.value }))}
-      className="edit-select"
-    >
-      {opts.map(o => <option key={o}>{o}</option>)}
-    </select>
-    : <input
-      value={editData[key] ?? ""}
-      onChange={e => setEditData(p => ({ ...p, [key]: e.target.value }))}
-      className="edit-input"
-    />;
-
   return (
     <div style={{ position: "relative", paddingTop: 40 }}>
       <div style={{ position: "absolute", top: 0, right: 0, zIndex: 10 }}>
@@ -250,29 +224,15 @@ function MyRecordsSection({ entries: initialEntries, setEntries: setParentEntrie
           filename={`entries_${new Date().toISOString().split("T")[0]}.csv`}
           className="no-underline"
         >
-          <button
-            disabled={!csvData.length}
-            className="btn-export"
-          >
-            ⬇️ Export CSV
-          </button>
+          <button disabled={!csvData.length} className="btn-export">⬇️ Export CSV</button>
         </CSVLink>
       </div>
+
       {editingEntry && (
-        <div
-          className="modal-overlay"
-          onClick={cancelEdit}
-        >
+        <div className="modal-overlay" onClick={cancelEdit}>
           <div
             className="modal"
-            style={{
-              maxWidth: 640,
-              width: "100%",
-              padding: 0,
-              maxHeight: "90vh",        // ← cap at 90% of viewport height
-              overflowY: "auto",        // ← scroll when content exceeds maxHeight
-              borderRadius: "var(--border-radius-lg)",
-            }}
+            style={{ maxWidth: 640, width: "100%", padding: 0, maxHeight: "90vh", overflowY: "auto", borderRadius: "var(--border-radius-lg)" }}
             onClick={e => e.stopPropagation()}
           >
             <EntryForm
@@ -297,7 +257,6 @@ function MyRecordsSection({ entries: initialEntries, setEntries: setParentEntrie
         </div>
       )}
 
-      {/* Delete confirmation modal */}
       {deletingId && (
         <div className="modal-overlay">
           <div className="modal">
@@ -310,8 +269,6 @@ function MyRecordsSection({ entries: initialEntries, setEntries: setParentEntrie
           </div>
         </div>
       )}
-
-      {/* {loading && <Spinner />} */}
 
       <div className="metric-grid">
         <MetricCard label="Total selections" value={entries.filter(r => r.type === "selection").length} color="blue" />
@@ -371,7 +328,7 @@ function MyRecordsSection({ entries: initialEntries, setEntries: setParentEntrie
 
 /* ── ROLLUP TABLE ── */
 function RollupTable({ entries }) {
-  const MONTHS_ORDER = ["Jan'25", "Feb'25", "Mar'25", "Apr'25", "May'25", "Jun'25", "Jul'25", "Aug'25", "Sep'25", "Oct'25", "Nov'25", "Dec'25", "Jan'26", "Feb'26", "Mar'26", "Apr'26", "May'26", "Jun'26", "Jul'26", "Aug'26", "Sep'26", "Oct'26", "Nov'26", "Dec'26"];
+  const MONTHS_ORDER = ["Jan'25","Feb'25","Mar'25","Apr'25","May'25","Jun'25","Jul'25","Aug'25","Sep'25","Oct'25","Nov'25","Dec'25","Jan'26","Feb'26","Mar'26","Apr'26","May'26","Jun'26","Jul'26","Aug'26","Sep'26","Oct'26","Nov'26","Dec'26"];
   const months = [...new Set(entries.map(r => r.month))].filter(Boolean).sort((a, b) => MONTHS_ORDER.indexOf(a) - MONTHS_ORDER.indexOf(b));
   if (!months.length) return <Empty />;
 
@@ -386,11 +343,11 @@ function RollupTable({ entries }) {
           <thead>
             <tr>
               <th>Month</th>
-              {["W1", "W2", "W3", "W4"].map(w => (
+              {["W1","W2","W3","W4"].map(w => (
                 <>
-                  <th key={w + "s"} style={{ color: "#1f6fbf" }}>{w} Sel</th>
-                  <th key={w + "o"} style={{ color: "#1a7a4a" }}>{w} Ob</th>
-                  <th key={w + "f"} style={{ color: "#b91c1c" }}>{w} Off</th>
+                  <th key={w+"s"} style={{ color: "#1f6fbf" }}>{w} Sel</th>
+                  <th key={w+"o"} style={{ color: "#1a7a4a" }}>{w} Ob</th>
+                  <th key={w+"f"} style={{ color: "#b91c1c" }}>{w} Off</th>
                 </>
               ))}
               <th style={{ color: "#1f6fbf" }}>Mo Sel</th>
@@ -401,17 +358,17 @@ function RollupTable({ entries }) {
           </thead>
           <tbody>
             {months.map(m => {
-              const [ms, mo, mf] = ["selection", "onboarding", "offboarding"].map(t => entries.filter(r => r.month === m && r.type === t).length);
+              const [ms, mo, mf] = ["selection","onboarding","offboarding"].map(t => entries.filter(r => r.month === m && r.type === t).length);
               const net = mo - mf;
               cumSel += ms; cumOb += mo; cumOff += mf;
               return (
                 <tr key={m}>
                   <td><strong>{m}</strong></td>
-                  {[1, 2, 3, 4].map(w => (
+                  {[1,2,3,4].map(w => (
                     <>
-                      <td key={w + "s"} style={{ color: "#1f6fbf" }}>{count(m, "W" + w, "selection") || "—"}</td>
-                      <td key={w + "o"} style={{ color: "#1a7a4a" }}>{count(m, "W" + w, "onboarding") || "—"}</td>
-                      <td key={w + "f"} style={{ color: "#b91c1c" }}>{count(m, "W" + w, "offboarding") || "—"}</td>
+                      <td key={w+"s"} style={{ color: "#1f6fbf" }}>{count(m,"W"+w,"selection") || "—"}</td>
+                      <td key={w+"o"} style={{ color: "#1a7a4a" }}>{count(m,"W"+w,"onboarding") || "—"}</td>
+                      <td key={w+"f"} style={{ color: "#b91c1c" }}>{count(m,"W"+w,"offboarding") || "—"}</td>
                     </>
                   ))}
                   <td style={{ fontWeight: 700, color: "#1f6fbf" }}>{ms}</td>
@@ -423,11 +380,11 @@ function RollupTable({ entries }) {
             })}
             <tr className="row-total">
               <td>Cumulative</td>
-              {[1, 2, 3, 4].map(w => <><td key={w + "s"} /><td key={w + "o"} /><td key={w + "f"} /></>)}
+              {[1,2,3,4].map(w => <><td key={w+"s"}/><td key={w+"o"}/><td key={w+"f"}/></>)}
               <td style={{ color: "#1f6fbf" }}>{cumSel}</td>
               <td style={{ color: "#1a7a4a" }}>{cumOb}</td>
               <td style={{ color: "#b91c1c" }}>{cumOff}</td>
-              <td style={{ color: cumOb - cumOff >= 0 ? "#1a7a4a" : "#b91c1c" }}>{cumOb - cumOff > 0 ? "+" : ""}{cumOb - cumOff}</td>
+              <td style={{ color: cumOb-cumOff >= 0 ? "#1a7a4a" : "#b91c1c" }}>{cumOb-cumOff > 0 ? "+" : ""}{cumOb-cumOff}</td>
             </tr>
           </tbody>
         </table>
