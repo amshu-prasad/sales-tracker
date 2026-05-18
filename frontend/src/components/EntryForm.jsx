@@ -70,21 +70,21 @@ export default function EntryForm({ type, onSave, onCancel, initialData, entryId
   }[type] ?? "Date";
 
   const submit = async () => {
-    if (
-      !isEdit &&
-      (
-        !form.date ||
-        !form.client ||
-        !form.vertical ||
-        !form.source ||
-        !form.empType ||
-        !form.candidateName ||
-        !form.managerName
-      )
-    ) {
-      setError("Please fill all required fields (*)");
-      return;
-    }
+    // if (
+    //   !isEdit &&
+    //   (
+    //     !form.date ||
+    //     !form.client ||
+    //     !form.vertical ||
+    //     !form.source ||
+    //     !form.empType ||
+    //     !form.candidateName ||
+    //     !form.managerName
+    //   )
+    // ) {
+    //   setError("Please fill all required fields (*)");
+    //   return;
+    // }
 
     setError("");
     setSaving(true);

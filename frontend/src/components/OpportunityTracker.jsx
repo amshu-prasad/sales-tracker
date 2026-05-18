@@ -11,11 +11,18 @@ const CLIENTS = [
     "Synopsys", "Tenstorrent", "TI", "Xilinx",
 ];
 
-const LOCATIONS = ["Bangalore", "Hyderabad", "Noida", "Pune", "Hubli", "Chennai", "Global"];
+const LOCATIONS = ["Bangalore", "Hyderabad", "Noida", "Pune", "Hubli", "Chennai", "Global", "Others"];
 
 const VERTICALS = ["AD", "AL", "DFT", "DV", "Emulation & Validation", "Emulation & Verification", "PD", "PSV", "RTL"];
 
 const AMS = ["Jaibhima", "Sangita", "Sathvik", "Shalini", "Shantaveeresh", "Shubha", "Subhashini", "Sweatha M"];
+
+const BUS = ["VLSI", "Embedded", "PES", "AI"];
+const MODES = ["T&M", "ODC"];
+const TEAMS = ["Indie Business", "Others", "Global"];
+const START_DATE_OPTIONS = ["Immediate", "15", "30", "30+"];
+const PRIORITIES = ["High", "Medium", "Low"];
+const STATUSES = ["Open", "Closed by SS", "Closed by Others"];
 
 const STATUS_COLORS = {
     "Open": { bg: "#dcfce7", color: "#15803d", dot: "#16a34a" },
@@ -33,33 +40,26 @@ const PRIORITY_COLORS = {
 
 const emptyOpportunity = () => ({
     id: crypto.randomUUID(),
-    globalized: "",
+    client: "",
+    bu: "",
     mode: "",
-    ceipalId: "",
-    statusCeipal: "",
-    source: "",
+    team: "",
+    skill: "",
     month: "",
     reqDate: "",
-    locations: [],
-    client: "",
-    managerBU: "",
-    skill: "",
-    description: "",
     jdFile: null,
     jdFileName: "",
-    vertical: "",
-    technicalPoc: "",
-    accountManager: "",
+    location: "",
+    noOfPositions: "",
     experience: "",
-    expRange: "",
-    totalHeadCount: "",
-    doableHeadCount: "",
-    filledBySmartSoCs: "",
-    pendingOpenPositions: "",
-    passThrough: "",
     expectedStartDate: "",
-    status: "",
+    technicalPoc: "",
     priority: "",
+    doableHeadCount: "",
+    vertical: "",
+    accountManager: "",
+    status: "",
+    description: "",
     internalProfilesShared: "",
     partnerProfilesShared: "",
     namesProfilesShared: "",
@@ -113,29 +113,6 @@ function Textarea({ value, onChange, placeholder, rows = 3 }) {
     );
 }
 
-function MultiSelect({ selected, onChange, options }) {
-    const toggle = (loc) => {
-        onChange(selected.includes(loc)
-            ? selected.filter(l => l !== loc)
-            : [...selected, loc]);
-    };
-    return (
-        <div className="ot-multiselect">
-            {options.map(loc => (
-                <button
-                    key={loc}
-                    type="button"
-                    className={`ot-chip ${selected.includes(loc) ? "ot-chip-active" : ""}`}
-                    onClick={() => toggle(loc)}
-                >
-                    {selected.includes(loc) && <span className="ot-chip-check">✓</span>}
-                    {loc}
-                </button>
-            ))}
-        </div>
-    );
-}
-
 // ─── Opportunity Form ─────────────────────────────────────────────────────────
 
 function OppForm({ initial, onSave, onCancel }) {
@@ -155,10 +132,11 @@ function OppForm({ initial, onSave, onCancel }) {
     };
 
     const handleSubmit = () => {
-        if (!form.client || !form.status) {
-            alert("Client and Status are required.");
-            return;
-        }
+        console.log(form,"hehehehh")
+        // if (!form.client || !form.status) {
+        //     alert("Client and Status are required.");
+        //     return;
+        // }
         onSave(form);
     };
 
@@ -179,18 +157,28 @@ function OppForm({ initial, onSave, onCancel }) {
             </div>
 
             <div className="ot-form-body">
-
-                {/* ── Engagement Details ── */}
+                {/* ── Section 1: Engagement Details ── */}
                 <Section title="Engagement Details" icon="📋" />
                 <div className="ot-grid-2">
-                    <Field label="Globalized" required>
-                        <Select value={form.globalized} onChange={set("globalized")} options={["Domestic", "Global"]} />
+                    <Field label="Client" required>
+                        <Select value={form.client} onChange={set("client")} options={CLIENTS} />
+                    </Field>
+                    <Field label="BU">
+                        <Select value={form.bu} onChange={set("bu")} options={BUS} />
                     </Field>
                     <Field label="Mode">
-                        <Select value={form.mode} onChange={set("mode")} options={["T&M", "ODC"]} />
+                        <Select value={form.mode} onChange={set("mode")} options={MODES} />
                     </Field>
-                    <Field label="Source">
-                        <Select value={form.source} onChange={set("source")} options={["Procurement", "Sales"]} />
+                    <Field label="Team">
+                        <Select value={form.team} onChange={set("team")} options={TEAMS} />
+                    </Field>
+                </div>
+
+                {/* ── Section 2: Requisition ── */}
+                <Section title="Requisition" icon="🏢" />
+                <div className="ot-grid-2">
+                    <Field label="Skill" required>
+                        <Input value={form.skill} onChange={set("skill")} placeholder="e.g. RTL Design, DFT…" />
                     </Field>
                     <Field label="Month">
                         <Input value={form.month} onChange={set("month")} placeholder="e.g. January" />
@@ -198,127 +186,39 @@ function OppForm({ initial, onSave, onCancel }) {
                     <Field label="Req Date">
                         <Input value={form.reqDate} onChange={set("reqDate")} placeholder="DD-MM-YYYY" />
                     </Field>
-                    <Field label="Expected Start Date">
-                        <Input type="date" value={form.expectedStartDate} onChange={set("expectedStartDate")} />
+                    <Field label="Location">
+                        <Select value={form.location} onChange={set("location")} options={LOCATIONS} />
                     </Field>
-                </div>
-
-                {/* ── Client Info ── */}
-                <Section title="Client Information" icon="🏢" />
-                <div className="ot-grid-2">
-                    <Field label="Client" required>
-                        <Select value={form.client} onChange={set("client")} options={CLIENTS} />
-                    </Field>
-                    <Field label="Manager / BU @ Client">
-                        <Input value={form.managerBU} onChange={set("managerBU")} placeholder="e.g. John Doe / Compute BU" />
-                    </Field>
-                    <Field label="Technical POC">
-                        <Input value={form.technicalPoc} onChange={set("technicalPoc")} placeholder="Technical point of contact" />
-                    </Field>
-                    <Field label="Account Manager">
-                        <Select value={form.accountManager} onChange={set("accountManager")} options={AMS} />
-                    </Field>
-                </div>
-
-                <Field label="Location (multi-select)">
-                    <MultiSelect selected={form.locations} onChange={set("locations")} options={LOCATIONS} />
-                </Field>
-
-                {/* ── Role Details ── */}
-                <Section title="Role Details" icon="🔧" />
-                <div className="ot-grid-2">
-                    <Field label="Vertical">
-                        <Select value={form.vertical} onChange={set("vertical")} options={VERTICALS} />
-                    </Field>
-                    <Field label="Skill">
-                        <Input value={form.skill} onChange={set("skill")} placeholder="e.g. RTL Design, DFT, STA…" />
+                    <Field label="No of Positions">
+                        <Input value={form.noOfPositions} onChange={set("noOfPositions")} placeholder="e.g. 5" />
                     </Field>
                     <Field label="Experience">
-                        <Input value={form.experience} onChange={set("experience")} placeholder="e.g. 5 years" />
+                        <Input value={form.experience} onChange={set("experience")} placeholder="e.g. 3–5 years" />
                     </Field>
-                    <Field label="Exp Range">
-                        <Input value={form.expRange} onChange={set("expRange")} placeholder="e.g. 4–8 years" />
+                    <Field label="Expected Start Date">
+                        <Select value={form.expectedStartDate} onChange={set("expectedStartDate")} options={START_DATE_OPTIONS} />
                     </Field>
-                </div>
-                <Field label="Description">
-                    <Textarea value={form.description} onChange={set("description")} placeholder="Role description…" rows={3} />
-                </Field>
-                <Field label="JD Upload (PDF / Word / any format)">
-                    <div className="ot-file-row">
-                        <button type="button" className="ot-upload-btn" onClick={() => fileRef.current.click()}>
-                            📎 {form.jdFileName ? form.jdFileName : "Choose file…"}
-                        </button>
-                        {form.jdFileName && (
-                            <button type="button" className="ot-remove-file" onClick={() => setForm(p => ({ ...p, jdFile: null, jdFileName: "" }))}>✕</button>
-                        )}
-                        <input ref={fileRef} type="file" style={{ display: "none" }} onChange={handleFile} />
-                    </div>
-                </Field>
-
-                {/* ── Ceipal ── */}
-                <Section title="Ceipal Details" icon="🗂️" />
-                <div className="ot-grid-2">
-                    <Field label="Ceipal ID">
-                        <Input value={form.ceipalId} onChange={set("ceipalId")} placeholder="Ceipal ID" />
-                    </Field>
-                    <Field label="Status as per Ceipal">
-                        <Input value={form.statusCeipal} onChange={set("statusCeipal")} placeholder="e.g. Active, On Hold…" />
-                    </Field>
-                </div>
-
-                {/* ── Head Count ── */}
-                <Section title="Head Count" icon="👥" />
-                <div className="ot-grid-3">
-                    <Field label="Total Head Count">
-                        <Input value={form.totalHeadCount} onChange={set("totalHeadCount")} placeholder="0" />
-                    </Field>
-                    <Field label="Doable Head Count">
-                        <Input value={form.doableHeadCount} onChange={set("doableHeadCount")} placeholder="0" />
-                    </Field>
-                    <Field label="Filled by SmartSoCs">
-                        <Input value={form.filledBySmartSoCs} onChange={set("filledBySmartSoCs")} placeholder="0" />
-                    </Field>
-                    <Field label="Pending Open Positions">
-                        <Input value={form.pendingOpenPositions} onChange={set("pendingOpenPositions")} placeholder="0" />
-                    </Field>
-                    <Field label="Pass Through">
-                        <Input value={form.passThrough} onChange={set("passThrough")} placeholder="0" />
-                    </Field>
-                </div>
-
-                {/* ── Status & Priority ── */}
-                <Section title="Status & Priority" icon="🎯" />
-                <div className="ot-grid-2">
-                    <Field label="Status" required>
-                        <Select value={form.status} onChange={set("status")} options={["Open", "Closed by SS", "Closed by Others"]} />
+                    <Field label="Technical POC">
+                        <Input value={form.technicalPoc} onChange={set("technicalPoc")} placeholder="Name of technical point of contact" />
                     </Field>
                     <Field label="Priority">
-                        <Select value={form.priority} onChange={set("priority")} options={["High", "Medium", "Low"]} />
+                        <Select value={form.priority} onChange={set("priority")} options={PRIORITIES} />
+                    </Field>
+                    <Field label="Doable Head Count">
+                        <Input value={form.doableHeadCount} onChange={set("doableHeadCount")} placeholder="e.g. 3" />
+                    </Field>
+                    <Field label="JD Upload (PDF / Word / any format)">
+                        <div className="ot-file-row">
+                            <button type="button" className="ot-upload-btn" onClick={() => fileRef.current.click()}>
+                                📎 {form.jdFileName ? form.jdFileName : "Choose file…"}
+                            </button>
+                            {form.jdFileName && (
+                                <button type="button" className="ot-remove-file" onClick={() => setForm(p => ({ ...p, jdFile: null, jdFileName: "" }))}>✕</button>
+                            )}
+                            <input ref={fileRef} type="file" style={{ display: "none" }} onChange={handleFile} />
+                        </div>
                     </Field>
                 </div>
-
-                {/* ── Profiles & Feedback ── */}
-                <Section title="Profiles & Feedback" icon="📝" />
-                <div className="ot-grid-2">
-                    <Field label="No. of Internal / Market Profiles Shared">
-                        <Input value={form.internalProfilesShared} onChange={set("internalProfilesShared")} placeholder="0" />
-                    </Field>
-                    <Field label="No. of Partner Profiles Shared">
-                        <Input value={form.partnerProfilesShared} onChange={set("partnerProfilesShared")} placeholder="0" />
-                    </Field>
-                </div>
-                <Field label="Names of Profiles Shared">
-                    <Textarea value={form.namesProfilesShared} onChange={set("namesProfilesShared")} placeholder="Comma-separated names…" rows={2} />
-                </Field>
-                <Field label="Names of Profiles Interviewed">
-                    <Textarea value={form.namesProfilesInterviewed} onChange={set("namesProfilesInterviewed")} placeholder="Comma-separated names…" rows={2} />
-                </Field>
-                <Field label="Screening Feedback">
-                    <Textarea value={form.screeningFeedback} onChange={set("screeningFeedback")} placeholder="Screening notes…" rows={3} />
-                </Field>
-                <Field label="Interview Feedback">
-                    <Textarea value={form.interviewFeedback} onChange={set("interviewFeedback")} placeholder="Interview notes…" rows={3} />
-                </Field>
             </div>
 
             {/* ── Footer ── */}
@@ -356,9 +256,7 @@ function OppCard({ opp, onEdit, onDelete }) {
                     <span className="ot-card-client">{opp.client || "—"}</span>
                     {opp.vertical && <span className="ot-card-vert">{opp.vertical}</span>}
                     {opp.skill && <span className="ot-card-skill">{opp.skill}</span>}
-                    {opp.locations?.length > 0 && (
-                        <span className="ot-card-locs">{opp.locations.join(", ")}</span>
-                    )}
+                    {opp.location && <span className="ot-card-locs">{opp.location}</span>}
                 </div>
                 <div className="ot-card-right">
                     <StatusBadge value={opp.status} map={STATUS_COLORS} />
@@ -372,23 +270,16 @@ function OppCard({ opp, onEdit, onDelete }) {
                 <div className="ot-card-body">
                     <div className="ot-detail-grid">
                         {[
-                            ["Globalized", opp.globalized],
+                            ["BU", opp.bu],
                             ["Mode", opp.mode],
-                            ["Source", opp.source],
+                            ["Team", opp.team],
                             ["Month", opp.month],
                             ["Req Date", opp.reqDate],
                             ["Expected Start", opp.expectedStartDate],
-                            ["Ceipal ID", opp.ceipalId],
-                            ["Status (Ceipal)", opp.statusCeipal],
-                            ["Manager / BU", opp.managerBU],
-                            ["Technical POC", opp.technicalPoc],
+                            ["No of Positions", opp.noOfPositions],
                             ["Experience", opp.experience],
-                            ["Exp Range", opp.expRange],
-                            ["Total HC", opp.totalHeadCount],
                             ["Doable HC", opp.doableHeadCount],
-                            ["Filled by SS", opp.filledBySmartSoCs],
-                            ["Pending Open", opp.pendingOpenPositions],
-                            ["Pass Through", opp.passThrough],
+                            ["Technical POC", opp.technicalPoc],
                             ["Internal Profiles", opp.internalProfilesShared],
                             ["Partner Profiles", opp.partnerProfilesShared],
                         ].filter(([, v]) => v).map(([k, v]) => (
@@ -431,11 +322,7 @@ function OppCard({ opp, onEdit, onDelete }) {
                     {opp.jdFileName && (
                         <div className="ot-detail-block">
                             <span className="ot-detail-key">JD File</span>
-                            <a
-                                href={opp.jdFile}
-                                download={opp.jdFileName}
-                                className="ot-jd-link"
-                            >
+                            <a href={opp.jdFile} download={opp.jdFileName} className="ot-jd-link">
                                 📎 {opp.jdFileName}
                             </a>
                         </div>
@@ -453,36 +340,15 @@ function OppCard({ opp, onEdit, onDelete }) {
 // ─── Filters bar ──────────────────────────────────────────────────────────────
 
 function FiltersBar({ filters, setFilters, opps }) {
-    const clients = [...new Set(opps.map(o => o.client).filter(Boolean))].sort();
-    const ams = [...new Set(opps.map(o => o.accountManager).filter(Boolean))].sort();
-
     return (
-        <>
-            <div className="ot-filters">
-                {/* <input
-                    className="ot-filter-search"
-                    placeholder="🔍 Search client, skill, POC…"
-                    value={filters.search}
-                    onChange={e => setFilters(p => ({ ...p, search: e.target.value }))}
-                />
-                <select className="ot-filter-select" value={filters.status} onChange={e => setFilters(p => ({ ...p, status: e.target.value }))}>
-                    <option value="">All Statuses</option>
-                    {["Open", "Closed by SS", "Closed by Others"].map(s => <option key={s}>{s}</option>)}
-                </select>
-                <select className="ot-filter-select" value={filters.priority} onChange={e => setFilters(p => ({ ...p, priority: e.target.value }))}>
-                    <option value="">All Priorities</option>
-                    {["High", "Medium", "Low"].map(s => <option key={s}>{s}</option>)}
-                </select>
-                <select className="ot-filter-select" value={filters.client} onChange={e => setFilters(p => ({ ...p, client: e.target.value }))}>
-                    <option value="">All Clients</option>
-                    {clients.map(c => <option key={c}>{c}</option>)}
-                </select>
-                <select className="ot-filter-select" value={filters.am} onChange={e => setFilters(p => ({ ...p, am: e.target.value }))}>
-                    <option value="">All AMs</option>
-                    {ams.map(a => <option key={a}>{a}</option>)}
-                </select> */}
-            </div>
-        </>
+        <div className="ot-filters">
+            <input
+                className="ot-filter-search"
+                placeholder="🔍 Search client, skill, POC…"
+                value={filters.search}
+                onChange={e => setFilters(p => ({ ...p, search: e.target.value }))}
+            />
+        </div>
     );
 }
 
@@ -517,26 +383,24 @@ export default function OpportunityTracker({ onToast }) {
         if (filters.am && o.accountManager !== filters.am) return false;
         if (filters.search) {
             const q = filters.search.toLowerCase();
-            if (![o.client, o.skill, o.technicalPoc, o.managerBU, o.description].some(v => (v || "").toLowerCase().includes(q))) return false;
+            if (![o.client, o.skill, o.technicalPoc, o.bu, o.description].some(v => (v || "").toLowerCase().includes(q))) return false;
         }
         return true;
     });
 
-    // Metrics
     const open = opps.filter(o => o.status === "Open").length;
     const closedSS = opps.filter(o => o.status === "Closed by SS").length;
     const high = opps.filter(o => o.priority === "High").length;
-    const totalHC = opps.reduce((s, o) => s + (parseInt(o.totalHeadCount) || 0), 0);
+    const totalPositions = opps.reduce((s, o) => s + (parseInt(o.noOfPositions) || 0), 0);
 
     return (
         <>
             <div className="ot-page-header">
                 <h1 className="ot-page-title">SmartSocs Opportunity Tracker</h1>
-                <p className="ot-page-subtitle">
-                   Recruitment and business opportunity dashboard
-                </p>
+                <p className="ot-page-subtitle">Recruitment and business opportunity dashboard</p>
             </div>
-            {/* Form slide-over */}
+
+            {/* Form modal */}
             {showForm && (
                 <div className="modal-overlay" onClick={() => { setShowForm(false); setEditingOpp(null); }}>
                     <div
@@ -572,7 +436,7 @@ export default function OpportunityTracker({ onToast }) {
                 <div className="metric-card blue"><span className="metric-value">{open}</span><span className="metric-label">Open</span></div>
                 <div className="metric-card green"><span className="metric-value">{closedSS}</span><span className="metric-label">Closed by SS</span></div>
                 <div className="metric-card amber"><span className="metric-value">{high}</span><span className="metric-label">High Priority</span></div>
-                <div className="metric-card neutral"><span className="metric-value">{totalHC}</span><span className="metric-label">Total Head Count</span></div>
+                <div className="metric-card neutral"><span className="metric-value">{totalPositions}</span><span className="metric-label">Total Positions</span></div>
             </div>
 
             {/* Action bar */}
@@ -592,12 +456,7 @@ export default function OpportunityTracker({ onToast }) {
             ) : (
                 <div className="ot-list">
                     {filtered.map(o => (
-                        <OppCard
-                            key={o.id}
-                            opp={o}
-                            onEdit={startEdit}
-                            onDelete={(id) => setDeletingId(id)}
-                        />
+                        <OppCard key={o.id} opp={o} onEdit={startEdit} onDelete={(id) => setDeletingId(id)} />
                     ))}
                 </div>
             )}

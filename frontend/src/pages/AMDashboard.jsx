@@ -3,6 +3,7 @@ import { api } from "../utils/api";
 import { MetricCard, Badge, Bar, Empty, Spinner } from "../components/UI";
 import EntryForm from "../components/EntryForm";
 import OpportunityTracker from "../components/OpportunityTracker";
+import OpportunityStatusForm from "../components/OpportunityStatusForm";
 import { CSVLink } from "react-csv";
 
 // const AMS_PEER = ["Shalini", "Shubha", "Shataveeresh", "Sathvik", "Sweatha", "Subhashini", "Jaibheema", "xxx", "yyy", "zzz"];
@@ -29,7 +30,7 @@ export default function AMDashboard({ user, onToast }) {
   const [teamMonth, setTeamMonth] = useState("ALL");
   const [teamWeek, setTeamWeek] = useState("ALL");
   const [meta, setMeta] = useState({ clients: [], verticals: [], ams: [] });
-
+  const [showProfilePopup, setShowProfilePopup] = useState(false);
   // fetch meta once
   useEffect(() => {
     api.meta().then(m => setMeta(m)).catch(() => { });
@@ -62,10 +63,10 @@ export default function AMDashboard({ user, onToast }) {
     <div className="page">
       <div className="tab-bar">
         {[
-          ["log",      "Employee Lifecycle Tracker"],
-          ["records",  "My Records"],
-          ["rollup",   "Week → Year"],
-          ["opps",     "Opportunity Tracker"],   // ← NEW TAB
+          ["log", "Employee Lifecycle Tracker"],
+          ["records", "My Records"],
+          // ["rollup", "Week → Year"],
+          // ["opps", "Opportunity Tracker"],   // ← NEW TAB
         ].map(([id, label]) => (
           <button
             key={id}
@@ -84,6 +85,22 @@ export default function AMDashboard({ user, onToast }) {
             <div className="log-cards">
               {[
                 {
+                  type: "opportunity",
+                  color: "#1d4ed8",
+                  bg: "#eff6ff",
+                  border: "#bfdbfe",
+                  title: "Opportunity",
+                  sub: "New business opportunity identified",
+                },
+                {
+                  type: "opportunity-status",
+                  color: "#1d4ed8",
+                  bg: "#eff6ff",
+                  border: "#bfdbfe",
+                  title: "Opportunity Status",
+                  sub: "Update opportunity status",
+                },
+                {
                   type: "selection",
                   color: "#1d4ed8",
                   bg: "#eff6ff",
@@ -91,6 +108,14 @@ export default function AMDashboard({ user, onToast }) {
                   title: "Selection",
                   sub: "Engineer selected by client",
                 },
+                {
+                  type: "on-off-boarding",
+                  color: "#1d4ed8",
+                  bg: "#eff6ff",
+                  border: "#bfdbfe",
+                  title: "On/Off-Boarding",
+                  sub: "Update employee on/off-boarding status",
+                }
               ].map(({ type, color, bg, border, title, sub }) => (
                 <div
                   key={type}
@@ -105,30 +130,123 @@ export default function AMDashboard({ user, onToast }) {
               ))}
             </div>
           )}
+          {/* ── Opportunity Status Section ── */}
+{activeForm === "opportunity-status" && (
+    <div className="ops-main-wrap">
+        <div className="ops-page-head">
+            <div>
+                <h2 className="ops-page-title">Opportunity Status</h2>
+                <p className="ops-page-sub">
+                    Track profiles, interview stages and hiring progress
+                </p>
+            </div>
+        </div>
 
-          {activeForm && (
-            <EntryForm type={activeForm} onSave={handleSave} onCancel={() => setActiveForm(null)} />
-          )}
+        <div className="opportunity-list">
+            {[
+                {
+                    id: 1,
+                    client: "AMD",
+                    vertical: "DV",
+                    positions: 3,
+                    status: "Open",
+                },
+                {
+                    id: 2,
+                    client: "Qualcomm",
+                    vertical: "PD",
+                    positions: 2,
+                    status: "Interview",
+                },
+                {
+                    id: 3,
+                    client: "Intel",
+                    vertical: "RTL",
+                    positions: 5,
+                    status: "Open",
+                },
+            ].map((opp) => (
+                <div key={opp.id} className="opp-card">
+                    <div className="opp-card-top">
+                        <div>
+                            <div className="opp-client">{opp.client}</div>
+                            <div className="opp-vertical">{opp.vertical}</div>
+                        </div>
 
-          <p className="section-title">This week's entries</p>
-          {loading && <Spinner />}
-          {!loading && !weekEntries.length && <Empty text="No entries this week yet. Use the buttons above to log." />}
-          <div className="entry-list">
-            {weekEntries.map(r => (
-              <div key={r.id} className="entry-row">
-                <Badge type={r.type} />
-                <span className="entry-client">{r.client}</span>
-                <span className="entry-vert">{r.vertical}</span>
-                <Badge type={r.source} />
-                <span className="entry-date">{fmt(r.date)}</span>
-              </div>
+                        <span className="opp-status">
+                            {opp.status}
+                        </span>
+                    </div>
+
+                    <div className="opp-meta">
+                        {opp.positions} Open Positions
+                    </div>
+
+                    <button
+                        className="btn-primary"
+                        style={{ marginTop: 16 }}
+                        onClick={() => setShowProfilePopup(true)}
+                    >
+                        + Add Profile
+                    </button>
+                </div>
             ))}
-          </div>
-          <div className="metric-grid" style={{ marginTop: 16 }}>
-            <MetricCard label="This week selections" value={weekEntries.filter(r => r.type === "selection").length} color="blue" />
-            <MetricCard label="This week onboardings" value={weekEntries.filter(r => r.type === "onboarding").length} color="green" />
-            <MetricCard label="This week offboardings" value={weekEntries.filter(r => r.type === "offboarding").length} color="red" />
-          </div>
+        </div>
+    </div>
+)}
+
+{/* ── Other Forms ── */}
+{activeForm &&
+    activeForm !== "opportunity-status" && (
+        <OpportunityTracker
+            type={activeForm}
+            onSave={handleSave}
+            onCancel={() => setActiveForm(null)}
+        />
+    )
+}
+
+{/* ── Opportunity Status Popup ── */}
+{showProfilePopup && (
+    <div
+        className="modal-overlay"
+        onClick={() => setShowProfilePopup(false)}
+    >
+        <div
+            className="modal"
+            style={{
+                maxWidth: 950,
+                width: "95%",
+                maxHeight: "92vh",
+                overflowY: "auto",
+                padding: 0,
+                borderRadius: 18,
+            }}
+            onClick={(e) => e.stopPropagation()}
+        >
+            <OpportunityStatusForm
+                onSave={(data) => {
+                    handleSave(data);
+                    setShowProfilePopup(false);
+                }}
+                onCancel={() => setShowProfilePopup(false)}
+            />
+        </div>
+    </div>
+)}
+
+          {/* {activeForm && activeForm === "opportunity-status" ? (
+            <OpportunityStatusForm
+              onSave={handleSave}
+              onCancel={() => setActiveForm(null)}
+            />
+          ) : activeForm ? (
+            <OpportunityTracker
+              type={activeForm}
+              onSave={handleSave}
+              onCancel={() => setActiveForm(null)}
+            />
+          ) : null} */}
         </>
       )}
 
@@ -141,19 +259,6 @@ export default function AMDashboard({ user, onToast }) {
           loading={loading}
           onToast={onToast}
         />
-      )}
-
-      {/* ── ROLLUP ── */}
-      {tab === "rollup" && (
-        <>
-          {loading && <Spinner />}
-          <RollupTable entries={entries} />
-        </>
-      )}
-
-      {/* ── OPPORTUNITY TRACKER ── */}
-      {tab === "opps" && (
-        <OpportunityTracker onToast={onToast} />
       )}
     </div>
   );
@@ -322,73 +427,6 @@ function MyRecordsSection({ entries: initialEntries, setEntries: setParentEntrie
           </div>
         </div>
       ))}
-    </div>
-  );
-}
-
-/* ── ROLLUP TABLE ── */
-function RollupTable({ entries }) {
-  const MONTHS_ORDER = ["Jan'25","Feb'25","Mar'25","Apr'25","May'25","Jun'25","Jul'25","Aug'25","Sep'25","Oct'25","Nov'25","Dec'25","Jan'26","Feb'26","Mar'26","Apr'26","May'26","Jun'26","Jul'26","Aug'26","Sep'26","Oct'26","Nov'26","Dec'26"];
-  const months = [...new Set(entries.map(r => r.month))].filter(Boolean).sort((a, b) => MONTHS_ORDER.indexOf(a) - MONTHS_ORDER.indexOf(b));
-  if (!months.length) return <Empty />;
-
-  const count = (m, w, t) => entries.filter(r => r.month === m && r.week === w && r.type === t).length;
-  let cumSel = 0, cumOb = 0, cumOff = 0;
-
-  return (
-    <div className="rollup-wrap">
-      <p className="section-title">Week → Month Breakdown</p>
-      <div className="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Month</th>
-              {["W1","W2","W3","W4"].map(w => (
-                <>
-                  <th key={w+"s"} style={{ color: "#1f6fbf" }}>{w} Sel</th>
-                  <th key={w+"o"} style={{ color: "#1a7a4a" }}>{w} Ob</th>
-                  <th key={w+"f"} style={{ color: "#b91c1c" }}>{w} Off</th>
-                </>
-              ))}
-              <th style={{ color: "#1f6fbf" }}>Mo Sel</th>
-              <th style={{ color: "#1a7a4a" }}>Mo Ob</th>
-              <th style={{ color: "#b91c1c" }}>Mo Off</th>
-              <th>Net</th>
-            </tr>
-          </thead>
-          <tbody>
-            {months.map(m => {
-              const [ms, mo, mf] = ["selection","onboarding","offboarding"].map(t => entries.filter(r => r.month === m && r.type === t).length);
-              const net = mo - mf;
-              cumSel += ms; cumOb += mo; cumOff += mf;
-              return (
-                <tr key={m}>
-                  <td><strong>{m}</strong></td>
-                  {[1,2,3,4].map(w => (
-                    <>
-                      <td key={w+"s"} style={{ color: "#1f6fbf" }}>{count(m,"W"+w,"selection") || "—"}</td>
-                      <td key={w+"o"} style={{ color: "#1a7a4a" }}>{count(m,"W"+w,"onboarding") || "—"}</td>
-                      <td key={w+"f"} style={{ color: "#b91c1c" }}>{count(m,"W"+w,"offboarding") || "—"}</td>
-                    </>
-                  ))}
-                  <td style={{ fontWeight: 700, color: "#1f6fbf" }}>{ms}</td>
-                  <td style={{ fontWeight: 700, color: "#1a7a4a" }}>{mo}</td>
-                  <td style={{ fontWeight: 700, color: "#b91c1c" }}>{mf}</td>
-                  <td style={{ fontWeight: 700, color: net >= 0 ? "#1a7a4a" : "#b91c1c" }}>{net > 0 ? "+" : ""}{net}</td>
-                </tr>
-              );
-            })}
-            <tr className="row-total">
-              <td>Cumulative</td>
-              {[1,2,3,4].map(w => <><td key={w+"s"}/><td key={w+"o"}/><td key={w+"f"}/></>)}
-              <td style={{ color: "#1f6fbf" }}>{cumSel}</td>
-              <td style={{ color: "#1a7a4a" }}>{cumOb}</td>
-              <td style={{ color: "#b91c1c" }}>{cumOff}</td>
-              <td style={{ color: cumOb-cumOff >= 0 ? "#1a7a4a" : "#b91c1c" }}>{cumOb-cumOff > 0 ? "+" : ""}{cumOb-cumOff}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
     </div>
   );
 }
