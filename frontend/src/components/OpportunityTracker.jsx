@@ -83,6 +83,7 @@ function Textarea({ value, onChange, placeholder, rows = 3 }) {
 function OppForm({ initial, onSave, onCancel }) {
     const [form, setForm] = useState(initial || emptyOpportunity());
     const fileRef = useRef();
+    const [showClientDropdown, setShowClientDropdown] = useState(false);
 
     const set = (key) => (val) => setForm(p => ({ ...p, [key]: val }));
 
@@ -130,12 +131,18 @@ function OppForm({ initial, onSave, onCancel }) {
                             <input
                                 type="text"
                                 value={form.client}
-                                onChange={(e) => set("client")(e.target.value)}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+
+                                    set("client")(value);
+
+                                    setShowClientDropdown(value.length >= 3);
+                                }}
                                 placeholder="Type at least 3 letters..."
                                 className="search-input"
                             />
 
-                            {form.client.length >= 3 && (
+                            {showClientDropdown && (
                                 <div className="search-dropdown">
                                     {CLIENTS
                                         .filter(client =>
@@ -145,7 +152,10 @@ function OppForm({ initial, onSave, onCancel }) {
                                             <div
                                                 key={client}
                                                 className="search-option"
-                                                onClick={() => set("client")(client)}
+                                                onClick={() => {
+                                                    set("client")(client);
+                                                    setShowClientDropdown(false);
+                                                }}
                                             >
                                                 {client}
                                             </div>
@@ -379,22 +389,26 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
         return true;
     });
 
-    const open = opps.filter(o => o.status === "Open").length;
-    const closedSS = opps.filter(o => o.status === "Closed by SS").length;
-    const high = opps.filter(o => o.priority === "High").length;
-    const totalPositions = opps.reduce((s, o) => s + (parseInt(o.noOfPositions) || 0), 0);
+    // const open = opps.filter(o => o.status === "Open").length;
+    // const closedSS = opps.filter(o => o.status === "Closed by SS").length;
+    // const high = opps.filter(o => o.priority === "High").length;
+    // const totalPositions = opps.reduce((s, o) => s + (parseInt(o.noOfPositions) || 0), 0);
 
     return (
         <>
-            <button
-                className="btn-back"
-                onClick={() => setActiveForm(null)}
-            >
-                ← Back
-            </button>
             <div className="ot-page-header">
-                <h1 className="ot-page-title">SmartSocs Opportunity Tracker</h1>
-                <p className="ot-page-subtitle">Recruitment and business opportunity dashboard</p>
+                <div className="ot-title-row">
+                    <span
+                        className="ot-back-arrow"
+                        onClick={() => setActiveForm(null)}
+                    >
+                           {"<"}
+                    </span>
+
+                    <h1 className="ot-page-title">
+                        SmartSocs Opportunity Tracker
+                    </h1>
+                </div>
             </div>
 
             {/* Form modal */}
@@ -430,10 +444,10 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
 
             {/* Metrics */}
             <div className="metric-grid" style={{ marginBottom: 16 }}>
-                <div className="metric-card blue"><span className="metric-value">{open}</span><span className="metric-label">Open</span></div>
-                <div className="metric-card green"><span className="metric-value">{closedSS}</span><span className="metric-label">Closed by SS</span></div>
-                <div className="metric-card amber"><span className="metric-value">{high}</span><span className="metric-label">High Priority</span></div>
-                <div className="metric-card neutral"><span className="metric-value">{totalPositions}</span><span className="metric-label">Total Positions</span></div>
+                {/* <div className="metric-card blue"><span className="metric-value">{open}</span><span className="metric-label">Open</span></div> */}
+                {/* <div className="metric-card green"><span className="metric-value">{closedSS}</span><span className="metric-label">Closed by SS</span></div> */}
+                {/* <div className="metric-card amber"><span className="metric-value">{high}</span><span className="metric-label">High Priority</span></div> */}
+                {/* <div className="metric-card neutral"><span className="metric-value">{totalPositions}</span><span className="metric-label">Total Positions</span></div> */}
             </div>
 
             {/* Action bar */}

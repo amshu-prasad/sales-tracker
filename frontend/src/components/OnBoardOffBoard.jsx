@@ -35,7 +35,7 @@ function Input({ value, onChange, placeholder, type = "text" }) {
     );
 }
 
-export default function OnboardingOffboardingForm({ onCancel,setActiveForm }) {
+export default function OnboardingOffboardingForm({ onCancel, setActiveForm }) {
 
     const [form, setForm] = useState({
         engineerName: "",
@@ -71,18 +71,22 @@ export default function OnboardingOffboardingForm({ onCancel,setActiveForm }) {
     };
 
     return (
-        <div>
-            <button
-                className="btn-back"
-                onClick={() => setActiveForm(null)}
-            >
-                ← Back
-            </button>
-            <div className="ops-section">
-                <div className="ops-section-title">
-                    <h1>Onboarding Details</h1>
-                </div>
+        <>
+            <div className="ops-page-head">
+                <div className="ops-title-row">
+                    <span
+                        className="ops-back-arrow"
+                        onClick={() => setActiveForm(null)}
+                    >
+                        {"<"}
+                    </span>
 
+                    <h2 className="ops-page-title">
+                        Onboarding Details
+                    </h2>
+                </div>
+            </div>
+            <div className="ops-section">
                 <div className="ops-grid-2">
 
                     <Field label="Engineer Name">
@@ -293,6 +297,6 @@ export default function OnboardingOffboardingForm({ onCancel,setActiveForm }) {
                     Save Entry
                 </button>
             </div>
-        </div>
+        </>
     );
 }

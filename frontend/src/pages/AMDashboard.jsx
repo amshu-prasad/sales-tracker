@@ -134,19 +134,17 @@ export default function AMDashboard({ user, onToast }) {
 
           {activeForm === "opportunity-status" && (
             <div className="ops-main-wrap">
-              <button
-                className="btn-back"
-                onClick={() => setActiveForm(null)}
-              >
-                ← Back
-              </button>
               <div className="ops-page-head">
-
-                <div>
-                  <h2 className="ops-page-title">Opportunity Status</h2>
-                  <p className="ops-page-sub">
-                    Track profiles, interview stages and hiring progress
-                  </p>
+                <div className="ops-title-row">
+                  <span
+                    className="ops-back-arrow"
+                    onClick={() => setActiveForm(null)}
+                  >
+                    {"<"}
+                  </span>
+                  <h2 className="ops-page-title">
+                    Opportunity Status
+                  </h2>
                 </div>
               </div>
 

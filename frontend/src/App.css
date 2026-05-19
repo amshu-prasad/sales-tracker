@@ -1520,7 +1520,7 @@ textarea {
 }
 
 .ot-page-title {
-  font-size: 28px;
+  font-size: 25px;
   font-weight: 700;
   color: var(--text);
   margin: 0;
@@ -1838,45 +1838,6 @@ textarea {
   font-weight: 600;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* ── Opportunity Status Page ───────────────────── */
-
 .ops-main-wrap {
   margin-top: 10px;
 }
@@ -1886,7 +1847,7 @@ textarea {
 }
 
 .ops-page-title {
-  font-size: 28px;
+  font-size: 25px;
   font-weight: 700;
   color: var(--text);
 }
@@ -1954,14 +1915,14 @@ textarea {
   color: var(--text-muted);
 }
 
-.ops-page-head{
+.ops-page-head {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 24px;
 }
 
-.btn-back{
+.btn-back {
   border: none;
   background: #eef2ff;
   color: #1d4ed8;
@@ -1973,92 +1934,86 @@ textarea {
   transition: all 0.2s ease;
 }
 
-.btn-back:hover{
+.btn-back:hover {
   background: #dbeafe;
   transform: translateY(-1px);
 }
 
-
-
 .search-select {
-    position: relative;
-    width: 100%;
+  position: relative;
+  width: 100%;
 }
 
 .search-input {
-    width: 100%;
-    height: 42px;
-    padding: 0 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    outline: none;
-    font-size: 14px;
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  outline: none;
+  font-size: 14px;
 }
 
 .search-input:focus {
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .search-dropdown {
-    position: absolute;
-    top: 46px;
-    left: 0;
-    right: 0;
-    background: white;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    max-height: 220px;
-    overflow-y: auto;
-    z-index: 20;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  position: absolute;
+  top: 46px;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 20;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
 }
 
 .search-option {
-    padding: 10px 12px;
-    cursor: pointer;
-    font-size: 14px;
+  padding: 10px 12px;
+  cursor: pointer;
+  font-size: 14px;
 }
 
 .search-option:hover {
-    background: #f3f4f6;
+  background: #f3f4f6;
 }
 
 .add-profile-btn {
-    margin-top: 16px;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 18px;
-    border: none;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #09d554, #4ade80);
-    color: #14532d;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    box-shadow: 0 6px 18px rgba(74, 222, 128, 0.25);
+  margin-top: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #09d554, #4ade80);
+  color: #14532d;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 6px 18px rgba(74, 222, 128, 0.25);
 }
 
 .add-profile-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 24px rgba(74, 222, 128, 0.35);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(74, 222, 128, 0.35);
 }
 
 .add-profile-btn:active {
-    transform: scale(0.98);
+  transform: scale(0.98);
 }
 
 .btn-plus {
-    font-size: 18px;
-    line-height: 1;
-    font-weight: 700;
+  font-size: 18px;
+  line-height: 1;
+  font-weight: 700;
 }
-
-
-
-
 
 .ot-actions {
   display: flex;
@@ -2102,4 +2057,42 @@ textarea {
 .btn-ghost:hover {
   background: #f3f4f6;
   border-color: #cbd5e1;
+}
+
+.ot-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ot-back-arrow {
+  font-size: 24px;
+  font-weight: 700;
+  color: #2563eb;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  line-height: 1;
+}
+
+.ot-back-arrow:hover {
+  color: #1d4ed8;
+}
+
+.ops-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ops-back-arrow {
+  font-size: 24px;
+  font-weight: 700;
+  color: #2563eb;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  line-height: 1;
+}
+
+.ops-back-arrow:hover {
+  color: #1d4ed8;
 }
