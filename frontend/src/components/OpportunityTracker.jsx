@@ -1,28 +1,5 @@
 import { useState, useRef } from "react";
-
-// ─── Constants ───────────────────────────────────────────────────────────────
-
-const CLIENTS = [
-    "ADI", "Aion Semi", "Alphawave", "Amazon", "AMD Bangalore", "AMD Hyderabad",
-    "Auradine", "Axiado", "Baya Systems", "Big endian", "Broadcom", "Cadence",
-    "Cerebras System", "CEVA", "Cisco", "EU Client", "Google", "Green PMU", "GUC",
-    "HydWyr", "Microchip", "Micron", "NextSilicon", "Nokia", "NXP", "Omni",
-    "Qualcomm", "Samsung", "Sandisk", "SemiDynamics", "Sifive", "Silicon Labs",
-    "Synopsys", "Tenstorrent", "TI", "Xilinx",
-];
-
-const LOCATIONS = ["Bangalore", "Hyderabad", "Noida", "Pune", "Hubli", "Chennai", "Global", "Others"];
-
-const VERTICALS = ["AD", "AL", "DFT", "DV", "Emulation & Validation", "Emulation & Verification", "PD", "PSV", "RTL"];
-
-const AMS = ["Jaibhima", "Sangita", "Sathvik", "Shalini", "Shantaveeresh", "Shubha", "Subhashini", "Sweatha M"];
-
-const BUS = ["VLSI", "Embedded", "PES", "AI"];
-const MODES = ["T&M", "ODC"];
-const TEAMS = ["Indie Business", "Others", "Global"];
-const START_DATE_OPTIONS = ["Immediate", "15", "30", "30+"];
-const PRIORITIES = ["High", "Medium", "Low"];
-const STATUSES = ["Open", "Closed by SS", "Closed by Others"];
+import { CLIENTS, BUS, MODES, TEAMS, LOCATIONS, START_DATE_OPTIONS, PRIORITIES } from "../constants/StringConstants.js";
 
 const STATUS_COLORS = {
     "Open": { bg: "#dcfce7", color: "#15803d", dot: "#16a34a" },
@@ -132,7 +109,7 @@ function OppForm({ initial, onSave, onCancel }) {
     };
 
     const handleSubmit = () => {
-        console.log(form,"hehehehh")
+        console.log(form, "hehehehh")
         // if (!form.client || !form.status) {
         //     alert("Client and Status are required.");
         //     return;
@@ -161,7 +138,33 @@ function OppForm({ initial, onSave, onCancel }) {
                 <Section title="Engagement Details" icon="📋" />
                 <div className="ot-grid-2">
                     <Field label="Client" required>
-                        <Select value={form.client} onChange={set("client")} options={CLIENTS} />
+                        <div className="search-select">
+                            <input
+                                type="text"
+                                value={form.client}
+                                onChange={(e) => set("client")(e.target.value)}
+                                placeholder="Type at least 3 letters..."
+                                className="search-input"
+                            />
+
+                            {form.client.length >= 3 && (
+                                <div className="search-dropdown">
+                                    {CLIENTS
+                                        .filter(client =>
+                                            client.toLowerCase().includes(form.client.toLowerCase())
+                                        )
+                                        .map(client => (
+                                            <div
+                                                key={client}
+                                                className="search-option"
+                                                onClick={() => set("client")(client)}
+                                            >
+                                                {client}
+                                            </div>
+                                        ))}
+                                </div>
+                            )}
+                        </div>
                     </Field>
                     <Field label="BU">
                         <Select value={form.bu} onChange={set("bu")} options={BUS} />
@@ -354,7 +357,7 @@ function FiltersBar({ filters, setFilters, opps }) {
 
 // ─── Main OpportunityTracker ──────────────────────────────────────────────────
 
-export default function OpportunityTracker({ onToast }) {
+export default function OpportunityTracker({ onToast, setActiveForm }) {
     const [opps, setOpps] = useState([]);
     const [showForm, setShowForm] = useState(false);
     const [editingOpp, setEditingOpp] = useState(null);
@@ -395,6 +398,12 @@ export default function OpportunityTracker({ onToast }) {
 
     return (
         <>
+            <button
+                className="btn-back"
+                onClick={() => setActiveForm(null)}
+            >
+                ← Back
+            </button>
             <div className="ot-page-header">
                 <h1 className="ot-page-title">SmartSocs Opportunity Tracker</h1>
                 <p className="ot-page-subtitle">Recruitment and business opportunity dashboard</p>

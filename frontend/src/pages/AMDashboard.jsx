@@ -123,7 +123,6 @@ export default function AMDashboard({ user, onToast }) {
                   style={{ background: bg, borderColor: border }}
                   onClick={() => setActiveForm(type)}
                 >
-                  <p className="log-card-pre">Log a</p>
                   <p className="log-card-title" style={{ color }}>{title}</p>
                   <p className="log-card-sub">{sub}</p>
                 </div>
@@ -131,109 +130,118 @@ export default function AMDashboard({ user, onToast }) {
             </div>
           )}
           {/* ── Opportunity Status Section ── */}
-{activeForm === "opportunity-status" && (
-    <div className="ops-main-wrap">
-        <div className="ops-page-head">
-            <div>
-                <h2 className="ops-page-title">Opportunity Status</h2>
-                <p className="ops-page-sub">
-                    Track profiles, interview stages and hiring progress
-                </p>
-            </div>
-        </div>
 
-        <div className="opportunity-list">
-            {[
-                {
+          {activeForm === "opportunity-status" && (
+            <div className="ops-main-wrap">
+              <button
+                  className="btn-back"
+                  onClick={() => setActiveForm(null)}
+                >
+                  ← Back
+                </button>
+              <div className="ops-page-head">
+                
+                <div>
+                  <h2 className="ops-page-title">Opportunity Status</h2>
+                  <p className="ops-page-sub">
+                    Track profiles, interview stages and hiring progress
+                  </p>
+                </div>
+              </div>
+
+              <div className="opportunity-list">
+                {[
+                  {
                     id: 1,
                     client: "AMD",
                     vertical: "DV",
                     positions: 3,
                     status: "Open",
-                },
-                {
+                  },
+                  {
                     id: 2,
                     client: "Qualcomm",
                     vertical: "PD",
                     positions: 2,
                     status: "Interview",
-                },
-                {
+                  },
+                  {
                     id: 3,
                     client: "Intel",
                     vertical: "RTL",
                     positions: 5,
                     status: "Open",
-                },
-            ].map((opp) => (
-                <div key={opp.id} className="opp-card">
+                  },
+                ].map((opp) => (
+                  <div key={opp.id} className="opp-card">
                     <div className="opp-card-top">
-                        <div>
-                            <div className="opp-client">{opp.client}</div>
-                            <div className="opp-vertical">{opp.vertical}</div>
-                        </div>
+                      <div>
+                        <div className="opp-client">{opp.client}</div>
+                        <div className="opp-vertical">{opp.vertical}</div>
+                      </div>
 
-                        <span className="opp-status">
-                            {opp.status}
-                        </span>
+                      <span className="opp-status">
+                        {opp.status}
+                      </span>
                     </div>
 
                     <div className="opp-meta">
-                        {opp.positions} Open Positions
+                      {opp.positions} Open Positions
                     </div>
 
                     <button
-                        className="btn-primary"
-                        style={{ marginTop: 16 }}
-                        onClick={() => setShowProfilePopup(true)}
+                      className="btn-primary"
+                      style={{ marginTop: 16 }}
+                      onClick={() => setShowProfilePopup(true)}
                     >
-                        + Add Profile
+                      + Add Profile
                     </button>
-                </div>
-            ))}
-        </div>
-    </div>
-)}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
-{/* ── Other Forms ── */}
-{activeForm &&
-    activeForm !== "opportunity-status" && (
-        <OpportunityTracker
-            type={activeForm}
-            onSave={handleSave}
-            onCancel={() => setActiveForm(null)}
-        />
-    )
-}
+          {/* ── Other Forms ── */}
+          {activeForm &&
+            activeForm !== "opportunity-status" && (
+              <OpportunityTracker
+                type={activeForm}
+                onSave={handleSave}
+                onCancel={() => setActiveForm(null)}
+                setActiveForm={setActiveForm}
+              />
+            )
+          }
 
-{/* ── Opportunity Status Popup ── */}
-{showProfilePopup && (
-    <div
-        className="modal-overlay"
-        onClick={() => setShowProfilePopup(false)}
-    >
-        <div
-            className="modal"
-            style={{
-                maxWidth: 950,
-                width: "95%",
-                maxHeight: "92vh",
-                overflowY: "auto",
-                padding: 0,
-                borderRadius: 18,
-            }}
-            onClick={(e) => e.stopPropagation()}
-        >
-            <OpportunityStatusForm
-                onSave={(data) => {
+          {/* ── Opportunity Status Popup ── */}
+          {showProfilePopup && (
+            <div
+              className="modal-overlay"
+              onClick={() => setShowProfilePopup(false)}
+            >
+              <div
+                className="modal"
+                style={{
+                  maxWidth: 950,
+                  width: "95%",
+                  maxHeight: "92vh",
+                  overflowY: "auto",
+                  padding: 0,
+                  borderRadius: 18,
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <OpportunityStatusForm
+                  onSave={(data) => {
                     handleSave(data);
                     setShowProfilePopup(false);
-                }}
-                onCancel={() => setShowProfilePopup(false)}
-            />
-        </div>
-    </div>
-)}
+                  }}
+                  onCancel={() => setShowProfilePopup(false)}
+                />
+              </div>
+            </div>
+          )}
 
           {/* {activeForm && activeForm === "opportunity-status" ? (
             <OpportunityStatusForm

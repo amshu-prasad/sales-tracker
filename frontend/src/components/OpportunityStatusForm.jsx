@@ -1,22 +1,5 @@
 import { useState } from "react";
-
-// ── Constants ──────────────────────────────────────────────────────────────
-const VERTICALS = ["AD", "AL", "DFT", "DV", "Emulation & Validation", "Emulation & Verification", "PD", "PSV", "RTL"];
-const SOURCES = ["Bench", "Partner", "TA", "Employee Referral", "Pass Through"];
-const PROFILE_STATUSES = [
-    "Profile Select",
-    "Profile Reject",
-    "Interview Scheduled",
-    "Interview Happened",
-    "Interview Select",
-    "Interview Reject",
-    "Final Selection",
-    "Final Rejection",
-];
-const OPEN_STATUSES = ["Open", "Closed by SS", "Closed by Others", "Client Hold"];
-const BUS = ["BU - Semiconductors", "BU - Automotive", "BU - Enterprise IT", "BU - Telecom", "BU - Aerospace"];
-
-const SS_ID_SOURCES = ["Bench", "TA", "Employee Referral"];
+import { VERTICALS, SOURCES, PROFILE_STATUSES, OPEN_STATUSES, BUS } from "../constants/StringConstants.js";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 function Field({ label, required, children, hint }) {
@@ -54,7 +37,7 @@ function Input({ value, onChange, placeholder, type = "text" }) {
 }
 
 // ── Engineer Row ───────────────────────────────────────────────────────────
-function EngineerRow({ eng, idx, onChange, onRemove, requireSsId }) {
+function EngineerRow({ eng, idx, onChange, onRemove }) {
     return (
         <div className="eng-row">
             <div className="eng-row-num">{idx + 1}</div>
@@ -64,13 +47,11 @@ function EngineerRow({ eng, idx, onChange, onRemove, requireSsId }) {
                     onChange={v => onChange(idx, "name", v)}
                     placeholder="Engineer name"
                 />
-                {requireSsId && (
-                    <Input
-                        value={eng.ssId}
-                        onChange={v => onChange(idx, "ssId", v)}
-                        placeholder="SS ID"
-                    />
-                )}
+                <Input
+                    value={eng.ssId}
+                    onChange={v => onChange(idx, "ssId", v)}
+                    placeholder="SS ID"
+                />
                 <Input
                     value={eng.projectedExp}
                     onChange={v => onChange(idx, "projectedExp", v)}
@@ -127,8 +108,6 @@ export default function OpportunityStatusForm({ onSave, onCancel }) {
 
     const set = (key, val) => setForm(f => ({ ...f, [key]: val }));
 
-    const requireSsId = SS_ID_SOURCES.includes(form.source);
-
     // Engineer helpers
     const updateEng = (idx, key, val) => {
         const engs = [...form.engineers];
@@ -154,7 +133,6 @@ export default function OpportunityStatusForm({ onSave, onCancel }) {
                     <div className="ops-header-icon">📋</div>
                     <div>
                         <div className="ops-header-title">Opportunity Status</div>
-                        <div className="ops-header-sub">Track resume pipeline, interview stages &amp; hiring manager details</div>
                     </div>
                 </div>
 
@@ -185,14 +163,6 @@ export default function OpportunityStatusForm({ onSave, onCancel }) {
                                 placeholder="Select vertical…"
                             />
                         </Field>
-                        {requireSsId && (
-                            <div className="ops-field" style={{ alignSelf: "center" }}>
-                                <label className="ops-label">SS ID Required</label>
-                                <span className="source-pill">
-                                    ✓ SS ID fields enabled for {form.source}
-                                </span>
-                            </div>
-                        )}
                     </div>
                 </div>
 
@@ -207,7 +177,6 @@ export default function OpportunityStatusForm({ onSave, onCancel }) {
                                 idx={idx}
                                 onChange={updateEng}
                                 onRemove={removeEng}
-                                requireSsId={requireSsId}
                             />
                         ))}
                     </div>
