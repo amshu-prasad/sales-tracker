@@ -2023,3 +2023,83 @@ textarea {
 .search-option:hover {
     background: #f3f4f6;
 }
+
+.add-profile-btn {
+    margin-top: 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #09d554, #4ade80);
+    color: #14532d;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 6px 18px rgba(74, 222, 128, 0.25);
+}
+
+.add-profile-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(74, 222, 128, 0.35);
+}
+
+.add-profile-btn:active {
+    transform: scale(0.98);
+}
+
+.btn-plus {
+    font-size: 18px;
+    line-height: 1;
+    font-weight: 700;
+}
+
+
+
+
+
+.ot-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.btn-primary {
+  padding: 8px 18px;
+  border-radius: var(--radius);
+  border: none;
+  background: var(--blue);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: var(--font);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.18);
+}
+
+.btn-primary:hover {
+  background: #185fa5;
+  transform: translateY(-1px);
+}
+
+.btn-ghost {
+  padding: 8px 18px;
+  border-radius: var(--radius);
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: var(--font);
+}
+
+.btn-ghost:hover {
+  background: #f3f4f6;
+  border-color: #cbd5e1;
+}

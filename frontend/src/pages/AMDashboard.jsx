@@ -3,6 +3,7 @@ import { api } from "../utils/api";
 import { MetricCard, Badge, Bar, Empty, Spinner } from "../components/UI";
 import EntryForm from "../components/EntryForm";
 import OpportunityTracker from "../components/OpportunityTracker";
+import OnboardingOffboarding from "../components/OnBoardOffBoard";
 import OpportunityStatusForm from "../components/OpportunityStatusForm";
 import { CSVLink } from "react-csv";
 
@@ -134,13 +135,13 @@ export default function AMDashboard({ user, onToast }) {
           {activeForm === "opportunity-status" && (
             <div className="ops-main-wrap">
               <button
-                  className="btn-back"
-                  onClick={() => setActiveForm(null)}
-                >
-                  ← Back
-                </button>
+                className="btn-back"
+                onClick={() => setActiveForm(null)}
+              >
+                ← Back
+              </button>
               <div className="ops-page-head">
-                
+
                 <div>
                   <h2 className="ops-page-title">Opportunity Status</h2>
                   <p className="ops-page-sub">
@@ -190,11 +191,11 @@ export default function AMDashboard({ user, onToast }) {
                     </div>
 
                     <button
-                      className="btn-primary"
-                      style={{ marginTop: 16 }}
+                      className="add-profile-btn"
                       onClick={() => setShowProfilePopup(true)}
                     >
-                      + Add Profile
+                      <span className="btn-plus">＋</span>
+                      Add Profile
                     </button>
                   </div>
                 ))}
@@ -205,12 +206,20 @@ export default function AMDashboard({ user, onToast }) {
           {/* ── Other Forms ── */}
           {activeForm &&
             activeForm !== "opportunity-status" && (
-              <OpportunityTracker
-                type={activeForm}
-                onSave={handleSave}
-                onCancel={() => setActiveForm(null)}
-                setActiveForm={setActiveForm}
-              />
+              activeForm === "on-off-boarding" ? (
+                <OnboardingOffboarding
+                  onSave={handleSave}
+                  onCancel={() => setActiveForm(null)}
+                  setActiveForm={setActiveForm}
+                />
+              ) : (
+                <OpportunityTracker
+                  type={activeForm}
+                  onSave={handleSave}
+                  onCancel={() => setActiveForm(null)}
+                  setActiveForm={setActiveForm}
+                />
+              )
             )
           }
 

@@ -40,7 +40,6 @@ function Input({ value, onChange, placeholder, type = "text" }) {
 function EngineerRow({ eng, idx, onChange, onRemove }) {
     return (
         <div className="eng-row">
-            <div className="eng-row-num">{idx + 1}</div>
             <div className="eng-fields">
                 <Input
                     value={eng.name}
@@ -58,9 +57,6 @@ function EngineerRow({ eng, idx, onChange, onRemove }) {
                     placeholder="Projected Exp (yrs)"
                 />
             </div>
-            {idx > 0 && (
-                <button className="eng-remove" onClick={() => onRemove(idx)} title="Remove">✕</button>
-            )}
         </div>
     );
 }
@@ -134,6 +130,13 @@ export default function OpportunityStatusForm({ onSave, onCancel }) {
                     <div>
                         <div className="ops-header-title">Opportunity Status</div>
                     </div>
+                    <button
+                        className="ot-close-btn"
+                        onClick={onCancel}
+                        style={{ marginLeft: "auto" }}
+                    >
+                        ✕
+                    </button>
                 </div>
 
                 {/* ── Section 1: Core Details ── */}
@@ -180,9 +183,6 @@ export default function OpportunityStatusForm({ onSave, onCancel }) {
                             />
                         ))}
                     </div>
-                    <button className="btn-add-eng" onClick={addEng}>
-                        + Add Engineer
-                    </button>
                 </div>
 
                 {/* ── Section 3: Profile Status ── */}

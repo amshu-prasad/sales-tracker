@@ -106,3 +106,16 @@ export const PROFILE_STATUSES = [
 ];
 
 export const OPEN_STATUSES = ["Open", "Closed by SS", "Closed by Others", "Client Hold"];
+
+
+export const STATUS_COLORS = {
+    "Open": { bg: "#dcfce7", color: "#15803d", dot: "#16a34a" },
+    "Closed by SS": { bg: "#dbeafe", color: "#1d4ed8", dot: "#2563eb" },
+    "Closed by Others": { bg: "#fee2e2", color: "#b91c1c", dot: "#dc2626" },
+};
+
+export const PRIORITY_COLORS = {
+    "High": { bg: "#fef3c7", color: "#92400e", dot: "#d97706" },
+    "Medium": { bg: "#e0f2fe", color: "#075985", dot: "#0284c7" },
+    "Low": { bg: "#f3f4f6", color: "#374151", dot: "#6b7280" },
+};

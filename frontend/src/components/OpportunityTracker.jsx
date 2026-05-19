@@ -1,17 +1,5 @@
 import { useState, useRef } from "react";
-import { CLIENTS, BUS, MODES, TEAMS, LOCATIONS, START_DATE_OPTIONS, PRIORITIES } from "../constants/StringConstants.js";
-
-const STATUS_COLORS = {
-    "Open": { bg: "#dcfce7", color: "#15803d", dot: "#16a34a" },
-    "Closed by SS": { bg: "#dbeafe", color: "#1d4ed8", dot: "#2563eb" },
-    "Closed by Others": { bg: "#fee2e2", color: "#b91c1c", dot: "#dc2626" },
-};
-
-const PRIORITY_COLORS = {
-    "High": { bg: "#fef3c7", color: "#92400e", dot: "#d97706" },
-    "Medium": { bg: "#e0f2fe", color: "#075985", dot: "#0284c7" },
-    "Low": { bg: "#f3f4f6", color: "#374151", dot: "#6b7280" },
-};
+import { CLIENTS, BUS, MODES, TEAMS, LOCATIONS, START_DATE_OPTIONS, PRIORITIES, STATUS_COLORS, PRIORITY_COLORS } from "../constants/StringConstants.js";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
