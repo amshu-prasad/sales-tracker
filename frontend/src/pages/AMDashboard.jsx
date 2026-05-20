@@ -6,7 +6,7 @@ import OpportunityTracker from "../components/OpportunityTracker";
 import OnboardingOffboarding from "../components/OnBoardOffBoard";
 import OpportunityStatusForm from "../components/OpportunityStatusForm";
 import { CSVLink } from "react-csv";
-import { GET_OPPORTUNITY } from "../api/endpoints";
+import { GET_OPPORTUNITY, GET_OPPORTUNITY_BY_ID } from "../api/endpoints";
 import { VERTICALS } from "../constants/StringConstants.js";
 
 
@@ -34,6 +34,11 @@ export default function AMDashboard({ user, onToast }) {
   const [meta, setMeta] = useState({ clients: [], verticals: [], ams: [] });
   const [showProfilePopup, setShowProfilePopup] = useState(false);
   const [opps, setOpps] = useState([]);
+
+  const [selectedOpportunity, setSelectedOpportunity] = useState(null);
+  const [opportunityDetails, setOpportunityDetails] = useState(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
+  const [showDetailsPage, setShowDetailsPage] = useState(false);
   // fetch meta once
   useEffect(() => {
     api.meta().then(m => setMeta(m)).catch(() => { });
@@ -62,6 +67,34 @@ export default function AMDashboard({ user, onToast }) {
     }
   };
 
+
+
+  const fetchOpportunityById = async (id) => {
+    try {
+      setLoading(true);
+
+      const url = `${GET_OPPORTUNITY_BY_ID}/${id}`;
+
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data?.message || "Failed to fetch opportunity details"
+        );
+      }
+
+      setSelectedOpportunity(data.data || null);
+
+      // open details page
+      setShowDetailsPage(true);
+
+    } catch (error) {
+      console.error("Fetch opportunity detail error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
     if (activeForm === "opportunity-status") {
       fetchOpportunities();
@@ -178,67 +211,159 @@ export default function AMDashboard({ user, onToast }) {
           )}
           {/* ── Opportunity Status Section ── */}
           {activeForm === "opportunity-status" && (
-            <div className="ops-main-wrap">
-              <div className="ops-page-head">
-                <div className="ops-title-row">
-                  <span
-                    className="ops-back-arrow"
-                    onClick={() => setActiveForm(null)}
-                  >
-                    {"<"}
-                  </span>
-                  <h2 className="ops-page-title">
-                    Opportunity Status
-                  </h2>
+            <div className="ops-container">
+
+              {/* LIST PAGE */}
+              <div
+                className={`ops-page ${showDetailsPage ? "slide-left" : "slide-center"
+                  }`}
+              >
+                <div className="ops-main-wrap">
+                  <div className="ops-page-head">
+                    <div className="ops-title-row">
+                      <span
+                        className="ops-back-arrow"
+                        onClick={() => setActiveForm(null)}
+                      >
+                        {"<"}
+                      </span>
+
+                      <h2 className="ops-page-title">
+                        Opportunity Status
+                      </h2>
+                    </div>
+                  </div>
+
+                  <div className="table-wrap">
+                    <table className="opp-table">
+                      <thead>
+                        <tr>
+                          <th>Client</th>
+                          <th>BU</th>
+                          <th>Mode</th>
+                          <th>Team</th>
+                          <th>Skill</th>
+                          <th>Location</th>
+                          <th>Priority</th>
+                        </tr>
+                      </thead>
+
+                      <tbody>
+                        {opps.map((opp) => (
+                          <tr
+                            key={opp.opportunity_id}
+                            className="opp-row"
+                            onClick={() =>
+                              fetchOpportunityById(opp.opportunity_id)
+                            }
+                          >
+                            <td>{opp.client}</td>
+                            <td>{opp.BU}</td>
+                            <td>{opp.mode}</td>
+                            <td>{opp.team}</td>
+                            <td>{opp.skill}</td>
+                            <td>{opp.location}</td>
+                            <td>{opp.priority}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
-              {loading ? (
-                <div className="loading-wrap">
-                  Loading opportunities...
-                </div>
-              ) : opps.length === 0 ? (
-                <div className="empty-wrap">
-                  No opportunities found
-                </div>
-              ) : (
-                <div className="opp-table-wrap">
-                  <table className="opp-table">
-                    <thead>
-                      <tr>
-                        {columns.map((col) => (
-                          <th key={col.key}>
-                            {col.label}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
 
-                    <tbody>
-                      {opps.map((opp) => (
-                        <tr key={opp.opportunity_id}>
-                          {columns.map((col) => (
-                            <td key={col.key}>
-                              {col.key === "priority" ? (
-                                <span
-                                  className={`priority-badge ${String(
-                                    opp[col.key] || ""
-                                  ).toLowerCase()}`}
-                                >
-                                  {opp[col.key] || "—"}
-                                </span>
-                              ) : col.key === "experience" ? (
-                                `${opp[col.key] || "—"} yrs`
-                              ) : (
-                                opp[col.key] || "—"
-                              )}
-                            </td>
-                          ))}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+              {/* DETAILS PAGE */}
+              <div
+                className={`details-page ${showDetailsPage ? "details-show" : "details-hide"
+                  }`}
+              >
+                {selectedOpportunity && (
+                  <div className="details-content">
+
+                    <div className="details-topbar">
+                      <button
+                        className="details-back-btn"
+                        onClick={() => setShowDetailsPage(false)}
+                      >
+                        ← Back
+                      </button>
+
+                      <h2>Opportunity Details</h2>
+                    </div>
+
+                    <div className="details-table-wrap">
+                      <table className="details-table">
+                        <tbody>
+                          <tr>
+                            <th>Client</th>
+                            <td>{selectedOpportunity.client || "—"}</td>
+
+                            <th>BU</th>
+                            <td>{selectedOpportunity.BU || "—"}</td>
+                          </tr>
+
+                          <tr>
+                            <th>Mode</th>
+                            <td>{selectedOpportunity.mode || "—"}</td>
+
+                            <th>Team</th>
+                            <td>{selectedOpportunity.team || "—"}</td>
+                          </tr>
+
+                          <tr>
+                            <th>Skill</th>
+                            <td>{selectedOpportunity.skill || "—"}</td>
+
+                            <th>Month</th>
+                            <td>{selectedOpportunity.month || "—"}</td>
+                          </tr>
+
+                          <tr>
+                            <th>Req Date</th>
+                            <td>{selectedOpportunity.reqdate || "—"}</td>
+
+                            <th>Start Date</th>
+                            <td>{selectedOpportunity.start_date || "—"}</td>
+                          </tr>
+
+                          <tr>
+                            <th>Location</th>
+                            <td>{selectedOpportunity.location || "—"}</td>
+
+                            <th>Positions</th>
+                            <td>{selectedOpportunity.no_of_positions || "—"}</td>
+                          </tr>
+
+                          <tr>
+                            <th>Experience</th>
+                            <td>{selectedOpportunity.experience || "—"}</td>
+
+                            <th>Priority</th>
+                            <td>{selectedOpportunity.priority || "—"}</td>
+                          </tr>
+
+                          <tr>
+                            <th>Technical POC</th>
+                            <td>{selectedOpportunity.technical_poc || "—"}</td>
+
+                            <th>Headcount</th>
+                            <td>{selectedOpportunity.doable_headcount || "—"}</td>
+                          </tr>
+
+                          <tr>
+                            <th>Created At</th>
+                            <td>{selectedOpportunity.created_at || "—"}</td>
+
+                            <th>Updated At</th>
+                            <td>{selectedOpportunity.updated_at || "—"}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

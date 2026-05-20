@@ -12,5 +12,7 @@ export const CREATE_OPPORTUNITY = `${AUTH_API_BASE_URL}/create-opportunity`;
 export const UPLOAD_JD = `${AUTH_API_BASE_URL}/upload-jd`;
 export const UPDATE_OPPORTUNITY = `${AUTH_API_BASE_URL}/update-opportunity`;
 export const GET_OPPORTUNITY = `${AUTH_API_BASE_URL}/opportunities`;
+export const GET_OPPORTUNITY_BY_ID = `${AUTH_API_BASE_URL}/opportunities`;
+export const CREATE_PROFILE = `${AUTH_API_BASE_URL}/create-profile`;
 
 
