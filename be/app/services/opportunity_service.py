@@ -1,0 +1,166 @@
+import uuid
+from datetime import datetime
+from fastapi import HTTPException
+
+from app.helper.aws_helper import aws_s3_access_class
+from app.config.EnvConfig import bucket_name
+from app.db.models import count_documents, create_one, find_many, update_one
+
+aws_helper = aws_s3_access_class()
+
+ALLOWED_TYPES = [
+    "application/pdf",
+    "text/plain",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+]
+
+
+async def upload_document(file):
+
+    if file.content_type not in ALLOWED_TYPES:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid file type"
+        )
+
+    file_content = await file.read()
+    file_id = uuid.uuid4()
+
+    unique_name = f"{file_id}_{file.filename}"
+
+    s3_key = f"sb_tracker/jd_file/{unique_name}"
+
+    # Upload to S3
+    aws_helper.upload_file(
+        bucket_name=bucket_name,
+        file_key=s3_key,
+        file_content=file_content,
+        content_type=file.content_type
+    )
+
+    s3_url = f"https://{bucket_name}.s3.amazonaws.com/{s3_key}"
+
+    document = {
+        "file_id": str(file_id),
+        "file_name": file.filename,
+        "file_type": file.content_type,
+        "s3_key": s3_key,
+        "s3_url": s3_url,
+        "uploaded_at": datetime.utcnow()
+    }
+
+    inserted_id = create_one("file_details", document)
+    document["_id"] = inserted_id
+
+    return document
+
+def create_opportunity_service(data):
+
+    document = {
+        "opportunity_id": str(uuid.uuid4()),
+        "client": data.get("client"),
+        "BU": data.get("BU"),
+        "mode": data.get("mode"),
+        "team": data.get("team"),
+        "skill": data.get("skill"),
+        "month": data.get("month"),
+        "reqdate": data.get("reqdate").isoformat() if data.get("reqdate") else None,
+        "start_date": data.get("start_date").isoformat() if data.get("start_date") else None,
+        "location": data.get("location"),
+        "no_of_positions": data.get("no_of_positions"),
+        "experience": data.get("experience"),
+        "technical_poc": data.get("technical_poc"),
+        "priority": data.get("priority"),
+        "doable_headcount": data.get("doable_headcount"),
+        "file_id": data.get("file_id"),
+        "created_at": datetime.utcnow()
+    }
+
+    inserted_id = create_one("opportunities", document)
+
+    document["_id"] = inserted_id
+
+    return document
+
+
+def update_opportunity_service(opportunity_id: str, data: dict):
+
+    update_data = data.copy()
+
+    # handle date fields (if present)
+    if "reqdate" in update_data and update_data["reqdate"]:
+        update_data["reqdate"] = update_data["reqdate"].isoformat()
+
+    if "start_date" in update_data and update_data["start_date"]:
+        update_data["start_date"] = update_data["start_date"].isoformat()
+
+    update_data["updated_at"] = datetime.utcnow()
+
+    query = {"opportunity_id": opportunity_id}
+
+    result = update_one("opportunities", query, update_data)
+
+    if result.matched_count == 0:
+        return None
+
+    return {
+        "updated": result.modified_count,
+        "opportunity_id": opportunity_id
+    }
+
+def get_opportunities_service(search, reqdate, start_date, limit, skip):
+
+    query = {}
+
+    # ------------------------
+    # DATE FILTERS (stored as string YYYY-MM-DD)
+    # ------------------------
+    if reqdate:
+        query["reqdate"] = reqdate
+
+    if start_date:
+        query["start_date"] = start_date
+
+    # ------------------------
+    # SEARCH ACROSS FIELDS
+    # ------------------------
+    if search:
+        regex = {"$regex": search, "$options": "i"}
+
+        query["$or"] = [
+            {"client": regex},
+            {"BU": regex},
+            {"mode": regex},
+            {"team": regex},
+            {"skill": regex},
+            {"month": regex},
+            {"location": regex},
+            {"experience": regex},
+            {"technical_poc": regex},
+            {"priority": regex},
+            {"file_id": regex},
+        ]
+
+    # ------------------------
+    # FETCH DATA USING YOUR DAO
+    # ------------------------
+    data = find_many(
+        "opportunities",
+        query=query,
+        limit=limit,
+        skip=skip,
+        sort=[("_id", -1)]   # latest first
+    )
+
+    # ------------------------
+    # OPTIONAL: total count
+    # ------------------------
+    total = count_documents("opportunities", query)
+
+    return {
+        "items": data,
+        "total": total,
+        "limit": limit,
+        "skip": skip
+    }
