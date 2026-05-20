@@ -57,16 +57,6 @@ async def shutdown():
 # ── Auth helpers ────────────────────────────────────────────────
 security = HTTPBearer(auto_error=False)
 
-def make_token(username: str) -> str:
-    return jwt.encode({"sub": username}, JWT_SECRET, algorithm="HS256")
-
-def decode_token(token: str) -> str:
-    try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-        return payload["sub"]
-    except Exception:
-        raise HTTPException(status_code=401, detail="Invalid token")
-
 def get_current_user(
     request: Request,
     credentials: HTTPAuthorizationCredentials = Security(security)

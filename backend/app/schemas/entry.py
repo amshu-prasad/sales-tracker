@@ -3,14 +3,18 @@ from pydantic import BaseModel
 
 
 class EntryCreate(BaseModel):
-    date: str
+    selection_date: Optional[str] = None
+    onborading_date: Optional[str] = None
+    offborading_date: Optional[str] = None
     client: str
     vertical: str
     source: str          # Bench | Partner
     empType: str         # T&M | ODC
-    type: str            # selection | onboarding | offboarding
+    # type: str            # selection | onboarding | offboarding
     remarks: Optional[str] = ""
     candidateName: str
+    managerName: str
+    managerEmail: str
 
 
 class EntryUpdate(BaseModel):
