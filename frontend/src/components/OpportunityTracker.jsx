@@ -1,49 +1,41 @@
 import { useState, useRef, useCallback } from "react";
 import { CLIENTS, BUS, MODES, TEAMS, LOCATIONS, START_DATE_OPTIONS, PRIORITIES, STATUS_COLORS, PRIORITY_COLORS } from "../constants/StringConstants.js";
-
+import { CREATE_OPPORTUNITY, UPLOAD_JD, GET_OPPORTUNITY } from "../api/endpoints";
+import { postFile } from "../api/clients";
+import { useEffect } from "react";
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const emptyOpportunity = () => ({
-    id: crypto.randomUUID(),
     client: "",
-    bu: "",
+    BU: "",
     mode: "",
     team: "",
     skill: "",
     month: "",
-    reqDate: "",
-    jdFileName: "",
-    jdFileUrl: "",        // ← replaces jdFile; stores the AWS path after upload
+    reqdate: "",
     location: "",
-    noOfPositions: "",
+    no_of_positions: 0,
     experience: "",
-    expectedStartDate: "",
-    technicalPoc: "",
+    start_date: "",
+    technical_poc: "",
     priority: "",
-    doableHeadCount: "",
-    vertical: "",
-    accountManager: "",
-    status: "",
-    description: "",
-    internalProfilesShared: "",
-    partnerProfilesShared: "",
-    namesProfilesShared: "",
-    namesProfilesInterviewed: "",
-    screeningFeedback: "",
-    interviewFeedback: "",
+    doable_headcount: 0,
+    file_id: "",
+    jdFileUrl: "",
+    jdFileName: "",
     createdAt: new Date().toISOString(),
 });
 
-// ─── AWS upload helper (replace body with your real S3 / presigned-URL call) ──
-
 async function uploadToAWS(file) {
-    // TODO: swap this stub for your real upload logic.
-    // Just return the final S3 URL string from here.
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            resolve(`https://your-bucket.s3.amazonaws.com/jd-uploads/${Date.now()}-${file.name}`);
-        }, 1800);
-    });
+    try {
+        const formData = new FormData();
+        formData.append("file", file);
+        const data = await postFile(UPLOAD_JD, formData);
+        return data;
+    } catch (error) {
+        console.error("Upload error:", error);
+        throw error;
+    }
 }
 
 // ─── JD Upload Popup ──────────────────────────────────────────────────────────
@@ -56,6 +48,7 @@ function JDUploadPopup({ onClose, onUploadComplete }) {
     const [uploadedUrl, setUploadedUrl] = useState("");
     const [error, setError] = useState("");
     const inputRef = useRef();
+    const [uploadedData, setUploadedData] = useState(null);
 
     const handleFile = (f) => {
         if (!f) return;
@@ -79,22 +72,33 @@ function JDUploadPopup({ onClose, onUploadComplete }) {
         const ticker = setInterval(() => {
             setProgress((p) => Math.min(p + Math.random() * 25, 90));
         }, 400);
+
         try {
-            const url = await uploadToAWS(file);
+            const response = await uploadToAWS(file);
             clearInterval(ticker);
             setProgress(100);
-            setUploadedUrl(url);
-        } catch {
+            // backend actual payload
+            const uploaded = response.data;
+            setUploadedUrl(uploaded.s3_url || "");
+            setUploadedData(uploaded);
+        } catch (err) {
             clearInterval(ticker);
-            setError("Upload failed. Please try again.");
+            setError(
+                err.message || "Upload failed. Please try again."
+            );
         } finally {
             setUploading(false);
         }
     };
-
     const handleConfirm = () => {
-        if (uploadedUrl) {
-            onUploadComplete({ fileName: file.name, fileUrl: uploadedUrl });
+        if (uploadedData) {
+
+            onUploadComplete({
+                fileName: uploadedData.file_name,
+                fileId: uploadedData.file_id,
+                fileUrl: uploadedData.s3_url,
+            });
+
             onClose();
         }
     };
@@ -253,21 +257,54 @@ function Textarea({ value, onChange, placeholder, rows = 3 }) {
 
 // ─── Opportunity Form ─────────────────────────────────────────────────────────
 
+// ─── Opportunity Form ─────────────────────────────────────────────────────────
+
 function OppForm({ initial, onSave, onCancel }) {
     const [form, setForm] = useState(initial || emptyOpportunity());
     const [showClientDropdown, setShowClientDropdown] = useState(false);
-    const [showUploadPopup, setShowUploadPopup] = useState(false);  // ← NEW
+    const [showUploadPopup, setShowUploadPopup] = useState(false);
+    const [loading, setLoading] = useState(false);
 
-    const set = (key) => (val) => setForm(p => ({ ...p, [key]: val }));
+    const set = (key) => (val) =>
+        setForm((p) => ({ ...p, [key]: val }));
 
-    // Called by JDUploadPopup after successful AWS upload
-    const handleUploadComplete = ({ fileName, fileUrl }) => {   // ← NEW (replaces handleFile)
-        setForm(p => ({ ...p, jdFileName: fileName, jdFileUrl: fileUrl }));
+    // ─── Upload Complete ─────────────────────────────
+    const handleUploadComplete = ({
+        fileName,
+        fileId,
+        fileUrl,
+    }) => {
+        setForm((p) => ({
+            ...p,
+            jdFileName: fileName,
+            file_id: fileId,
+            jdFileUrl: fileUrl,
+        }));
     };
-
-    const handleSubmit = () => {
-        console.log(form, "hehehehh")
-        onSave(form);
+    // ─── Submit ──────────────────────────────────────
+    const handleSubmit = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch(CREATE_OPPORTUNITY, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(form),
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(
+                    data?.message || "Failed to create opportunity"
+                );
+            }
+            onSave?.(data);
+        } catch (error) {
+            console.error("Error:", error.message);
+            alert(error.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const Section = ({ title, icon }) => (
@@ -287,37 +324,62 @@ function OppForm({ initial, onSave, onCancel }) {
             )}
 
             <div className="ot-form-wrap">
+
+                {/* ─── Header ───────────────────────── */}
                 <div className="ot-form-topbar">
                     <h2 className="ot-form-heading">
-                        {initial?.client ? `Edit — ${initial.client}` : "New Opportunity"}
+                        {initial?.client
+                            ? `Edit — ${initial.client}`
+                            : "New Opportunity"}
                     </h2>
-                    <button className="ot-close-btn" onClick={onCancel}>✕</button>
+
+                    <button
+                        className="ot-close-btn"
+                        onClick={onCancel}
+                    >
+                        ✕
+                    </button>
                 </div>
 
                 <div className="ot-form-body">
-                    {/* ── Section 1: Engagement Details ── */}
+
+                    {/* ─── Engagement Details ───────────────── */}
                     <Section title="Engagement Details" icon="📋" />
+
                     <div className="ot-grid-2">
+
+                        {/* Client */}
                         <Field label="Client" required>
                             <div className="search-select">
+
                                 <input
                                     type="text"
                                     value={form.client}
                                     onChange={(e) => {
                                         const value = e.target.value;
+
                                         set("client")(value);
-                                        setShowClientDropdown(value.length >= 3);
+
+                                        setShowClientDropdown(
+                                            value.length >= 3
+                                        );
                                     }}
                                     placeholder="Type at least 3 letters..."
                                     className="search-input"
                                 />
+
                                 {showClientDropdown && (
                                     <div className="search-dropdown">
+
                                         {CLIENTS
-                                            .filter(client =>
-                                                client.toLowerCase().includes(form.client.toLowerCase())
+                                            .filter((client) =>
+                                                client
+                                                    .toLowerCase()
+                                                    .includes(
+                                                        form.client.toLowerCase()
+                                                    )
                                             )
-                                            .map(client => (
+                                            .map((client) => (
                                                 <div
                                                     key={client}
                                                     className="search-option"
@@ -333,78 +395,196 @@ function OppForm({ initial, onSave, onCancel }) {
                                 )}
                             </div>
                         </Field>
+
+                        {/* BU */}
                         <Field label="BU">
-                            <Select value={form.bu} onChange={set("bu")} options={BUS} />
+                            <Select
+                                value={form.BU}
+                                onChange={set("BU")}
+                                options={BUS}
+                            />
                         </Field>
+
+                        {/* Mode */}
                         <Field label="Mode">
-                            <Select value={form.mode} onChange={set("mode")} options={MODES} />
+                            <Select
+                                value={form.mode}
+                                onChange={set("mode")}
+                                options={MODES}
+                            />
                         </Field>
+
+                        {/* Team */}
                         <Field label="Team">
-                            <Select value={form.team} onChange={set("team")} options={TEAMS} />
+                            <Select
+                                value={form.team}
+                                onChange={set("team")}
+                                options={TEAMS}
+                            />
                         </Field>
                     </div>
 
-                    {/* ── Section 2: Requisition ── */}
+                    {/* ─── Requisition ───────────────────────── */}
                     <Section title="Requisition" icon="🏢" />
+
                     <div className="ot-grid-2">
+
+                        {/* Skill */}
                         <Field label="Skill" required>
-                            <Input value={form.skill} onChange={set("skill")} placeholder="e.g. RTL Design, DFT…" />
-                        </Field>
-                        <Field label="Month">
-                            <Input value={form.month} onChange={set("month")} placeholder="e.g. January" />
-                        </Field>
-                        <Field label="Req Date">
-                            <Input value={form.reqDate} onChange={set("reqDate")} placeholder="DD-MM-YYYY" />
-                        </Field>
-                        <Field label="Location">
-                            <Select value={form.location} onChange={set("location")} options={LOCATIONS} />
-                        </Field>
-                        <Field label="No of Positions">
-                            <Input value={form.noOfPositions} onChange={set("noOfPositions")} placeholder="e.g. 5" />
-                        </Field>
-                        <Field label="Experience">
-                            <Input value={form.experience} onChange={set("experience")} placeholder="e.g. 3–5 years" />
-                        </Field>
-                        <Field label="Expected Start Date">
-                            <Select value={form.expectedStartDate} onChange={set("expectedStartDate")} options={START_DATE_OPTIONS} />
-                        </Field>
-                        <Field label="Technical POC">
-                            <Input value={form.technicalPoc} onChange={set("technicalPoc")} placeholder="Name of technical point of contact" />
-                        </Field>
-                        <Field label="Priority">
-                            <Select value={form.priority} onChange={set("priority")} options={PRIORITIES} />
-                        </Field>
-                        <Field label="Doable Head Count">
-                            <Input value={form.doableHeadCount} onChange={set("doableHeadCount")} placeholder="e.g. 3" />
+                            <Input
+                                value={form.skill}
+                                onChange={set("skill")}
+                                placeholder="e.g. RTL Design, DFT…"
+                            />
                         </Field>
 
-                        {/* ── JD Upload: now opens popup ── */}
+                        {/* Month */}
+                        <Field label="Month">
+                            <Input
+                                value={form.month}
+                                onChange={set("month")}
+                                placeholder="e.g. January"
+                            />
+                        </Field>
+
+                        {/* Req Date */}
+                        <Field label="Req Date">
+                            <Input
+                                type="date"
+                                value={form.reqdate}
+                                onChange={set("reqdate")}
+                            />
+                        </Field>
+
+                        {/* Location */}
+                        <Field label="Location">
+                            <Select
+                                value={form.location}
+                                onChange={set("location")}
+                                options={LOCATIONS}
+                            />
+                        </Field>
+
+                        {/* No of Positions */}
+                        <Field label="No of Positions">
+                            <Input
+                                type="number"
+                                value={form.no_of_positions}
+                                onChange={set("no_of_positions")}
+                                placeholder="e.g. 5"
+                            />
+                        </Field>
+
+                        {/* Experience */}
+                        <Field label="Experience">
+                            <Input
+                                value={form.experience}
+                                onChange={set("experience")}
+                                placeholder="e.g. 3–5 years"
+                            />
+                        </Field>
+
+                        {/* Start Date */}
+                        <Field label="Expected Start Date">
+                            <Input
+                                type="date"
+                                value={form.start_date}
+                                onChange={set("start_date")}
+                            />
+                        </Field>
+
+                        {/* Technical POC */}
+                        <Field label="Technical POC">
+                            <Input
+                                value={form.technical_poc}
+                                onChange={set("technical_poc")}
+                                placeholder="Name of technical point of contact"
+                            />
+                        </Field>
+
+                        {/* Priority */}
+                        <Field label="Priority">
+                            <Select
+                                value={form.priority}
+                                onChange={set("priority")}
+                                options={PRIORITIES}
+                            />
+                        </Field>
+
+                        {/* Doable Head Count */}
+                        <Field label="Doable Head Count">
+                            <Input
+                                type="number"
+                                value={form.doable_headcount}
+                                onChange={set("doable_headcount")}
+                                placeholder="e.g. 3"
+                            />
+                        </Field>
+
+                        {/* JD Upload */}
                         <Field label="JD Upload (PDF / Word / any format)">
                             <div className="ot-file-row">
-                                <button type="button" className="ot-upload-btn" onClick={() => setShowUploadPopup(true)}>
-                                    📎 {form.jdFileName ? form.jdFileName : "Choose file…"}
+
+                                <button
+                                    type="button"
+                                    className="ot-upload-btn"
+                                    onClick={() =>
+                                        setShowUploadPopup(true)
+                                    }
+                                >
+                                    📎 {
+                                        form.jdFileName
+                                            ? form.jdFileName
+                                            : "Choose file…"
+                                    }
                                 </button>
+
                                 {form.jdFileName && (
-                                    <button type="button" className="ot-remove-file" onClick={() => setForm(p => ({ ...p, jdFileName: "", jdFileUrl: "" }))}>✕</button>
+                                    <button
+                                        type="button"
+                                        className="ot-remove-file"
+                                        onClick={() =>
+                                            setForm((p) => ({
+                                                ...p,
+                                                jdFileName: "",
+                                                file_id: "",
+                                            }))
+                                        }
+                                    >
+                                        ✕
+                                    </button>
                                 )}
                             </div>
                         </Field>
                     </div>
                 </div>
 
-
-                {/* ── Footer ── */}
+                {/* ─── Footer ───────────────────────── */}
                 <div className="ot-form-footer">
-                    <button className="btn-ghost" onClick={onCancel}>Cancel</button>
-                    <button className="ot-save-btn" onClick={handleSubmit}>
-                        {initial?.client ? "Update Opportunity" : "Save Opportunity"}
+
+                    <button
+                        className="btn-ghost"
+                        onClick={onCancel}
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        className="ot-save-btn"
+                        onClick={handleSubmit}
+                        disabled={loading}
+                    >
+                        {loading
+                            ? "Saving..."
+                            : initial?.client
+                                ? "Update Opportunity"
+                                : "Save Opportunity"}
                     </button>
                 </div>
             </div>
         </>
     );
 }
-
 // ─── Status / Priority badges ─────────────────────────────────────────────────
 
 function StatusBadge({ value, map }) {
@@ -495,7 +675,8 @@ function OppCard({ opp, onEdit, onDelete }) {
                     {opp.jdFileName && (
                         <div className="ot-detail-block">
                             <span className="ot-detail-key">JD File</span>
-                            <a href={opp.jdFileUrl} download={opp.jdFileName} className="ot-jd-link">
+                            <a href={opp.file_id} target="_blank" rel="noreferrer" className="ot-jd-link">
+                                {/* <a href={opp.jdFileUrl} download={opp.jdFileName} className="ot-jd-link"> */}
                                 📎 {opp.jdFileName}
                             </a>
                         </div>
@@ -533,53 +714,76 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
     const [editingOpp, setEditingOpp] = useState(null);
     const [deletingId, setDeletingId] = useState(null);
     const [filters, setFilters] = useState({ status: "", priority: "", client: "", am: "", search: "" });
+    const [loading, setLoading] = useState(false);
 
-    const handleSave = (opp) => {
+    useEffect(() => {
+        const fetchOpportunities = async () => {
+            try {
+                setLoading(true);
+                const response = await fetch(GET_OPPORTUNITY);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data?.message || `Failed to fetch opportunities`);
+                }
+
+                setOpps(data.data.items);
+            } catch (error) {
+                console.error("Fetch opportunities error:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchOpportunities();
+    }, []);
+
+    const handleSave = (apiResponse) => {
         if (editingOpp) {
-            setOpps(p => p.map(o => o.id === opp.id ? opp : o));
+            const updated = apiResponse.data;
+            setOpps(p => p.map(o => o.opportunity_id === updated.opportunity_id ? updated : o));
             onToast?.("Opportunity updated ✓");
         } else {
-            setOpps(p => [opp, ...p]);
+            const created = apiResponse.data;
+            setOpps(p => [created, ...p]);
             onToast?.("Opportunity saved ✓");
         }
         setShowForm(false);
         setEditingOpp(null);
     };
 
+    // const handleSave = (opp) => {
+    //     if (editingOpp) {
+    //         setOpps(p => p.map(o => o.opportunity_id === opp.opportunity_id ? opp : o));
+    //         onToast?.("Opportunity updated ✓");
+    //     } else {
+    //         setOpps(p => [opp, ...p]);
+    //         onToast?.("Opportunity saved ✓");
+    //     }
+    //     setShowForm(false);
+    //     setEditingOpp(null);
+    // };
+
     const startEdit = (opp) => { setEditingOpp(opp); setShowForm(true); };
-    const doDelete = (id) => { setOpps(p => p.filter(o => o.id !== id)); setDeletingId(null); onToast?.("Deleted ✓"); };
+    const doDelete = (id) => { setOpps(p => p.filter(o => o.opportunity_id !== id)); setDeletingId(null); onToast?.("Deleted ✓"); };
 
     const filtered = opps.filter(o => {
         if (filters.status && o.status !== filters.status) return false;
         if (filters.priority && o.priority !== filters.priority) return false;
         if (filters.client && o.client !== filters.client) return false;
-        if (filters.am && o.accountManager !== filters.am) return false;
         if (filters.search) {
             const q = filters.search.toLowerCase();
-            if (![o.client, o.skill, o.technicalPoc, o.bu, o.description].some(v => (v || "").toLowerCase().includes(q))) return false;
+            if (![o.client, o.skill, o.technical_poc, o.BU].some(v => (v || "").toLowerCase().includes(q))) return false;
         }
         return true;
     });
-
-    // const open = opps.filter(o => o.status === "Open").length;
-    // const closedSS = opps.filter(o => o.status === "Closed by SS").length;
-    // const high = opps.filter(o => o.priority === "High").length;
-    // const totalPositions = opps.reduce((s, o) => s + (parseInt(o.noOfPositions) || 0), 0);
 
     return (
         <>
             <div className="ot-page-header">
                 <div className="ot-title-row">
-                    <span
-                        className="ot-back-arrow"
-                        onClick={() => setActiveForm(null)}
-                    >
-                           {"<"}
-                    </span>
-
-                    <h1 className="ot-page-title">
-                        SmartSocs Opportunity Tracker
-                    </h1>
+                    <span className="ot-back-arrow" onClick={() => setActiveForm(null)}>{"<"}</span>
+                    <h1 className="ot-page-title">SmartSocs Opportunity Tracker</h1>
                 </div>
             </div>
 
@@ -614,14 +818,6 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
                 </div>
             )}
 
-            {/* Metrics */}
-            <div className="metric-grid" style={{ marginBottom: 16 }}>
-                {/* <div className="metric-card blue"><span className="metric-value">{open}</span><span className="metric-label">Open</span></div> */}
-                {/* <div className="metric-card green"><span className="metric-value">{closedSS}</span><span className="metric-label">Closed by SS</span></div> */}
-                {/* <div className="metric-card amber"><span className="metric-value">{high}</span><span className="metric-label">High Priority</span></div> */}
-                {/* <div className="metric-card neutral"><span className="metric-value">{totalPositions}</span><span className="metric-label">Total Positions</span></div> */}
-            </div>
-
             {/* Action bar */}
             <div className="ot-action-bar">
                 <FiltersBar filters={filters} setFilters={setFilters} opps={opps} />
@@ -630,7 +826,10 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
                 </button>
             </div>
 
-            {filtered.length === 0 ? (
+            {/* List */}
+            {loading ? (
+                <div className="empty">Loading opportunities…</div>
+            ) : filtered.length === 0 ? (
                 <div className="empty">
                     {opps.length === 0
                         ? "No opportunities yet. Click \"+ New Opportunity\" to add one."
@@ -639,7 +838,7 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
             ) : (
                 <div className="ot-list">
                     {filtered.map(o => (
-                        <OppCard key={o.id} opp={o} onEdit={startEdit} onDelete={(id) => setDeletingId(id)} />
+                        <OppCard key={o.opportunity_id} opp={o} onEdit={startEdit} onDelete={(id) => setDeletingId(id)} />
                     ))}
                 </div>
             )}
