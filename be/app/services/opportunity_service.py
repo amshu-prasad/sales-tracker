@@ -4,7 +4,7 @@ from fastapi import HTTPException
 
 from app.helper.aws_helper import aws_s3_access_class
 from app.config.EnvConfig import bucket_name
-from app.db.models import count_documents, create_one, find_many, find_one, update_one
+from app.db.models import count_documents, create_one, find_many, find_many_profile, find_one, update_one
 
 aws_helper = aws_s3_access_class()
 
@@ -166,15 +166,69 @@ def get_opportunities_service(search, reqdate, start_date, limit, skip):
         "skip": skip
     }
 
+# def get_opportunity_by_id_service(opportunity_id: str):
+
+#     query = {
+#         "opportunity_id": opportunity_id
+#     }
+
+#     data = find_one(
+#         "opportunities",
+#         query=query
+#     )
+
+#     return data
+
+
 def get_opportunity_by_id_service(opportunity_id: str):
 
-    query = {
-        "opportunity_id": opportunity_id
-    }
-
-    data = find_one(
+    # -----------------------------
+    # GET OPPORTUNITY
+    # -----------------------------
+    opportunity = find_one(
         "opportunities",
-        query=query
+        query={
+            "opportunity_id": opportunity_id
+        },
+        projection={
+            "_id": 0
+        }
     )
 
-    return data
+    if not opportunity:
+        return None
+
+    # -----------------------------
+    # GET PROFILE IDS
+    # -----------------------------
+    profile_ids = opportunity.get("profile_ids", [])
+
+    # -----------------------------
+    # GET PROFILE DETAILS
+    # -----------------------------
+    profiles = []
+
+    if profile_ids:
+
+        profiles = find_many_profile(
+            "profiles",
+            query={
+                "profile_id": {
+                    "$in": profile_ids
+                }
+            },
+            projection={
+                "_id": 0
+            },
+            limit=1000
+        )
+
+    # -----------------------------
+    # REPLACE IDS WITH FULL DATA
+    # -----------------------------
+    opportunity["profiles"] = profiles
+
+    # optional remove profile_ids
+    opportunity.pop("_id", None)
+
+    return opportunity

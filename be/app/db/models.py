@@ -178,3 +178,33 @@ def append_to_list(
     )
 
     return result
+
+def find_many_profile(
+    collection_name: str,
+    query: Dict[str, Any] = {},
+    projection: Optional[Dict[str, int]] = None,
+    limit: int = 100,
+    skip: int = 0,
+    sort: Optional[List[tuple]] = None
+):
+
+    collection = get_collection(collection_name)
+
+    cursor = collection.find(query, projection)
+
+    if sort:
+        cursor = cursor.sort(sort)
+
+    cursor = cursor.skip(skip).limit(limit)
+
+    results = []
+
+    for doc in cursor:
+
+        # convert only if _id exists
+        if "_id" in doc:
+            doc["_id"] = str(doc["_id"])
+
+        results.append(doc)
+
+    return results

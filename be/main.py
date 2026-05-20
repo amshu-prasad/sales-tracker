@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config.EnvConfig import base_path, port
 from app.api.opportunity_controller import opportunity_router
+from app.api.profile_controller import profile_router
 
 app = FastAPI()
 
@@ -22,6 +23,7 @@ apiPrefix = f"{base_path}/api/v1"
 
 # Include routers
 app.include_router(opportunity_router, prefix=apiPrefix, tags=["opportunity"])
+app.include_router(profile_router, prefix=apiPrefix, tags=["profiles"])
 
 @app.get("/")
 def root():

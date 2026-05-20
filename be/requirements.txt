@@ -5,3 +5,5 @@ python-multipart
 requests
 boto3
 pymongo
+pydantic
+pydantic[email]
