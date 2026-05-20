@@ -74,6 +74,7 @@ def create_opportunity_service(data):
         "priority": data.get("priority"),
         "doable_headcount": data.get("doable_headcount"),
         "file_id": data.get("file_id"),
+        "vertical": data.get("vertical"),
         "created_at": datetime.utcnow()
     }
 

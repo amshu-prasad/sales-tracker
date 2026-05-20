@@ -21,7 +21,7 @@ logger = logging.getLogger("main_project")
 apiPrefix = f"{base_path}/api/v1"
 
 # Include routers
-app.include_router(opportunity_router, prefix=apiPrefix, tags=["tracker"])
+app.include_router(opportunity_router, prefix=apiPrefix, tags=["opportunity"])
 
 @app.get("/")
 def root():

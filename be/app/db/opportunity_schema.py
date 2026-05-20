@@ -19,3 +19,4 @@ class OpportunitySchema(BaseModel):
     priority: str
     doable_headcount: int
     file_id: Optional[str] = None
+    vertical: str
