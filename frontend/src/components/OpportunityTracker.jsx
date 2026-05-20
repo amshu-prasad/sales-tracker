@@ -3,6 +3,7 @@ import { CLIENTS, BUS, MODES, TEAMS, LOCATIONS, START_DATE_OPTIONS, PRIORITIES, 
 import { CREATE_OPPORTUNITY, UPLOAD_JD, GET_OPPORTUNITY } from "../api/endpoints";
 import { postFile } from "../api/clients";
 import { useEffect } from "react";
+import { VERTICALS } from "../constants/StringConstants.js";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -28,6 +29,7 @@ const emptyOpportunity = () => ({
     file_id: "",
     jdFileUrl: "",
     jdFileName: "",
+    vertical:"",
     createdAt: new Date().toISOString(),
 });
 
@@ -406,6 +408,14 @@ function OppForm({ initial, onSave, onCancel }) {
                         </Field>
                         <Field label="Doable Head Count">
                             <Input type="number" value={form.doable_headcount} onChange={set("doable_headcount")} placeholder="e.g. 3" />
+                        </Field>
+                        <Field label="Vertical" required>
+                            <Select
+                                value={form.vertical}
+                                onChange={v => set("vertical", v)}
+                                options={VERTICALS}
+                                placeholder="Select vertical…"
+                            />
                         </Field>
                         <Field label="JD Upload (PDF / Word / any format)">
                             <div className="ot-file-row">
@@ -790,11 +800,76 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
                         : "No opportunities match the current filters."}
                 </div>
             ) : (
-                <div className="ot-list">
-                    {filtered.map(o => (
-                        <OppCard key={o.opportunity_id} opp={o} onEdit={startEdit} onDelete={(id) => setDeletingId(id)} />
-                    ))}
-                </div>
+                <div className="ot-table-wrap">
+    <table className="ot-main-table">
+        <thead>
+            <tr>
+                <th>Client</th>
+                <th>BU</th>
+                <th>Mode</th>
+                <th>Team</th>
+                <th>Skill</th>
+                <th>Month</th>
+                <th>Req Date</th>
+                <th>Start Date</th>
+                <th>Location</th>
+                <th>Positions</th>
+                <th>Experience</th>
+                <th>Technical POC</th>
+                <th>Priority</th>
+                <th>Doable HC</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {filtered.map((opp) => (
+                <tr key={opp.opportunity_id}>
+                    <td>{opp.client || "—"}</td>
+                    <td>{opp.BU || "—"}</td>
+                    <td>{opp.mode || "—"}</td>
+                    <td>{opp.team || "—"}</td>
+                    <td>{opp.skill || "—"}</td>
+                    <td>{opp.month || "—"}</td>
+                    <td>{opp.reqdate || "—"}</td>
+                    <td>{opp.start_date || "—"}</td>
+                    <td>{opp.location || "—"}</td>
+                    <td>{opp.no_of_positions || "—"}</td>
+                    <td>{opp.experience || "—"}</td>
+                    <td>{opp.technical_poc || "—"}</td>
+
+                    <td>
+                        <StatusBadge
+                            value={opp.priority}
+                            map={PRIORITY_COLORS}
+                        />
+                    </td>
+
+                    <td>{opp.doable_headcount || "—"}</td>
+                    <td>
+                        <div className="ot-table-actions">
+                            <button
+                                className="btn-edit"
+                                onClick={() => startEdit(opp)}
+                            >
+                                ✏️
+                            </button>
+
+                            <button
+                                className="btn-danger"
+                                onClick={() =>
+                                    setDeletingId(opp.opportunity_id)
+                                }
+                            >
+                                🗑️
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            ))}
+        </tbody>
+    </table>
+</div>
             )}
 
             {/* Pagination */}
