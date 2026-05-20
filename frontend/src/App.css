@@ -2096,3 +2096,68 @@ textarea {
 .ops-back-arrow:hover {
   color: #1d4ed8;
 }
+
+/* ── Pagination ── */
+
+.ot-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 4px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.ot-pagination-info {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.ot-pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.ot-page-btn {
+    min-width: 34px;
+    height: 34px;
+    padding: 0 8px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    border-radius: 7px;
+    font-size: 14px;
+    color: #374151;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ot-page-btn:hover:not(:disabled):not(.ot-page-btn-active) {
+    background: #f5f3ff;
+    border-color: #a5b4fc;
+    color: #4f46e5;
+}
+
+.ot-page-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.ot-page-btn-active {
+    background: #6366f1;
+    border-color: #6366f1;
+    color: #fff;
+    cursor: default;
+}
+
+.ot-page-ellipsis {
+    font-size: 14px;
+    color: #9ca3af;
+    padding: 0 4px;
+    line-height: 34px;
+}

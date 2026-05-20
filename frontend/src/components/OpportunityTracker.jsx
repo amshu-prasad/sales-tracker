@@ -3,6 +3,11 @@ import { CLIENTS, BUS, MODES, TEAMS, LOCATIONS, START_DATE_OPTIONS, PRIORITIES, 
 import { CREATE_OPPORTUNITY, UPLOAD_JD, GET_OPPORTUNITY } from "../api/endpoints";
 import { postFile } from "../api/clients";
 import { useEffect } from "react";
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const PAGE_SIZE = 10; // items per page
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const emptyOpportunity = () => ({
@@ -257,8 +262,6 @@ function Textarea({ value, onChange, placeholder, rows = 3 }) {
 
 // ─── Opportunity Form ─────────────────────────────────────────────────────────
 
-// ─── Opportunity Form ─────────────────────────────────────────────────────────
-
 function OppForm({ initial, onSave, onCancel }) {
     const [form, setForm] = useState(initial || emptyOpportunity());
     const [showClientDropdown, setShowClientDropdown] = useState(false);
@@ -268,12 +271,7 @@ function OppForm({ initial, onSave, onCancel }) {
     const set = (key) => (val) =>
         setForm((p) => ({ ...p, [key]: val }));
 
-    // ─── Upload Complete ─────────────────────────────
-    const handleUploadComplete = ({
-        fileName,
-        fileId,
-        fileUrl,
-    }) => {
+    const handleUploadComplete = ({ fileName, fileId, fileUrl }) => {
         setForm((p) => ({
             ...p,
             jdFileName: fileName,
@@ -281,22 +279,18 @@ function OppForm({ initial, onSave, onCancel }) {
             jdFileUrl: fileUrl,
         }));
     };
-    // ─── Submit ──────────────────────────────────────
+
     const handleSubmit = async () => {
         try {
             setLoading(true);
             const response = await fetch(CREATE_OPPORTUNITY, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(form),
             });
             const data = await response.json();
             if (!response.ok) {
-                throw new Error(
-                    data?.message || "Failed to create opportunity"
-                );
+                throw new Error(data?.message || "Failed to create opportunity");
             }
             onSave?.(data);
         } catch (error) {
@@ -324,60 +318,34 @@ function OppForm({ initial, onSave, onCancel }) {
             )}
 
             <div className="ot-form-wrap">
-
-                {/* ─── Header ───────────────────────── */}
                 <div className="ot-form-topbar">
                     <h2 className="ot-form-heading">
-                        {initial?.client
-                            ? `Edit — ${initial.client}`
-                            : "New Opportunity"}
+                        {initial?.client ? `Edit — ${initial.client}` : "New Opportunity"}
                     </h2>
-
-                    <button
-                        className="ot-close-btn"
-                        onClick={onCancel}
-                    >
-                        ✕
-                    </button>
+                    <button className="ot-close-btn" onClick={onCancel}>✕</button>
                 </div>
 
                 <div className="ot-form-body">
-
-                    {/* ─── Engagement Details ───────────────── */}
                     <Section title="Engagement Details" icon="📋" />
-
                     <div className="ot-grid-2">
-
-                        {/* Client */}
                         <Field label="Client" required>
                             <div className="search-select">
-
                                 <input
                                     type="text"
                                     value={form.client}
                                     onChange={(e) => {
                                         const value = e.target.value;
-
                                         set("client")(value);
-
-                                        setShowClientDropdown(
-                                            value.length >= 3
-                                        );
+                                        setShowClientDropdown(value.length >= 3);
                                     }}
                                     placeholder="Type at least 3 letters..."
                                     className="search-input"
                                 />
-
                                 {showClientDropdown && (
                                     <div className="search-dropdown">
-
                                         {CLIENTS
                                             .filter((client) =>
-                                                client
-                                                    .toLowerCase()
-                                                    .includes(
-                                                        form.client.toLowerCase()
-                                                    )
+                                                client.toLowerCase().includes(form.client.toLowerCase())
                                             )
                                             .map((client) => (
                                                 <div
@@ -396,160 +364,63 @@ function OppForm({ initial, onSave, onCancel }) {
                             </div>
                         </Field>
 
-                        {/* BU */}
                         <Field label="BU">
-                            <Select
-                                value={form.BU}
-                                onChange={set("BU")}
-                                options={BUS}
-                            />
+                            <Select value={form.BU} onChange={set("BU")} options={BUS} />
                         </Field>
-
-                        {/* Mode */}
                         <Field label="Mode">
-                            <Select
-                                value={form.mode}
-                                onChange={set("mode")}
-                                options={MODES}
-                            />
+                            <Select value={form.mode} onChange={set("mode")} options={MODES} />
                         </Field>
-
-                        {/* Team */}
                         <Field label="Team">
-                            <Select
-                                value={form.team}
-                                onChange={set("team")}
-                                options={TEAMS}
-                            />
+                            <Select value={form.team} onChange={set("team")} options={TEAMS} />
                         </Field>
                     </div>
 
-                    {/* ─── Requisition ───────────────────────── */}
                     <Section title="Requisition" icon="🏢" />
-
                     <div className="ot-grid-2">
-
-                        {/* Skill */}
                         <Field label="Skill" required>
-                            <Input
-                                value={form.skill}
-                                onChange={set("skill")}
-                                placeholder="e.g. RTL Design, DFT…"
-                            />
+                            <Input value={form.skill} onChange={set("skill")} placeholder="e.g. RTL Design, DFT…" />
                         </Field>
-
-                        {/* Month */}
                         <Field label="Month">
-                            <Input
-                                value={form.month}
-                                onChange={set("month")}
-                                placeholder="e.g. January"
-                            />
+                            <Input value={form.month} onChange={set("month")} placeholder="e.g. January" />
                         </Field>
-
-                        {/* Req Date */}
                         <Field label="Req Date">
-                            <Input
-                                type="date"
-                                value={form.reqdate}
-                                onChange={set("reqdate")}
-                            />
+                            <Input type="date" value={form.reqdate} onChange={set("reqdate")} />
                         </Field>
-
-                        {/* Location */}
                         <Field label="Location">
-                            <Select
-                                value={form.location}
-                                onChange={set("location")}
-                                options={LOCATIONS}
-                            />
+                            <Select value={form.location} onChange={set("location")} options={LOCATIONS} />
                         </Field>
-
-                        {/* No of Positions */}
                         <Field label="No of Positions">
-                            <Input
-                                type="number"
-                                value={form.no_of_positions}
-                                onChange={set("no_of_positions")}
-                                placeholder="e.g. 5"
-                            />
+                            <Input type="number" value={form.no_of_positions} onChange={set("no_of_positions")} placeholder="e.g. 5" />
                         </Field>
-
-                        {/* Experience */}
                         <Field label="Experience">
-                            <Input
-                                value={form.experience}
-                                onChange={set("experience")}
-                                placeholder="e.g. 3–5 years"
-                            />
+                            <Input value={form.experience} onChange={set("experience")} placeholder="e.g. 3–5 years" />
                         </Field>
-
-                        {/* Start Date */}
                         <Field label="Expected Start Date">
-                            <Input
-                                type="date"
-                                value={form.start_date}
-                                onChange={set("start_date")}
-                            />
+                            <Input type="date" value={form.start_date} onChange={set("start_date")} />
                         </Field>
-
-                        {/* Technical POC */}
                         <Field label="Technical POC">
-                            <Input
-                                value={form.technical_poc}
-                                onChange={set("technical_poc")}
-                                placeholder="Name of technical point of contact"
-                            />
+                            <Input value={form.technical_poc} onChange={set("technical_poc")} placeholder="Name of technical point of contact" />
                         </Field>
-
-                        {/* Priority */}
                         <Field label="Priority">
-                            <Select
-                                value={form.priority}
-                                onChange={set("priority")}
-                                options={PRIORITIES}
-                            />
+                            <Select value={form.priority} onChange={set("priority")} options={PRIORITIES} />
                         </Field>
-
-                        {/* Doable Head Count */}
                         <Field label="Doable Head Count">
-                            <Input
-                                type="number"
-                                value={form.doable_headcount}
-                                onChange={set("doable_headcount")}
-                                placeholder="e.g. 3"
-                            />
+                            <Input type="number" value={form.doable_headcount} onChange={set("doable_headcount")} placeholder="e.g. 3" />
                         </Field>
-
-                        {/* JD Upload */}
                         <Field label="JD Upload (PDF / Word / any format)">
                             <div className="ot-file-row">
-
                                 <button
                                     type="button"
                                     className="ot-upload-btn"
-                                    onClick={() =>
-                                        setShowUploadPopup(true)
-                                    }
+                                    onClick={() => setShowUploadPopup(true)}
                                 >
-                                    📎 {
-                                        form.jdFileName
-                                            ? form.jdFileName
-                                            : "Choose file…"
-                                    }
+                                    📎 {form.jdFileName ? form.jdFileName : "Choose file…"}
                                 </button>
-
                                 {form.jdFileName && (
                                     <button
                                         type="button"
                                         className="ot-remove-file"
-                                        onClick={() =>
-                                            setForm((p) => ({
-                                                ...p,
-                                                jdFileName: "",
-                                                file_id: "",
-                                            }))
-                                        }
+                                        onClick={() => setForm((p) => ({ ...p, jdFileName: "", file_id: "" }))}
                                     >
                                         ✕
                                     </button>
@@ -559,32 +430,17 @@ function OppForm({ initial, onSave, onCancel }) {
                     </div>
                 </div>
 
-                {/* ─── Footer ───────────────────────── */}
                 <div className="ot-form-footer">
-
-                    <button
-                        className="btn-ghost"
-                        onClick={onCancel}
-                    >
-                        Cancel
-                    </button>
-
-                    <button
-                        className="ot-save-btn"
-                        onClick={handleSubmit}
-                        disabled={loading}
-                    >
-                        {loading
-                            ? "Saving..."
-                            : initial?.client
-                                ? "Update Opportunity"
-                                : "Save Opportunity"}
+                    <button className="btn-ghost" onClick={onCancel}>Cancel</button>
+                    <button className="ot-save-btn" onClick={handleSubmit} disabled={loading}>
+                        {loading ? "Saving..." : initial?.client ? "Update Opportunity" : "Save Opportunity"}
                     </button>
                 </div>
             </div>
         </>
     );
 }
+
 // ─── Status / Priority badges ─────────────────────────────────────────────────
 
 function StatusBadge({ value, map }) {
@@ -676,7 +532,6 @@ function OppCard({ opp, onEdit, onDelete }) {
                         <div className="ot-detail-block">
                             <span className="ot-detail-key">JD File</span>
                             <a href={opp.file_id} target="_blank" rel="noreferrer" className="ot-jd-link">
-                                {/* <a href={opp.jdFileUrl} download={opp.jdFileName} className="ot-jd-link"> */}
                                 📎 {opp.jdFileName}
                             </a>
                         </div>
@@ -693,7 +548,7 @@ function OppCard({ opp, onEdit, onDelete }) {
 
 // ─── Filters bar ──────────────────────────────────────────────────────────────
 
-function FiltersBar({ filters, setFilters, opps }) {
+function FiltersBar({ filters, setFilters }) {
     return (
         <div className="ot-filters">
             <input
@@ -706,6 +561,79 @@ function FiltersBar({ filters, setFilters, opps }) {
     );
 }
 
+// ─── Pagination Controls ──────────────────────────────────────────────────────
+
+function Pagination({ currentPage, totalPages, totalItems, pageSize, onPageChange }) {
+    if (totalPages <= 1) return null;
+
+    const startItem = (currentPage - 1) * pageSize + 1;
+    const endItem = Math.min(currentPage * pageSize, totalItems);
+
+    // Build page number list: always show first, last, current ± 1, with ellipsis
+    const pages = [];
+    const delta = 1;
+    const left = currentPage - delta;
+    const right = currentPage + delta;
+
+    for (let i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || (i >= left && i <= right)) {
+            pages.push(i);
+        }
+    }
+
+    const withEllipsis = [];
+    let prev = null;
+    for (const page of pages) {
+        if (prev !== null && page - prev > 1) {
+            withEllipsis.push("...");
+        }
+        withEllipsis.push(page);
+        prev = page;
+    }
+
+    return (
+        <div className="ot-pagination">
+            <span className="ot-pagination-info">
+                Showing {startItem}–{endItem} of {totalItems}
+            </span>
+
+            <div className="ot-pagination-controls">
+                <button
+                    className="ot-page-btn"
+                    onClick={() => onPageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    aria-label="Previous page"
+                >
+                    ‹
+                </button>
+
+                {withEllipsis.map((item, idx) =>
+                    item === "..." ? (
+                        <span key={`ellipsis-${idx}`} className="ot-page-ellipsis">…</span>
+                    ) : (
+                        <button
+                            key={item}
+                            className={`ot-page-btn ${item === currentPage ? "ot-page-btn-active" : ""}`}
+                            onClick={() => onPageChange(item)}
+                        >
+                            {item}
+                        </button>
+                    )
+                )}
+
+                <button
+                    className="ot-page-btn"
+                    onClick={() => onPageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    aria-label="Next page"
+                >
+                    ›
+                </button>
+            </div>
+        </div>
+    );
+}
+
 // ─── Main OpportunityTracker ──────────────────────────────────────────────────
 
 export default function OpportunityTracker({ onToast, setActiveForm }) {
@@ -713,21 +641,37 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
     const [showForm, setShowForm] = useState(false);
     const [editingOpp, setEditingOpp] = useState(null);
     const [deletingId, setDeletingId] = useState(null);
-    const [filters, setFilters] = useState({ status: "", priority: "", client: "", am: "", search: "" });
+    // const [filters, setFilters] = useState({ status: "", priority: "", client: "", am: "", search: "" });
     const [loading, setLoading] = useState(false);
+    const [filters, setFilters] = useState({
+        search: "",
+        reqdate: "",
+        start_date: "",
+    });
 
+    // ─── Pagination state ─────────────────────────────
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
+    const pageSize = PAGE_SIZE;
+    const totalPages = Math.ceil(totalItems / pageSize);
+
+    // ─── Fetch (re-runs on page change) ──────────────
     useEffect(() => {
         const fetchOpportunities = async () => {
             try {
                 setLoading(true);
-                const response = await fetch(GET_OPPORTUNITY);
+                const skip = (currentPage - 1) * pageSize;
+                const url = `${GET_OPPORTUNITY}?limit=${pageSize}&skip=${skip}`;
+                const response = await fetch(url);
                 const data = await response.json();
 
                 if (!response.ok) {
-                    throw new Error(data?.message || `Failed to fetch opportunities`);
+                    throw new Error(data?.message || "Failed to fetch opportunities");
                 }
 
                 setOpps(data.data.items);
+                // Support both `total` and `total_count` field names from the API
+                setTotalItems(data.data.total ?? data.data.total_count ?? 0);
             } catch (error) {
                 console.error("Fetch opportunities error:", error);
             } finally {
@@ -736,36 +680,39 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
         };
 
         fetchOpportunities();
-    }, []);
+    }, [currentPage]);
 
+    // Reset to page 1 whenever search filter changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [filters.search]);
+
+    // ─── Save / Edit ──────────────────────────────────
     const handleSave = (apiResponse) => {
         if (editingOpp) {
             const updated = apiResponse.data;
             setOpps(p => p.map(o => o.opportunity_id === updated.opportunity_id ? updated : o));
             onToast?.("Opportunity updated ✓");
         } else {
-            const created = apiResponse.data;
-            setOpps(p => [created, ...p]);
+            // New item: go to page 1 so it's visible (assuming desc sort)
+            setCurrentPage(1);
             onToast?.("Opportunity saved ✓");
         }
         setShowForm(false);
         setEditingOpp(null);
     };
 
-    // const handleSave = (opp) => {
-    //     if (editingOpp) {
-    //         setOpps(p => p.map(o => o.opportunity_id === opp.opportunity_id ? opp : o));
-    //         onToast?.("Opportunity updated ✓");
-    //     } else {
-    //         setOpps(p => [opp, ...p]);
-    //         onToast?.("Opportunity saved ✓");
-    //     }
-    //     setShowForm(false);
-    //     setEditingOpp(null);
-    // };
-
     const startEdit = (opp) => { setEditingOpp(opp); setShowForm(true); };
-    const doDelete = (id) => { setOpps(p => p.filter(o => o.opportunity_id !== id)); setDeletingId(null); onToast?.("Deleted ✓"); };
+    const doDelete = (id) => {
+        setOpps(p => p.filter(o => o.opportunity_id !== id));
+        setTotalItems(t => t - 1);
+        setDeletingId(null);
+        onToast?.("Deleted ✓");
+        // If we just deleted the last item on this page, go back one
+        if (opps.length === 1 && currentPage > 1) {
+            setCurrentPage(p => p - 1);
+        }
+    };
 
     const filtered = opps.filter(o => {
         if (filters.status && o.status !== filters.status) return false;
@@ -777,6 +724,13 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
         }
         return true;
     });
+
+    const handlePageChange = (page) => {
+        if (page < 1 || page > totalPages) return;
+        setCurrentPage(page);
+        // Scroll list back to top on page change
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    };
 
     return (
         <>
@@ -841,6 +795,17 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
                         <OppCard key={o.opportunity_id} opp={o} onEdit={startEdit} onDelete={(id) => setDeletingId(id)} />
                     ))}
                 </div>
+            )}
+
+            {/* Pagination */}
+            {!loading && totalPages > 1 && (
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={totalItems}
+                    pageSize={pageSize}
+                    onPageChange={handlePageChange}
+                />
             )}
         </>
     );
