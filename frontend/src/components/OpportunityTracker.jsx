@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { CLIENTS, BUS, MODES, TEAMS, LOCATIONS, START_DATE_OPTIONS, PRIORITIES, STATUS_COLORS, PRIORITY_COLORS } from "../constants/StringConstants.js";
-import { CREATE_OPPORTUNITY, UPLOAD_JD, GET_OPPORTUNITY } from "../api/endpoints";
+import { CREATE_OPPORTUNITY, UPLOAD_JD, GET_OPPORTUNITY, UPDATE_OPPORTUNITY } from "../api/endpoints";
 import { postFile } from "../api/clients";
 import { useEffect } from "react";
 import { VERTICALS } from "../constants/StringConstants.js";
@@ -22,14 +22,14 @@ const emptyOpportunity = () => ({
     location: "",
     no_of_positions: 0,
     experience: "",
-    start_date: "",
+    expected_start_date: "",
     technical_poc: "",
     priority: "",
     doable_headcount: 0,
     file_id: "",
     jdFileUrl: "",
     jdFileName: "",
-    vertical:"",
+    vertical: "",
     createdAt: new Date().toISOString(),
 });
 
@@ -285,16 +285,58 @@ function OppForm({ initial, onSave, onCancel }) {
     const handleSubmit = async () => {
         try {
             setLoading(true);
-            const response = await fetch(CREATE_OPPORTUNITY, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(form),
-            });
-            const data = await response.json();
-            if (!response.ok) {
-                throw new Error(data?.message || "Failed to create opportunity");
+
+            let response;
+
+            // ─── EDIT EXISTING OPPORTUNITY ─────────────────
+            if (initial?.opportunity_id) {
+
+                // only send changed fields
+                const changedFields = {};
+
+                Object.keys(form).forEach((key) => {
+                    const initialValue = initial[key] ?? "";
+                    const currentValue = form[key] ?? "";
+
+                    if (initialValue !== currentValue) {
+                        changedFields[key] = currentValue;
+                    }
+                });
+
+                response = await fetch(
+                    `${UPDATE_OPPORTUNITY}/${initial.opportunity_id}`,
+                    {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(changedFields),
+                    }
+                );
             }
-            onSave?.(data);
+
+            // ─── CREATE NEW OPPORTUNITY ────────────────────
+            else {
+                response = await fetch(CREATE_OPPORTUNITY, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(form),
+                });
+            }
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data?.message ||
+                    "Failed to save opportunity"
+                );
+            }
+
+            onSave?.(form);
+
         } catch (error) {
             console.error("Error:", error.message);
             alert(error.message);
@@ -397,10 +439,19 @@ function OppForm({ initial, onSave, onCancel }) {
                         <Field label="Experience">
                             <Input value={form.experience} onChange={set("experience")} placeholder="e.g. 3–5 years" />
                         </Field>
-                        <Field label="Expected Start Date">
-                            <Input type="date" value={form.start_date} onChange={set("start_date")} />
+                        <Field label="Expected Start Date (Days)">
+                            <Select
+                                value={form.expected_start_date}
+                                onChange={set("expected_start_date")}
+                                options={[
+                                    "Immediate",
+                                    "15",
+                                    "30",
+                                    "30+"
+                                ]}
+                            />
                         </Field>
-                        <Field label="Technical POC">
+                        <Field label="SS Technical POC">
                             <Input value={form.technical_poc} onChange={set("technical_poc")} placeholder="Name of technical point of contact" />
                         </Field>
                         <Field label="Priority">
@@ -411,8 +462,8 @@ function OppForm({ initial, onSave, onCancel }) {
                         </Field>
                         <Field label="Vertical" required>
                             <Select
+                                onChange={set("vertical")}
                                 value={form.vertical}
-                                onChange={v => set("vertical", v)}
                                 options={VERTICALS}
                                 placeholder="Select vertical…"
                             />
@@ -498,7 +549,7 @@ function OppCard({ opp, onEdit, onDelete }) {
                             ["No of Positions", opp.noOfPositions],
                             ["Experience", opp.experience],
                             ["Doable HC", opp.doableHeadCount],
-                            ["Technical POC", opp.technicalPoc],
+                            ["SS Technical POC", opp.technicalPoc],
                             ["Internal Profiles", opp.internalProfilesShared],
                             ["Partner Profiles", opp.partnerProfilesShared],
                         ].filter(([, v]) => v).map(([k, v]) => (
@@ -548,7 +599,7 @@ function OppCard({ opp, onEdit, onDelete }) {
                     )}
                     <div className="ot-card-actions">
                         <button className="btn-edit" onClick={() => onEdit(opp)}>✏️ Edit</button>
-                        <button className="btn-danger" onClick={() => onDelete(opp.id)}>🗑️ Delete</button>
+                        {/* <button className="btn-danger" onClick={() => onDelete(opp.id)}>🗑️ Delete</button> */}
                     </div>
                 </div>
             )}
@@ -656,7 +707,7 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
     const [filters, setFilters] = useState({
         search: "",
         reqdate: "",
-        start_date: "",
+        expected_start_date: "",
     });
 
     // ─── Pagination state ─────────────────────────────
@@ -698,20 +749,34 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
     }, [filters.search]);
 
     // ─── Save / Edit ──────────────────────────────────
-    const handleSave = (apiResponse) => {
+    const handleSave = (updatedFormData) => {
         if (editingOpp) {
-            const updated = apiResponse.data;
-            setOpps(p => p.map(o => o.opportunity_id === updated.opportunity_id ? updated : o));
+
+            // immediately update UI with edited values
+            setOpps(prev =>
+                prev.map(opp =>
+                    opp.opportunity_id === editingOpp.opportunity_id
+                        ? {
+                            ...opp,
+                            ...updatedFormData,
+                        }
+                        : opp
+                )
+            );
+
             onToast?.("Opportunity updated ✓");
         } else {
-            // New item: go to page 1 so it's visible (assuming desc sort)
             setCurrentPage(1);
+
+            // optionally prepend new opportunity
+            setOpps(prev => [updatedFormData, ...prev]);
+
             onToast?.("Opportunity saved ✓");
         }
+
         setShowForm(false);
         setEditingOpp(null);
     };
-
     const startEdit = (opp) => { setEditingOpp(opp); setShowForm(true); };
     const doDelete = (id) => {
         setOpps(p => p.filter(o => o.opportunity_id !== id));
@@ -800,76 +865,69 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
                         : "No opportunities match the current filters."}
                 </div>
             ) : (
-                <div className="ot-table-wrap">
-    <table className="ot-main-table">
-        <thead>
-            <tr>
-                <th>Client</th>
-                <th>BU</th>
-                <th>Mode</th>
-                <th>Team</th>
-                <th>Skill</th>
-                <th>Month</th>
-                <th>Req Date</th>
-                <th>Start Date</th>
-                <th>Location</th>
-                <th>Positions</th>
-                <th>Experience</th>
-                <th>Technical POC</th>
-                <th>Priority</th>
-                <th>Doable HC</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
+                <div className="ot-table-scroll">
+                    <table className="ot-main-table">
+                        <thead>
+                            <tr>
+                                <th>Client</th>
+                                <th>BU</th>
+                                <th>Mode</th>
+                                <th>Team</th>
+                                <th>Skill</th>
+                                <th>Month</th>
+                                <th>Req Date</th>
+                                <th>Start Date</th>
+                                <th>Location</th>
+                                <th>Positions</th>
+                                <th>Experience</th>
+                                <th>SS Technical POC</th>
+                                <th>Vertical</th>
+                                <th>Priority</th>
+                                <th>Doable HC</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
 
-        <tbody>
-            {filtered.map((opp) => (
-                <tr key={opp.opportunity_id}>
-                    <td>{opp.client || "—"}</td>
-                    <td>{opp.BU || "—"}</td>
-                    <td>{opp.mode || "—"}</td>
-                    <td>{opp.team || "—"}</td>
-                    <td>{opp.skill || "—"}</td>
-                    <td>{opp.month || "—"}</td>
-                    <td>{opp.reqdate || "—"}</td>
-                    <td>{opp.start_date || "—"}</td>
-                    <td>{opp.location || "—"}</td>
-                    <td>{opp.no_of_positions || "—"}</td>
-                    <td>{opp.experience || "—"}</td>
-                    <td>{opp.technical_poc || "—"}</td>
+                        <tbody>
+                            {filtered.map((opp) => (
+                                <tr key={opp.opportunity_id}>
+                                    <td>{opp.client || "—"}</td>
+                                    <td>{opp.BU || "—"}</td>
+                                    <td>{opp.mode || "—"}</td>
+                                    <td>{opp.team || "—"}</td>
+                                    <td>{opp.skill || "—"}</td>
+                                    <td>{opp.month || "—"}</td>
+                                    <td>{opp.reqdate || "—"}</td>
+                                    <td>{opp.expected_start_date || "—"}</td>
+                                    <td>{opp.location || "—"}</td>
+                                    <td>{opp.no_of_positions || "—"}</td>
+                                    <td>{opp.experience || "—"}</td>
+                                    <td>{opp.technical_poc || "—"}</td>
+                                    <td>{opp.vertical || "—"}</td>
 
-                    <td>
-                        <StatusBadge
-                            value={opp.priority}
-                            map={PRIORITY_COLORS}
-                        />
-                    </td>
+                                    <td>
+                                        <StatusBadge
+                                            value={opp.priority}
+                                            map={PRIORITY_COLORS}
+                                        />
+                                    </td>
 
-                    <td>{opp.doable_headcount || "—"}</td>
-                    <td>
-                        <div className="ot-table-actions">
-                            <button
-                                className="btn-edit"
-                                onClick={() => startEdit(opp)}
-                            >
-                                ✏️
-                            </button>
-
-                            <button
-                                className="btn-danger"
-                                onClick={() =>
-                                    setDeletingId(opp.opportunity_id)
-                                }
-                            >
-                                🗑️
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            ))}
-        </tbody>
-    </table>
-</div>
+                                    <td>{opp.doable_headcount || "—"}</td>
+                                    <td>
+                                        <div className="ot-table-actions">
+                                            <button
+                                                className="btn-edit"
+                                                onClick={() => startEdit(opp)}
+                                            >
+                                                ✏️
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             )}
 
             {/* Pagination */}

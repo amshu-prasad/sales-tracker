@@ -6,8 +6,9 @@ import OpportunityTracker from "../components/OpportunityTracker";
 import OnboardingOffboarding from "../components/OnBoardOffBoard";
 import OpportunityStatusForm from "../components/OpportunityStatusForm";
 import { CSVLink } from "react-csv";
+import { GET_OPPORTUNITY } from "../api/endpoints";
+import { VERTICALS } from "../constants/StringConstants.js";
 
-// const AMS_PEER = ["Shalini", "Shubha", "Shataveeresh", "Sathvik", "Sweatha", "Subhashini", "Jaibheema", "xxx", "yyy", "zzz"];
 
 function fmt(d) {
   if (!d) return "—";
@@ -32,10 +33,41 @@ export default function AMDashboard({ user, onToast }) {
   const [teamWeek, setTeamWeek] = useState("ALL");
   const [meta, setMeta] = useState({ clients: [], verticals: [], ams: [] });
   const [showProfilePopup, setShowProfilePopup] = useState(false);
+  const [opps, setOpps] = useState([]);
   // fetch meta once
   useEffect(() => {
     api.meta().then(m => setMeta(m)).catch(() => { });
   }, []);
+
+  const fetchOpportunities = async () => {
+    try {
+      setLoading(true);
+
+      const url = `${GET_OPPORTUNITY}?limit=100&skip=0`;
+
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data?.message || "Failed to fetch opportunities"
+        );
+      }
+
+      setOpps(data.data.items || []);
+    } catch (error) {
+      console.error("Fetch opportunities error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeForm === "opportunity-status") {
+      fetchOpportunities();
+    }
+  }, [activeForm]);
+
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -60,14 +92,28 @@ export default function AMDashboard({ user, onToast }) {
     onToast("Entry saved ✓");
   };
 
+  const columns = [
+    { label: "Client", key: "client" },
+    { label: "BU", key: "BU" },
+    { label: "Mode", key: "mode" },
+    { label: "Team", key: "team" },
+    { label: "Skill", key: "skill" },
+    { label: "Month", key: "month" },
+    { label: "Req Date", key: "reqdate" },
+    { label: "Start Date", key: "start_date" },
+    { label: "Location", key: "location" },
+    { label: "Positions", key: "no_of_positions" },
+    { label: "Experience", key: "experience" },
+    { label: "Technical POC", key: "technical_poc" },
+    { label: "Priority", key: "priority" },
+    { label: "Doable HC", key: "doable_headcount" },
+    { label: "Vertical", key: "vertical" },
+  ];
   return (
     <div className="page">
       <div className="tab-bar">
         {[
-          ["log", "Employee Lifecycle Tracker"],
-          ["records", "My Records"],
-          // ["rollup", "Week → Year"],
-          // ["opps", "Opportunity Tracker"],   // ← NEW TAB
+          ["log", "Employee Lifecycle Tracker"]
         ].map(([id, label]) => (
           <button
             key={id}
@@ -131,7 +177,6 @@ export default function AMDashboard({ user, onToast }) {
             </div>
           )}
           {/* ── Opportunity Status Section ── */}
-
           {activeForm === "opportunity-status" && (
             <div className="ops-main-wrap">
               <div className="ops-page-head">
@@ -147,57 +192,53 @@ export default function AMDashboard({ user, onToast }) {
                   </h2>
                 </div>
               </div>
+              {loading ? (
+                <div className="loading-wrap">
+                  Loading opportunities...
+                </div>
+              ) : opps.length === 0 ? (
+                <div className="empty-wrap">
+                  No opportunities found
+                </div>
+              ) : (
+                <div className="opp-table-wrap">
+                  <table className="opp-table">
+                    <thead>
+                      <tr>
+                        {columns.map((col) => (
+                          <th key={col.key}>
+                            {col.label}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
 
-              <div className="opportunity-list">
-                {[
-                  {
-                    id: 1,
-                    client: "AMD",
-                    vertical: "DV",
-                    positions: 3,
-                    status: "Open",
-                  },
-                  {
-                    id: 2,
-                    client: "Qualcomm",
-                    vertical: "PD",
-                    positions: 2,
-                    status: "Interview",
-                  },
-                  {
-                    id: 3,
-                    client: "Intel",
-                    vertical: "RTL",
-                    positions: 5,
-                    status: "Open",
-                  },
-                ].map((opp) => (
-                  <div key={opp.id} className="opp-card">
-                    <div className="opp-card-top">
-                      <div>
-                        <div className="opp-client">{opp.client}</div>
-                        <div className="opp-vertical">{opp.vertical}</div>
-                      </div>
-
-                      <span className="opp-status">
-                        {opp.status}
-                      </span>
-                    </div>
-
-                    <div className="opp-meta">
-                      {opp.positions} Open Positions
-                    </div>
-
-                    <button
-                      className="add-profile-btn"
-                      onClick={() => setShowProfilePopup(true)}
-                    >
-                      <span className="btn-plus">＋</span>
-                      Add Profile
-                    </button>
-                  </div>
-                ))}
-              </div>
+                    <tbody>
+                      {opps.map((opp) => (
+                        <tr key={opp.opportunity_id}>
+                          {columns.map((col) => (
+                            <td key={col.key}>
+                              {col.key === "priority" ? (
+                                <span
+                                  className={`priority-badge ${String(
+                                    opp[col.key] || ""
+                                  ).toLowerCase()}`}
+                                >
+                                  {opp[col.key] || "—"}
+                                </span>
+                              ) : col.key === "experience" ? (
+                                `${opp[col.key] || "—"} yrs`
+                              ) : (
+                                opp[col.key] || "—"
+                              )}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           )}
 
@@ -413,7 +454,7 @@ function MyRecordsSection({ entries: initialEntries, setEntries: setParentEntrie
                   <th style={{ minWidth: 90 }}>Emp Type</th>
                   <th style={{ minWidth: 130 }}>Candidate</th>
                   <th style={{ minWidth: 130 }}>Remarks</th>
-                  <th style={{ minWidth: 80 }}>Actions</th>
+                  {/* <th style={{ minWidth: 80 }}>Actions</th> */}
                 </tr>
               </thead>
               <tbody>
