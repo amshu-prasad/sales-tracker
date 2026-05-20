@@ -14,7 +14,7 @@ class OpportunitySchema(BaseModel):
     location: str
     no_of_positions: int
     experience: str
-    start_date: date
+    expected_start_date: str
     technical_poc: str
     priority: str
     doable_headcount: int

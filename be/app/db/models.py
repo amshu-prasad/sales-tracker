@@ -42,14 +42,15 @@ def find_one(
     collection_name: str,
     query: Dict[str, Any],
     projection: Optional[Dict[str, int]] = None
-) :
+):
 
     collection = get_collection(collection_name)
 
-    data = collection.find_one(query, projection)
+    # exclude mongo _id by default
+    if projection is None:
+        projection = {"_id": 0}
 
-    if data:
-        data["_id"] = str(data["_id"])
+    data = collection.find_one(query, projection)
 
     return data
 
@@ -157,3 +158,23 @@ def delete_many(
 # -----------------------------
 def to_object_id(id: str) -> ObjectId:
     return ObjectId(id)
+
+def append_to_list(
+    collection_name: str,
+    query: dict,
+    field_name: str,
+    value
+):
+
+    collection = get_collection(collection_name)
+
+    result = collection.update_one(
+        query,
+        {
+            "$push": {
+                field_name: value
+            }
+        }
+    )
+
+    return result

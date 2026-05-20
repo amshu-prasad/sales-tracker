@@ -1,6 +1,6 @@
 from typing import Optional
 from fastapi import APIRouter, HTTPException, Query, UploadFile, File
-from app.services.opportunity_service import create_opportunity_service, get_opportunities_service, update_opportunity_service, upload_document
+from app.services.opportunity_service import create_opportunity_service, get_opportunities_service, get_opportunity_by_id_service, update_opportunity_service, upload_document
 from app.db.opportunity_schema import OpportunitySchema
 
 # aws_s3_object = aws_s3_access_class()
@@ -53,4 +53,20 @@ async def get_opportunities(
     return {
         "success": True,
         "data": get_opportunities_service(search, reqdate, start_date, limit, skip)
+    }
+
+@opportunity_router.get("/opportunities/{opportunity_id}")
+async def get_opportunity_by_id(opportunity_id: str):
+
+    response = get_opportunity_by_id_service(opportunity_id)
+
+    if not response:
+        raise HTTPException(
+            status_code=404,
+            detail="Opportunity not found"
+        )
+
+    return {
+        "success": True,
+        "data": response
     }
