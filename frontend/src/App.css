@@ -90,10 +90,17 @@ body {
 }
 
 /* ── Page ───────────────────────────────────────────────────── */
-.page {
+/* .page {
   max-width: 960px;
   margin: 0 auto;
   padding: 1.25rem 1rem;
+} */
+
+.page {
+  width: 100%;
+  max-width: 100%;
+  min-height: 100vh;
+  padding: 1.25rem;
 }
 
 /* ── Card ───────────────────────────────────────────────────── */
@@ -505,8 +512,13 @@ textarea {
   cursor: pointer;
   transition: transform .15s, box-shadow .15s;
   box-shadow: var(--shadow);
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
 }
-
 .log-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 20px rgba(0, 0, 0, .1);
@@ -2096,3 +2108,188 @@ textarea {
 .ops-back-arrow:hover {
   color: #1d4ed8;
 }
+
+/* ── Pagination ── */
+
+.ot-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 4px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.ot-pagination-info {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.ot-pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.ot-page-btn {
+    min-width: 34px;
+    height: 34px;
+    padding: 0 8px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    border-radius: 7px;
+    font-size: 14px;
+    color: #374151;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ot-page-btn:hover:not(:disabled):not(.ot-page-btn-active) {
+    background: #f5f3ff;
+    border-color: #a5b4fc;
+    color: #4f46e5;
+}
+
+.ot-page-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.ot-page-btn-active {
+    background: #6366f1;
+    border-color: #6366f1;
+    color: #fff;
+    cursor: default;
+}
+
+.ot-page-ellipsis {
+    font-size: 14px;
+    color: #9ca3af;
+    padding: 0 4px;
+    line-height: 34px;
+}
+
+.ot-table-scroll {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 75vh;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #fff;
+}
+
+/* keeps header visible while scrolling vertically */
+.ot-main-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #fff;
+}
+
+/* prevents columns from shrinking */
+.ot-main-table {
+    min-width: 1600px;
+    border-collapse: collapse;
+}
+
+
+
+
+
+
+
+
+.opp-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  margin-top: 16px;
+}
+
+.opp-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1600px;
+}
+
+.opp-table thead {
+  background: #f8fafc;
+}
+
+.opp-table th {
+  padding: 14px 16px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 700;
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+  white-space: nowrap;
+}
+
+.opp-table td {
+  padding: 14px 16px;
+  font-size: 14px;
+  color: #111827;
+  border-bottom: 1px solid #f1f5f9;
+  white-space: nowrap;
+}
+
+.opp-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.priority-badge {
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.priority-badge.high {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.priority-badge.medium {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.priority-badge.low {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.loading-wrap,
+.empty-wrap {
+  padding: 40px;
+  text-align: center;
+  font-size: 15px;
+  color: #6b7280;
+}
+
+.add-profile-btn {
+  border: none;
+  background: #2563eb;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.add-profile-btn:hover {
+  background: #1d4ed8;
+}
+
+
