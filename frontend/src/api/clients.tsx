@@ -1,6 +1,7 @@
 import { localStorageUtil } from "../utils/LocalStorageUtil";
 import { logOutUser } from "../utils/NavigationUtil";
 import { AUTH_TOKEN_REFRESH } from "./endpoints";
+import renderErrorModal from "../utils/renderErrorModal";
 
 export async function refreshAccessToken(): Promise<string | null> {
   try {
@@ -34,3 +35,79 @@ export async function refreshAccessToken(): Promise<string | null> {
     return null;
   }
 }
+
+
+const TIMEOUT = 3 * 60 * 1000;
+async function fetchWithAuth(url: string, options: RequestInit = {},) {
+  const accessToken = localStorageUtil.getItem("access_token");
+
+  // Add Authorization header
+  const headers = {
+    ...options.headers,
+    Authorization: `Bearer ${accessToken}`,
+  };
+
+  try {
+    if (!accessToken) {
+      console.error("No Access token found");
+      logOutUser();
+    }
+    const response = await fetch(url, { ...options, headers });
+
+    if (response.status === 401) {
+      // Access token expired, try refreshing
+      const newAccessToken = await refreshAccessToken();
+
+      if (!newAccessToken) {
+        throw new Error('Failed to refresh token');
+      }
+
+      // Retry the original request with the new token
+      const retryHeaders = {
+        ...options.headers,
+        Authorization: `Bearer ${newAccessToken}`,
+      };
+
+      return await fetch(url, { ...options, headers: retryHeaders });
+    }
+    if(response.status === 403){
+      renderErrorModal();
+    }
+
+    return response;
+  } catch (error) {
+    console.error('Error during fetch:', error);
+    throw error;
+  }
+}
+
+export const postFile = async (endpoint: string, formData: FormData) => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60_000);
+
+    try {
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            body: formData,
+            signal: controller.signal,
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            throw new Error(error?.message || `Upload failed with status ${response.status}`);
+        }
+
+        return await response.json();
+
+    } catch (error) {
+        clearTimeout(timeoutId);
+
+        if (error instanceof DOMException && error.name === 'AbortError') {
+            throw new Error('File upload timed out. Please try again.');
+        }
+
+        throw error;
+    }
+};

@@ -1,49 +1,48 @@
 import { useState, useRef, useCallback } from "react";
 import { CLIENTS, BUS, MODES, TEAMS, LOCATIONS, START_DATE_OPTIONS, PRIORITIES, STATUS_COLORS, PRIORITY_COLORS } from "../constants/StringConstants.js";
+import { CREATE_OPPORTUNITY, UPLOAD_JD, GET_OPPORTUNITY, UPDATE_OPPORTUNITY } from "../api/endpoints";
+import { postFile } from "../api/clients";
+import { useEffect } from "react";
+import { VERTICALS } from "../constants/StringConstants.js";
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const PAGE_SIZE = 10; // items per page
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const emptyOpportunity = () => ({
-    id: crypto.randomUUID(),
     client: "",
-    bu: "",
+    BU: "",
     mode: "",
     team: "",
     skill: "",
     month: "",
-    reqDate: "",
-    jdFileName: "",
-    jdFileUrl: "",        // ← replaces jdFile; stores the AWS path after upload
+    reqdate: "",
     location: "",
-    noOfPositions: "",
+    no_of_positions: 0,
     experience: "",
-    expectedStartDate: "",
-    technicalPoc: "",
+    expected_start_date: "",
+    technical_poc: "",
     priority: "",
-    doableHeadCount: "",
+    doable_headcount: 0,
+    file_id: "",
+    jdFileUrl: "",
+    jdFileName: "",
     vertical: "",
-    accountManager: "",
-    status: "",
-    description: "",
-    internalProfilesShared: "",
-    partnerProfilesShared: "",
-    namesProfilesShared: "",
-    namesProfilesInterviewed: "",
-    screeningFeedback: "",
-    interviewFeedback: "",
     createdAt: new Date().toISOString(),
 });
 
-// ─── AWS upload helper (replace body with your real S3 / presigned-URL call) ──
-
 async function uploadToAWS(file) {
-    // TODO: swap this stub for your real upload logic.
-    // Just return the final S3 URL string from here.
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            resolve(`https://your-bucket.s3.amazonaws.com/jd-uploads/${Date.now()}-${file.name}`);
-        }, 1800);
-    });
+    try {
+        const formData = new FormData();
+        formData.append("file", file);
+        const data = await postFile(UPLOAD_JD, formData);
+        return data;
+    } catch (error) {
+        console.error("Upload error:", error);
+        throw error;
+    }
 }
 
 // ─── JD Upload Popup ──────────────────────────────────────────────────────────
@@ -56,6 +55,7 @@ function JDUploadPopup({ onClose, onUploadComplete }) {
     const [uploadedUrl, setUploadedUrl] = useState("");
     const [error, setError] = useState("");
     const inputRef = useRef();
+    const [uploadedData, setUploadedData] = useState(null);
 
     const handleFile = (f) => {
         if (!f) return;
@@ -79,22 +79,33 @@ function JDUploadPopup({ onClose, onUploadComplete }) {
         const ticker = setInterval(() => {
             setProgress((p) => Math.min(p + Math.random() * 25, 90));
         }, 400);
+
         try {
-            const url = await uploadToAWS(file);
+            const response = await uploadToAWS(file);
             clearInterval(ticker);
             setProgress(100);
-            setUploadedUrl(url);
-        } catch {
+            // backend actual payload
+            const uploaded = response.data;
+            setUploadedUrl(uploaded.s3_url || "");
+            setUploadedData(uploaded);
+        } catch (err) {
             clearInterval(ticker);
-            setError("Upload failed. Please try again.");
+            setError(
+                err.message || "Upload failed. Please try again."
+            );
         } finally {
             setUploading(false);
         }
     };
-
     const handleConfirm = () => {
-        if (uploadedUrl) {
-            onUploadComplete({ fileName: file.name, fileUrl: uploadedUrl });
+        if (uploadedData) {
+
+            onUploadComplete({
+                fileName: uploadedData.file_name,
+                fileId: uploadedData.file_id,
+                fileUrl: uploadedData.s3_url,
+            });
+
             onClose();
         }
     };
@@ -256,18 +267,82 @@ function Textarea({ value, onChange, placeholder, rows = 3 }) {
 function OppForm({ initial, onSave, onCancel }) {
     const [form, setForm] = useState(initial || emptyOpportunity());
     const [showClientDropdown, setShowClientDropdown] = useState(false);
-    const [showUploadPopup, setShowUploadPopup] = useState(false);  // ← NEW
+    const [showUploadPopup, setShowUploadPopup] = useState(false);
+    const [loading, setLoading] = useState(false);
 
-    const set = (key) => (val) => setForm(p => ({ ...p, [key]: val }));
+    const set = (key) => (val) =>
+        setForm((p) => ({ ...p, [key]: val }));
 
-    // Called by JDUploadPopup after successful AWS upload
-    const handleUploadComplete = ({ fileName, fileUrl }) => {   // ← NEW (replaces handleFile)
-        setForm(p => ({ ...p, jdFileName: fileName, jdFileUrl: fileUrl }));
+    const handleUploadComplete = ({ fileName, fileId, fileUrl }) => {
+        setForm((p) => ({
+            ...p,
+            jdFileName: fileName,
+            file_id: fileId,
+            jdFileUrl: fileUrl,
+        }));
     };
 
-    const handleSubmit = () => {
-        console.log(form, "hehehehh")
-        onSave(form);
+    const handleSubmit = async () => {
+        try {
+            setLoading(true);
+
+            let response;
+
+            // ─── EDIT EXISTING OPPORTUNITY ─────────────────
+            if (initial?.opportunity_id) {
+
+                // only send changed fields
+                const changedFields = {};
+
+                Object.keys(form).forEach((key) => {
+                    const initialValue = initial[key] ?? "";
+                    const currentValue = form[key] ?? "";
+
+                    if (initialValue !== currentValue) {
+                        changedFields[key] = currentValue;
+                    }
+                });
+
+                response = await fetch(
+                    `${UPDATE_OPPORTUNITY}/${initial.opportunity_id}`,
+                    {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(changedFields),
+                    }
+                );
+            }
+
+            // ─── CREATE NEW OPPORTUNITY ────────────────────
+            else {
+                response = await fetch(CREATE_OPPORTUNITY, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(form),
+                });
+            }
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data?.message ||
+                    "Failed to save opportunity"
+                );
+            }
+
+            onSave?.(form);
+
+        } catch (error) {
+            console.error("Error:", error.message);
+            alert(error.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const Section = ({ title, icon }) => (
@@ -295,7 +370,6 @@ function OppForm({ initial, onSave, onCancel }) {
                 </div>
 
                 <div className="ot-form-body">
-                    {/* ── Section 1: Engagement Details ── */}
                     <Section title="Engagement Details" icon="📋" />
                     <div className="ot-grid-2">
                         <Field label="Client" required>
@@ -314,10 +388,10 @@ function OppForm({ initial, onSave, onCancel }) {
                                 {showClientDropdown && (
                                     <div className="search-dropdown">
                                         {CLIENTS
-                                            .filter(client =>
+                                            .filter((client) =>
                                                 client.toLowerCase().includes(form.client.toLowerCase())
                                             )
-                                            .map(client => (
+                                            .map((client) => (
                                                 <div
                                                     key={client}
                                                     className="search-option"
@@ -333,8 +407,9 @@ function OppForm({ initial, onSave, onCancel }) {
                                 )}
                             </div>
                         </Field>
+
                         <Field label="BU">
-                            <Select value={form.bu} onChange={set("bu")} options={BUS} />
+                            <Select value={form.BU} onChange={set("BU")} options={BUS} />
                         </Field>
                         <Field label="Mode">
                             <Select value={form.mode} onChange={set("mode")} options={MODES} />
@@ -344,7 +419,6 @@ function OppForm({ initial, onSave, onCancel }) {
                         </Field>
                     </div>
 
-                    {/* ── Section 2: Requisition ── */}
                     <Section title="Requisition" icon="🏢" />
                     <div className="ot-grid-2">
                         <Field label="Skill" required>
@@ -354,50 +428,73 @@ function OppForm({ initial, onSave, onCancel }) {
                             <Input value={form.month} onChange={set("month")} placeholder="e.g. January" />
                         </Field>
                         <Field label="Req Date">
-                            <Input value={form.reqDate} onChange={set("reqDate")} placeholder="DD-MM-YYYY" />
+                            <Input type="date" value={form.reqdate} onChange={set("reqdate")} />
                         </Field>
                         <Field label="Location">
                             <Select value={form.location} onChange={set("location")} options={LOCATIONS} />
                         </Field>
                         <Field label="No of Positions">
-                            <Input value={form.noOfPositions} onChange={set("noOfPositions")} placeholder="e.g. 5" />
+                            <Input type="number" value={form.no_of_positions} onChange={set("no_of_positions")} placeholder="e.g. 5" />
                         </Field>
                         <Field label="Experience">
                             <Input value={form.experience} onChange={set("experience")} placeholder="e.g. 3–5 years" />
                         </Field>
-                        <Field label="Expected Start Date">
-                            <Select value={form.expectedStartDate} onChange={set("expectedStartDate")} options={START_DATE_OPTIONS} />
+                        <Field label="Expected Start Date (Days)">
+                            <Select
+                                value={form.expected_start_date}
+                                onChange={set("expected_start_date")}
+                                options={[
+                                    "Immediate",
+                                    "15",
+                                    "30",
+                                    "30+"
+                                ]}
+                            />
                         </Field>
-                        <Field label="Technical POC">
-                            <Input value={form.technicalPoc} onChange={set("technicalPoc")} placeholder="Name of technical point of contact" />
+                        <Field label="SS Technical POC">
+                            <Input value={form.technical_poc} onChange={set("technical_poc")} placeholder="Name of technical point of contact" />
                         </Field>
                         <Field label="Priority">
                             <Select value={form.priority} onChange={set("priority")} options={PRIORITIES} />
                         </Field>
                         <Field label="Doable Head Count">
-                            <Input value={form.doableHeadCount} onChange={set("doableHeadCount")} placeholder="e.g. 3" />
+                            <Input type="number" value={form.doable_headcount} onChange={set("doable_headcount")} placeholder="e.g. 3" />
                         </Field>
-
-                        {/* ── JD Upload: now opens popup ── */}
+                        <Field label="Vertical" required>
+                            <Select
+                                onChange={set("vertical")}
+                                value={form.vertical}
+                                options={VERTICALS}
+                                placeholder="Select vertical…"
+                            />
+                        </Field>
                         <Field label="JD Upload (PDF / Word / any format)">
                             <div className="ot-file-row">
-                                <button type="button" className="ot-upload-btn" onClick={() => setShowUploadPopup(true)}>
+                                <button
+                                    type="button"
+                                    className="ot-upload-btn"
+                                    onClick={() => setShowUploadPopup(true)}
+                                >
                                     📎 {form.jdFileName ? form.jdFileName : "Choose file…"}
                                 </button>
                                 {form.jdFileName && (
-                                    <button type="button" className="ot-remove-file" onClick={() => setForm(p => ({ ...p, jdFileName: "", jdFileUrl: "" }))}>✕</button>
+                                    <button
+                                        type="button"
+                                        className="ot-remove-file"
+                                        onClick={() => setForm((p) => ({ ...p, jdFileName: "", file_id: "" }))}
+                                    >
+                                        ✕
+                                    </button>
                                 )}
                             </div>
                         </Field>
                     </div>
                 </div>
 
-
-                {/* ── Footer ── */}
                 <div className="ot-form-footer">
                     <button className="btn-ghost" onClick={onCancel}>Cancel</button>
-                    <button className="ot-save-btn" onClick={handleSubmit}>
-                        {initial?.client ? "Update Opportunity" : "Save Opportunity"}
+                    <button className="ot-save-btn" onClick={handleSubmit} disabled={loading}>
+                        {loading ? "Saving..." : initial?.client ? "Update Opportunity" : "Save Opportunity"}
                     </button>
                 </div>
             </div>
@@ -452,7 +549,7 @@ function OppCard({ opp, onEdit, onDelete }) {
                             ["No of Positions", opp.noOfPositions],
                             ["Experience", opp.experience],
                             ["Doable HC", opp.doableHeadCount],
-                            ["Technical POC", opp.technicalPoc],
+                            ["SS Technical POC", opp.technicalPoc],
                             ["Internal Profiles", opp.internalProfilesShared],
                             ["Partner Profiles", opp.partnerProfilesShared],
                         ].filter(([, v]) => v).map(([k, v]) => (
@@ -495,14 +592,14 @@ function OppCard({ opp, onEdit, onDelete }) {
                     {opp.jdFileName && (
                         <div className="ot-detail-block">
                             <span className="ot-detail-key">JD File</span>
-                            <a href={opp.jdFileUrl} download={opp.jdFileName} className="ot-jd-link">
+                            <a href={opp.file_id} target="_blank" rel="noreferrer" className="ot-jd-link">
                                 📎 {opp.jdFileName}
                             </a>
                         </div>
                     )}
                     <div className="ot-card-actions">
                         <button className="btn-edit" onClick={() => onEdit(opp)}>✏️ Edit</button>
-                        <button className="btn-danger" onClick={() => onDelete(opp.id)}>🗑️ Delete</button>
+                        {/* <button className="btn-danger" onClick={() => onDelete(opp.id)}>🗑️ Delete</button> */}
                     </div>
                 </div>
             )}
@@ -512,7 +609,7 @@ function OppCard({ opp, onEdit, onDelete }) {
 
 // ─── Filters bar ──────────────────────────────────────────────────────────────
 
-function FiltersBar({ filters, setFilters, opps }) {
+function FiltersBar({ filters, setFilters }) {
     return (
         <div className="ot-filters">
             <input
@@ -525,6 +622,79 @@ function FiltersBar({ filters, setFilters, opps }) {
     );
 }
 
+// ─── Pagination Controls ──────────────────────────────────────────────────────
+
+function Pagination({ currentPage, totalPages, totalItems, pageSize, onPageChange }) {
+    if (totalPages <= 1) return null;
+
+    const startItem = (currentPage - 1) * pageSize + 1;
+    const endItem = Math.min(currentPage * pageSize, totalItems);
+
+    // Build page number list: always show first, last, current ± 1, with ellipsis
+    const pages = [];
+    const delta = 1;
+    const left = currentPage - delta;
+    const right = currentPage + delta;
+
+    for (let i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || (i >= left && i <= right)) {
+            pages.push(i);
+        }
+    }
+
+    const withEllipsis = [];
+    let prev = null;
+    for (const page of pages) {
+        if (prev !== null && page - prev > 1) {
+            withEllipsis.push("...");
+        }
+        withEllipsis.push(page);
+        prev = page;
+    }
+
+    return (
+        <div className="ot-pagination">
+            <span className="ot-pagination-info">
+                Showing {startItem}–{endItem} of {totalItems}
+            </span>
+
+            <div className="ot-pagination-controls">
+                <button
+                    className="ot-page-btn"
+                    onClick={() => onPageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    aria-label="Previous page"
+                >
+                    ‹
+                </button>
+
+                {withEllipsis.map((item, idx) =>
+                    item === "..." ? (
+                        <span key={`ellipsis-${idx}`} className="ot-page-ellipsis">…</span>
+                    ) : (
+                        <button
+                            key={item}
+                            className={`ot-page-btn ${item === currentPage ? "ot-page-btn-active" : ""}`}
+                            onClick={() => onPageChange(item)}
+                        >
+                            {item}
+                        </button>
+                    )
+                )}
+
+                <button
+                    className="ot-page-btn"
+                    onClick={() => onPageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    aria-label="Next page"
+                >
+                    ›
+                </button>
+            </div>
+        </div>
+    );
+}
+
 // ─── Main OpportunityTracker ──────────────────────────────────────────────────
 
 export default function OpportunityTracker({ onToast, setActiveForm }) {
@@ -532,54 +702,117 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
     const [showForm, setShowForm] = useState(false);
     const [editingOpp, setEditingOpp] = useState(null);
     const [deletingId, setDeletingId] = useState(null);
-    const [filters, setFilters] = useState({ status: "", priority: "", client: "", am: "", search: "" });
+    // const [filters, setFilters] = useState({ status: "", priority: "", client: "", am: "", search: "" });
+    const [loading, setLoading] = useState(false);
+    const [filters, setFilters] = useState({
+        search: "",
+        reqdate: "",
+        expected_start_date: "",
+    });
 
-    const handleSave = (opp) => {
+    // ─── Pagination state ─────────────────────────────
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
+    const pageSize = PAGE_SIZE;
+    const totalPages = Math.ceil(totalItems / pageSize);
+
+    // ─── Fetch (re-runs on page change) ──────────────
+    useEffect(() => {
+        const fetchOpportunities = async () => {
+            try {
+                setLoading(true);
+                const skip = (currentPage - 1) * pageSize;
+                const url = `${GET_OPPORTUNITY}?limit=${pageSize}&skip=${skip}`;
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data?.message || "Failed to fetch opportunities");
+                }
+
+                setOpps(data.data.items);
+                // Support both `total` and `total_count` field names from the API
+                setTotalItems(data.data.total ?? data.data.total_count ?? 0);
+            } catch (error) {
+                console.error("Fetch opportunities error:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchOpportunities();
+    }, [currentPage]);
+
+    // Reset to page 1 whenever search filter changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [filters.search]);
+
+    // ─── Save / Edit ──────────────────────────────────
+    const handleSave = (updatedFormData) => {
         if (editingOpp) {
-            setOpps(p => p.map(o => o.id === opp.id ? opp : o));
+
+            // immediately update UI with edited values
+            setOpps(prev =>
+                prev.map(opp =>
+                    opp.opportunity_id === editingOpp.opportunity_id
+                        ? {
+                            ...opp,
+                            ...updatedFormData,
+                        }
+                        : opp
+                )
+            );
+
             onToast?.("Opportunity updated ✓");
         } else {
-            setOpps(p => [opp, ...p]);
+            setCurrentPage(1);
+
+            // optionally prepend new opportunity
+            setOpps(prev => [updatedFormData, ...prev]);
+
             onToast?.("Opportunity saved ✓");
         }
+
         setShowForm(false);
         setEditingOpp(null);
     };
-
     const startEdit = (opp) => { setEditingOpp(opp); setShowForm(true); };
-    const doDelete = (id) => { setOpps(p => p.filter(o => o.id !== id)); setDeletingId(null); onToast?.("Deleted ✓"); };
+    const doDelete = (id) => {
+        setOpps(p => p.filter(o => o.opportunity_id !== id));
+        setTotalItems(t => t - 1);
+        setDeletingId(null);
+        onToast?.("Deleted ✓");
+        // If we just deleted the last item on this page, go back one
+        if (opps.length === 1 && currentPage > 1) {
+            setCurrentPage(p => p - 1);
+        }
+    };
 
     const filtered = opps.filter(o => {
         if (filters.status && o.status !== filters.status) return false;
         if (filters.priority && o.priority !== filters.priority) return false;
         if (filters.client && o.client !== filters.client) return false;
-        if (filters.am && o.accountManager !== filters.am) return false;
         if (filters.search) {
             const q = filters.search.toLowerCase();
-            if (![o.client, o.skill, o.technicalPoc, o.bu, o.description].some(v => (v || "").toLowerCase().includes(q))) return false;
+            if (![o.client, o.skill, o.technical_poc, o.BU].some(v => (v || "").toLowerCase().includes(q))) return false;
         }
         return true;
     });
 
-    // const open = opps.filter(o => o.status === "Open").length;
-    // const closedSS = opps.filter(o => o.status === "Closed by SS").length;
-    // const high = opps.filter(o => o.priority === "High").length;
-    // const totalPositions = opps.reduce((s, o) => s + (parseInt(o.noOfPositions) || 0), 0);
+    const handlePageChange = (page) => {
+        if (page < 1 || page > totalPages) return;
+        setCurrentPage(page);
+        // Scroll list back to top on page change
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    };
 
     return (
         <>
             <div className="ot-page-header">
                 <div className="ot-title-row">
-                    <span
-                        className="ot-back-arrow"
-                        onClick={() => setActiveForm(null)}
-                    >
-                           {"<"}
-                    </span>
-
-                    <h1 className="ot-page-title">
-                        SmartSocs Opportunity Tracker
-                    </h1>
+                    <span className="ot-back-arrow" onClick={() => setActiveForm(null)}>{"<"}</span>
+                    <h1 className="ot-page-title">SmartSocs Opportunity Tracker</h1>
                 </div>
             </div>
 
@@ -614,14 +847,6 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
                 </div>
             )}
 
-            {/* Metrics */}
-            <div className="metric-grid" style={{ marginBottom: 16 }}>
-                {/* <div className="metric-card blue"><span className="metric-value">{open}</span><span className="metric-label">Open</span></div> */}
-                {/* <div className="metric-card green"><span className="metric-value">{closedSS}</span><span className="metric-label">Closed by SS</span></div> */}
-                {/* <div className="metric-card amber"><span className="metric-value">{high}</span><span className="metric-label">High Priority</span></div> */}
-                {/* <div className="metric-card neutral"><span className="metric-value">{totalPositions}</span><span className="metric-label">Total Positions</span></div> */}
-            </div>
-
             {/* Action bar */}
             <div className="ot-action-bar">
                 <FiltersBar filters={filters} setFilters={setFilters} opps={opps} />
@@ -630,18 +855,90 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
                 </button>
             </div>
 
-            {filtered.length === 0 ? (
+            {/* List */}
+            {loading ? (
+                <div className="empty">Loading opportunities…</div>
+            ) : filtered.length === 0 ? (
                 <div className="empty">
                     {opps.length === 0
                         ? "No opportunities yet. Click \"+ New Opportunity\" to add one."
                         : "No opportunities match the current filters."}
                 </div>
             ) : (
-                <div className="ot-list">
-                    {filtered.map(o => (
-                        <OppCard key={o.id} opp={o} onEdit={startEdit} onDelete={(id) => setDeletingId(id)} />
-                    ))}
+                <div className="ot-table-scroll">
+                    <table className="ot-main-table">
+                        <thead>
+                            <tr>
+                                <th>Client</th>
+                                <th>BU</th>
+                                <th>Mode</th>
+                                <th>Team</th>
+                                <th>Skill</th>
+                                <th>Month</th>
+                                <th>Req Date</th>
+                                <th>Start Date</th>
+                                <th>Location</th>
+                                <th>Positions</th>
+                                <th>Experience</th>
+                                <th>SS Technical POC</th>
+                                <th>Vertical</th>
+                                <th>Priority</th>
+                                <th>Doable HC</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {filtered.map((opp) => (
+                                <tr key={opp.opportunity_id}>
+                                    <td>{opp.client || "—"}</td>
+                                    <td>{opp.BU || "—"}</td>
+                                    <td>{opp.mode || "—"}</td>
+                                    <td>{opp.team || "—"}</td>
+                                    <td>{opp.skill || "—"}</td>
+                                    <td>{opp.month || "—"}</td>
+                                    <td>{opp.reqdate || "—"}</td>
+                                    <td>{opp.expected_start_date || "—"}</td>
+                                    <td>{opp.location || "—"}</td>
+                                    <td>{opp.no_of_positions || "—"}</td>
+                                    <td>{opp.experience || "—"}</td>
+                                    <td>{opp.technical_poc || "—"}</td>
+                                    <td>{opp.vertical || "—"}</td>
+
+                                    <td>
+                                        <StatusBadge
+                                            value={opp.priority}
+                                            map={PRIORITY_COLORS}
+                                        />
+                                    </td>
+
+                                    <td>{opp.doable_headcount || "—"}</td>
+                                    <td>
+                                        <div className="ot-table-actions">
+                                            <button
+                                                className="btn-edit"
+                                                onClick={() => startEdit(opp)}
+                                            >
+                                                ✏️
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
+            )}
+
+            {/* Pagination */}
+            {!loading && totalPages > 1 && (
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={totalItems}
+                    pageSize={pageSize}
+                    onPageChange={handlePageChange}
+                />
             )}
         </>
     );
