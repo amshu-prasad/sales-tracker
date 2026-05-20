@@ -3,3 +3,5 @@ uvicorn
 python-dotenv
 python-multipart
 requests
+boto3
+pymongo

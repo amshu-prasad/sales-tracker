@@ -18,7 +18,7 @@ app.add_middleware(
 setup_logger()  # Set up logging
 
 logger = logging.getLogger("main_project")
-apiPrefix = f"/api/v1"
+apiPrefix = f"{base_path}/api/v1"
 
 # Include routers
 app.include_router(opportunity_router, prefix=apiPrefix, tags=["tracker"])
