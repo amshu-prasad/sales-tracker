@@ -6,9 +6,8 @@ import OpportunityTracker from "../components/OpportunityTracker";
 import OnboardingOffboarding from "../components/OnBoardOffBoard";
 import OpportunityStatusForm from "../components/OpportunityStatusForm";
 import { CSVLink } from "react-csv";
-import { GET_OPPORTUNITY, GET_OPPORTUNITY_BY_ID } from "../api/endpoints";
 import { VERTICALS } from "../constants/StringConstants.js";
-
+import { GET_OPPORTUNITY, GET_OPPORTUNITY_BY_ID } from "../api/endpoints";
 
 function fmt(d) {
   if (!d) return "—";
@@ -122,6 +121,10 @@ export default function AMDashboard({ user, onToast }) {
   const handleSave = (entry) => {
     setEntries(prev => [entry, ...prev]);
     setActiveForm(null);
+    onToast("Entry saved ✓");
+  };
+  const handleSaveOppProfile = (entry) => {
+    setEntries(prev => [entry, ...prev]);
     onToast("Entry saved ✓");
   };
 
@@ -287,8 +290,14 @@ export default function AMDashboard({ user, onToast }) {
                       >
                         ← Back
                       </button>
-
                       <h2>Opportunity Details</h2>
+                      <button
+                        className="add-profile-btn"
+                        onClick={() => setShowProfilePopup(true)}
+                      >
+                        <span className="btn-plus">＋</span>
+                        Add Profile
+                      </button>
                     </div>
 
                     <div className="details-table-wrap">
@@ -406,8 +415,9 @@ export default function AMDashboard({ user, onToast }) {
                 onClick={(e) => e.stopPropagation()}
               >
                 <OpportunityStatusForm
+                  selectedOpportunity={selectedOpportunity}
                   onSave={(data) => {
-                    handleSave(data);
+                    handleSaveOppProfile(data);
                     setShowProfilePopup(false);
                   }}
                   onCancel={() => setShowProfilePopup(false)}
@@ -415,19 +425,6 @@ export default function AMDashboard({ user, onToast }) {
               </div>
             </div>
           )}
-
-          {/* {activeForm && activeForm === "opportunity-status" ? (
-            <OpportunityStatusForm
-              onSave={handleSave}
-              onCancel={() => setActiveForm(null)}
-            />
-          ) : activeForm ? (
-            <OpportunityTracker
-              type={activeForm}
-              onSave={handleSave}
-              onCancel={() => setActiveForm(null)}
-            />
-          ) : null} */}
         </>
       )}
 

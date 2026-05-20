@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { VERTICALS, SOURCES, PROFILE_STATUSES, OPEN_STATUSES, BUS } from "../constants/StringConstants.js";
-
+import { CREATE_PROFILE } from "../api/endpoints";
 // ── Helpers ────────────────────────────────────────────────────────────────
 function Field({ label, required, children, hint }) {
     return (
@@ -85,15 +85,16 @@ function MultiChips({ options, selected, onChange }) {
 }
 
 // ── Main Form ──────────────────────────────────────────────────────────────
-export default function OpportunityStatusForm({ onSave, onCancel }) {
+export default function OpportunityStatusForm({ onSave, onCancel, selectedOpportunity }) {
     const blank = () => ({ name: "", ssId: "", projectedExp: "" });
+    const [loading, setLoading] = useState(false);
 
     const [form, setForm] = useState({
         resumeCount: "",
         source: "",
         vertical: "",
         engineers: [blank()],
-        profileStatuses: [],
+        profileStatuses: "",
         selectionDate: "",
         openStatuses: [],
         buName: "",
@@ -113,12 +114,41 @@ export default function OpportunityStatusForm({ onSave, onCancel }) {
     const addEng = () => set("engineers", [...form.engineers, blank()]);
     const removeEng = (idx) => set("engineers", form.engineers.filter((_, i) => i !== idx));
 
-    const handleSubmit = () => {
-        if (!form.source || !form.vertical || !form.resumeCount) {
-            alert("Please fill required fields: Source, Vertical, Resume Count.");
-            return;
+    const handleSubmit = async () => {
+        try {
+            const engineer = form.engineers?.[0] || {};
+
+            const payload = {
+                opportunity_id: selectedOpportunity?.opportunity_id,
+                source: form.source,
+                engg_name: engineer.name || "",
+                ss_id: engineer.ssId || "",
+                projected_experience: engineer.projectedExp || "",
+                profile_status: form.profileStatuses,
+                selection_date: form.selectionDate,
+                open_status: form.openStatuses?.[0] || "",
+                BU_name: form.buName,
+                hiring_manager_name: form.hmName,
+                hiring_manager_email: form.hmEmail,
+                hiring_location: form.hmLocation,
+            };
+
+            const response = await fetch(CREATE_PROFILE, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(payload),
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data?.message || "Failed to create profile");
+            }
+            onSave?.(data);
+        } catch (error) {
+            console.error("Create profile error:", error);
+            alert(error.message);
         }
-        onSave?.({ ...form, type: "opportunity-status" });
     };
 
     return (
@@ -158,14 +188,14 @@ export default function OpportunityStatusForm({ onSave, onCancel }) {
                                 placeholder="Select source…"
                             />
                         </Field>
-                        <Field label="Vertical" required>
+                        {/* <Field label="Vertical" required>
                             <Select
                                 value={form.vertical}
                                 onChange={v => set("vertical", v)}
                                 options={VERTICALS}
                                 placeholder="Select vertical…"
                             />
-                        </Field>
+                        </Field> */}
                     </div>
                 </div>
 

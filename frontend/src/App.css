@@ -103,7 +103,6 @@ body {
   padding: 1.25rem;
 }
 
-/* ── Card ───────────────────────────────────────────────────── */
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -120,7 +119,6 @@ body {
   color: var(--text);
 }
 
-/* ── Tabs ───────────────────────────────────────────────────── */
 .tab-bar {
   display: flex;
   gap: 2px;
@@ -157,7 +155,6 @@ body {
   border-bottom-color: var(--blue);
 }
 
-/* ── Filter Bar ─────────────────────────────────────────────── */
 .filter-bar {
   display: flex;
   align-items: center;
@@ -187,7 +184,6 @@ body {
   width: auto;
 }
 
-/* ── Metrics ─────────────────────────────────────────────────── */
 .metric-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -212,7 +208,6 @@ body {
   transform: translateY(-1px);
 }
 
-/* numeric styles used by app-wide metric cards */
 .metric-num {
   font-size: 30px;
   font-weight: 700;
@@ -257,7 +252,6 @@ body {
   color: var(--text);
 }
 
-/* colour variants used by OpportunityTracker metric cards */
 .metric-card.blue {
   border-color: #bfdbfe;
   background: #eff6ff;
@@ -278,7 +272,6 @@ body {
   background: #f9fafb;
 }
 
-/* large bold value inside OT metric cards */
 .metric-value {
   font-size: 26px;
   font-weight: 800;
@@ -286,7 +279,6 @@ body {
   line-height: 1;
 }
 
-/* ── Badges ─────────────────────────────────────────────────── */
 .badge {
   display: inline-block;
   padding: 2px 8px;
@@ -326,7 +318,6 @@ body {
   font-weight: 600;
 }
 
-/* ── Bars ────────────────────────────────────────────────────── */
 .bar-row {
   display: flex;
   align-items: center;
@@ -362,7 +353,6 @@ body {
   text-align: right;
 }
 
-/* ── Tables ─────────────────────────────────────────────────── */
 .table-wrap {
   overflow-x: auto;
   border-radius: var(--radius-lg);
@@ -416,7 +406,6 @@ tr:hover td {
   padding: 18px 12px;
 }
 
-/* ── Forms ───────────────────────────────────────────────────── */
 .field {
   margin-bottom: 10px;
 }
@@ -476,7 +465,6 @@ textarea {
   margin-top: 14px;
 }
 
-/* ── Entry Form Card ─────────────────────────────────────────── */
 .entry-form-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -497,7 +485,6 @@ textarea {
   font-weight: 700;
 }
 
-/* ── Log Cards ────────────────────────────────────────────────── */
 .log-cards {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -542,7 +529,6 @@ textarea {
   color: var(--text-muted);
 }
 
-/* ── Entry List ─────────────────────────────────────────────── */
 .entry-list {
   display: flex;
   flex-direction: column;
@@ -581,14 +567,12 @@ textarea {
   margin-left: auto;
 }
 
-/* ── Rollup ──────────────────────────────────────────────────── */
 .rollup-wrap {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-/* ── Buttons ─────────────────────────────────────────────────── */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -641,7 +625,6 @@ textarea {
   background: rgba(255, 255, 255, .1);
 }
 
-/* ── Grid ────────────────────────────────────────────────────── */
 .grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -649,7 +632,6 @@ textarea {
   margin-bottom: 12px;
 }
 
-/* ── Section title ───────────────────────────────────────────── */
 .section-title {
   font-size: 11px;
   font-weight: 700;
@@ -659,7 +641,6 @@ textarea {
   margin: 18px 0 10px;
 }
 
-/* ── Empty ───────────────────────────────────────────────────── */
 .empty-msg {
   color: var(--text-muted);
   font-size: 13px;
@@ -667,7 +648,6 @@ textarea {
   font-style: italic;
 }
 
-/* ── Spinner ─────────────────────────────────────────────────── */
 .spinner,
 .spinner-sm {
   display: inline-block;
@@ -696,7 +676,6 @@ textarea {
   }
 }
 
-/* ── Toast ───────────────────────────────────────────────────── */
 .toast {
   position: fixed;
   bottom: 28px;
@@ -721,7 +700,6 @@ textarea {
   transform: translateX(-50%) translateY(0);
 }
 
-/* ── Login ───────────────────────────────────────────────────── */
 .login-root {
   min-height: 100vh;
   display: flex;
@@ -876,7 +854,6 @@ textarea {
   margin-top: 14px;
 }
 
-/* ── Responsive ──────────────────────────────────────────────── */
 @media (max-width: 640px) {
   .metric-grid {
     grid-template-columns: 1fr 1fr;
@@ -899,7 +876,6 @@ textarea {
   }
 }
 
-/* ── Inline edit inputs ──────────────────────────────────────── */
 .edit-select {
   width: 100%;
   min-width: 125px;
@@ -918,7 +894,6 @@ textarea {
   font-size: 13px;
 }
 
-/* ── Action buttons ──────────────────────────────────────────── */
 .btn-edit {
   background: #eff6ff;
   color: #1d4ed8;
@@ -960,7 +935,6 @@ textarea {
   font-size: 13px;
 }
 
-/* ── Modal ───────────────────────────────────────────────────── */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -979,7 +953,6 @@ textarea {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
 }
 
-/* ── Export button ───────────────────────────────────────────── */
 .btn-export {
   display: inline-flex;
   align-items: center;
@@ -1014,7 +987,6 @@ textarea {
   box-shadow: none;
 }
 
-/* ── OpportunityTracker — Fields ─────────────────────────────── */
 .ot-field {
   display: flex;
   flex-direction: column;
@@ -1059,7 +1031,6 @@ textarea {
   min-height: 72px;
 }
 
-/* ── OpportunityTracker — Multi-select chips ─────────────────── */
 .ot-multiselect {
   display: flex;
   flex-wrap: wrap;
@@ -1100,7 +1071,6 @@ textarea {
   color: var(--blue);
 }
 
-/* ── OpportunityTracker — Form chrome ───────────────────────── */
 .ot-form-wrap {
   display: flex;
   flex-direction: column;
@@ -1184,7 +1154,6 @@ textarea {
   background: #185fa5;
 }
 
-/* ── OpportunityTracker — Section headers ────────────────────── */
 .ot-section-header {
   display: flex;
   align-items: center;
@@ -1207,7 +1176,6 @@ textarea {
   font-family: var(--font);
 }
 
-/* ── OpportunityTracker — Grids ──────────────────────────────── */
 .ot-grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1228,7 +1196,6 @@ textarea {
   }
 }
 
-/* ── OpportunityTracker — File upload ────────────────────────── */
 .ot-file-row {
   display: flex;
   align-items: center;
@@ -1272,7 +1239,6 @@ textarea {
   justify-content: center;
 }
 
-/* ── OpportunityTracker — Badges ─────────────────────────────── */
 .ot-badge {
   display: inline-flex;
   align-items: center;
@@ -1298,7 +1264,6 @@ textarea {
   font-size: 13px;
 }
 
-/* ── OpportunityTracker — Action bar ─────────────────────────── */
 .ot-action-bar {
   display: flex;
   align-items: center;
@@ -1328,7 +1293,6 @@ textarea {
   border-color: #185fa5;
 }
 
-/* ── OpportunityTracker — Filters ────────────────────────────── */
 .ot-filters {
   display: flex;
   gap: 8px;
@@ -1349,7 +1313,6 @@ textarea {
 
 .ot-filter-search {
   padding: 12px 14px;
-  /* increased vertical padding */
   border-radius: var(--radius);
   border: 1.5px solid var(--border);
   background: var(--surface);
@@ -1359,7 +1322,6 @@ textarea {
   min-width: 180px;
   flex: 1;
   min-height: 46px;
-  /* added height */
 }
 
 .ot-filter-search:focus,
@@ -1369,7 +1331,6 @@ textarea {
   box-shadow: 0 0 0 3px rgba(31, 111, 191, .12);
 }
 
-/* ── OpportunityTracker — Cards ──────────────────────────────── */
 .ot-list {
   display: flex;
   flex-direction: column;
@@ -1459,7 +1420,6 @@ textarea {
   margin-left: 4px;
 }
 
-/* ── OpportunityTracker — Card body ──────────────────────────── */
 .ot-card-body {
   padding: 14px 16px;
   border-top: 1px solid var(--border-light);
@@ -1527,7 +1487,6 @@ textarea {
   justify-content: flex-end;
 }
 
-
 .ot-page-header {
   margin-bottom: 20px;
 }
@@ -1544,10 +1503,6 @@ textarea {
   font-size: 14px;
   color: var(--muted-text, #6b7280);
 }
-
-
-
-/* ── Opportunity Status Form ───────────────────────────── */
 
 .ops-form {
   background: var(--surface);
@@ -1592,8 +1547,6 @@ textarea {
   margin-top: 4px;
 }
 
-/* ── Sections ───────────────── */
-
 .ops-section {
   margin-bottom: 24px;
 }
@@ -1609,8 +1562,6 @@ textarea {
   border-bottom: 1px solid var(--border);
 }
 
-/* ── Grids ───────────────── */
-
 .ops-grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1624,14 +1575,11 @@ textarea {
 }
 
 @media (max-width: 640px) {
-
   .ops-grid-2,
   .ops-grid-3 {
     grid-template-columns: 1fr;
   }
 }
-
-/* ── Fields ───────────────── */
 
 .ops-field {
   display: flex;
@@ -1659,8 +1607,6 @@ textarea {
   margin-left: 6px;
   text-transform: none;
 }
-
-/* ── Inputs ───────────────── */
 
 .ops-input,
 .ops-select {
@@ -1691,8 +1637,6 @@ textarea {
   cursor: pointer;
 }
 
-/* ── Chips ───────────────── */
-
 .chip-group {
   display: flex;
   flex-wrap: wrap;
@@ -1722,8 +1666,6 @@ textarea {
   background: var(--blue-light);
   color: var(--blue);
 }
-
-/* ── Engineer Rows ───────────────── */
 
 .eng-rows {
   display: flex;
@@ -1802,16 +1744,12 @@ textarea {
   background: var(--blue-light);
 }
 
-/* ── Hiring Manager Card ───────────────── */
-
 .hm-card {
   background: #f8fafc;
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 14px;
 }
-
-/* ── Footer ───────────────── */
 
 .ops-footer {
   display: flex;
@@ -1870,8 +1808,6 @@ textarea {
   font-size: 14px;
   color: var(--text-muted);
 }
-
-/* ── Opportunity Cards ───────────────────────── */
 
 .opportunity-list {
   display: grid;
@@ -2110,8 +2046,6 @@ textarea {
   color: #1d4ed8;
 }
 
-/* ── Pagination ── */
-
 .ot-pagination {
   display: flex;
   align-items: center;
@@ -2185,7 +2119,6 @@ textarea {
   background: #fff;
 }
 
-/* keeps header visible while scrolling vertically */
 .ot-main-table thead th {
   position: sticky;
   top: 0;
@@ -2193,18 +2126,10 @@ textarea {
   background: #fff;
 }
 
-/* prevents columns from shrinking */
 .ot-main-table {
   min-width: 1600px;
   border-collapse: collapse;
 }
-
-
-
-
-
-
-
 
 .opp-table-wrap {
   width: 100%;
@@ -2292,8 +2217,6 @@ textarea {
 .add-profile-btn:hover {
   background: #1d4ed8;
 }
-
-
 
 .ops-container {
   position: relative;
@@ -2389,23 +2312,20 @@ textarea {
   background: #f8fafc;
 }
 
-
-
-
 .details-content {
-  padding: 20px;
+  padding: 14px;
 }
 
 .details-topbar {
   display: flex;
   align-items: center;
-  gap: 14px;
-  margin-bottom: 20px;
+  gap: 10px;
+  margin-bottom: 14px;
 }
 
 .details-topbar h2 {
   margin: 0;
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 700;
 }
 
@@ -2413,16 +2333,17 @@ textarea {
   border: none;
   background: #eff6ff;
   color: #1d4ed8;
-  padding: 8px 14px;
-  border-radius: 10px;
+  padding: 6px 12px;
+  border-radius: 8px;
   cursor: pointer;
+  font-size: 13px;
   font-weight: 600;
 }
 
 .details-table-wrap {
   overflow-x: auto;
   border: 1px solid #e5e7eb;
-  border-radius: 14px;
+  border-radius: 10px;
 }
 
 .details-table {
@@ -2433,17 +2354,17 @@ textarea {
 .details-table th {
   background: #f9fafb;
   color: #374151;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   text-align: left;
-  padding: 12px;
-  width: 18%;
+  padding: 9px 10px;
+  width: 16%;
   border-bottom: 1px solid #e5e7eb;
 }
 
 .details-table td {
-  padding: 12px;
-  font-size: 14px;
+  padding: 9px 10px;
+  font-size: 13px;
   color: #111827;
   border-bottom: 1px solid #e5e7eb;
 }
@@ -2451,4 +2372,24 @@ textarea {
 .details-table tr:last-child th,
 .details-table tr:last-child td {
   border-bottom: none;
+}
+
+.details-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.details-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.details-topbar h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
 }
