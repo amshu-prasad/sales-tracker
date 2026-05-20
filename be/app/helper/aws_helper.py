@@ -94,7 +94,6 @@ class aws_s3_access_class:
         self.s3_client.upload_file(file_name, bucket_name, s3_file_path)
 
     def save_files_to_s3(self, files, entity_type, job_id=None):
-        #api_key = 'sk-ai-smartsocs-5L5ZHYJ4KUv04lI5BFSVT3BlbkFJCo0eipGjpPCO7FUvOX52'
         print(files)
         if entity_type == "cv":
             for i in range(0,len(files)):
