@@ -4,7 +4,7 @@ from fastapi import HTTPException
 
 from app.helper.aws_helper import aws_s3_access_class
 from app.config.EnvConfig import bucket_name
-from app.db.models import count_documents, create_one, find_many, update_one
+from app.db.models import count_documents, create_one, find_many, find_one, update_one
 
 aws_helper = aws_s3_access_class()
 
@@ -165,3 +165,16 @@ def get_opportunities_service(search, reqdate, start_date, limit, skip):
         "limit": limit,
         "skip": skip
     }
+
+def get_opportunity_by_id_service(opportunity_id: str):
+
+    query = {
+        "opportunity_id": opportunity_id
+    }
+
+    data = find_one(
+        "opportunities",
+        query=query
+    )
+
+    return data
