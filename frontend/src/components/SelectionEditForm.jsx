@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { UPDATE_PROFILE } from "../api/endpoints";
-import { SOURCES } from "../constants/StringConstants.js";
-const PROFILE_STATUS_OPTIONS = [
-    "Screening", "L1", "L2", "L3", "HR Round", "Final Selection", "Rejected", "On Hold"
-];
+import { SOURCES,PROFILE_STATUSES } from "../constants/StringConstants.js";
+
 
 const ONBOARDING_TYPE_OPTIONS = ["New", "Replacement"];
 const REVENUE_TYPE_OPTIONS = ["T&M", "Fixed", "Retainer"];
@@ -63,10 +61,8 @@ export default function SelectionEditForm({ initialData, onSave, onCancel }) {
         engg_name: initialData?.engg_name || "",
         ss_id: initialData?.ss_id || "",
         projected_experience: initialData?.projected_experience || "",
-        // Profile Status
         profile_status: initialData?.profile_status || "",
         selection_date: initialData?.selection_date || "",
-        // Onboarding
         onboarding_engg_name: initialData?.onboarding_engg_name || "",
         onboarding_month: initialData?.onboarding_month || "",
         client_onboarding_date: initialData?.client_onboarding_date || "",
@@ -83,7 +79,6 @@ export default function SelectionEditForm({ initialData, onSave, onCancel }) {
         rate_at_onboarding: initialData?.rate_at_onboarding || "",
         rate_type: initialData?.rate_type || "",
         client_spoc: initialData?.client_spoc || "",
-        // Offboarding
         offboarding_month: initialData?.offboarding_month || "",
         offboarding_date: initialData?.offboarding_date || "",
         offboard_emp_id: initialData?.offboard_emp_id || "",
@@ -132,7 +127,7 @@ export default function SelectionEditForm({ initialData, onSave, onCancel }) {
                 <Field label="Interview / Profile Stage" fullWidth>
                     <select className="opp-input" value={form.profile_status} onChange={e => set("profile_status", e.target.value)}>
                         <option value="">Select</option>
-                        {PROFILE_STATUS_OPTIONS.map(o => <option key={o}>{o}</option>)}
+                        {PROFILE_STATUSES.map(o => <option key={o}>{o}</option>)}
                     </select>
                 </Field>
                 <Field label="Selection Date">
@@ -238,7 +233,6 @@ export default function SelectionEditForm({ initialData, onSave, onCancel }) {
                 >
                     {loading ? "Updating..." : "Update Profile"}
                 </button>
-                {/* <button className="btn-primary" onClick={handleSubmit}>Update Profile</button> */}
             </div>
         </div>
     );
