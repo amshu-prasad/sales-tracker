@@ -10,8 +10,4 @@ class ProfileSchema(BaseModel):
     projected_experience: str
     profile_status: str
     selection_date: Optional[date] = None
-    open_status: Optional[str]
-    BU_name: Optional[str]
-    hiring_manager_name: Optional[str]
-    hiring_manager_email: Optional[EmailStr]
-    hiring_location: Optional[str]
+    

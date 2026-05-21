@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from datetime import date
 from typing import Optional
 
@@ -20,3 +20,8 @@ class OpportunitySchema(BaseModel):
     doable_headcount: int
     file_id: Optional[str] = None
     vertical: str
+    open_status: Optional[str]
+    BU_name: Optional[str]
+    hiring_manager_name: Optional[str]
+    hiring_manager_email: Optional[EmailStr]
+    hiring_location: Optional[str]
