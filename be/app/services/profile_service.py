@@ -26,11 +26,6 @@ def create_profile_service(data):
             if data.get("selection_date")
             else None
         ),
-        "open_status": data.get("open_status"),
-        "BU_name": data.get("BU_name"),
-        "hiring_manager_name": data.get("hiring_manager_name"),
-        "hiring_manager_email": data.get("hiring_manager_email"),
-        "hiring_location": data.get("hiring_location"),
         "created_at": datetime.utcnow()
     }
 
@@ -163,3 +158,51 @@ def get_profile_by_id_service(profile_id: str):
     )
 
     return data
+
+def get_final_selected_profiles_service(
+    limit,
+    skip
+):
+    query = {
+        "profile_status": "Final Selection"
+    }
+
+    profiles = find_many_profile(
+        collection_name="profiles",
+        query=query,
+        projection={
+            "_id": 0
+        },
+        limit=limit,
+        skip=skip,
+        sort=[("created_at", -1)]
+    )
+
+    for profile in profiles:
+
+        opportunity = find_one(
+            collection_name="opportunities",
+            query={
+                "opportunity_id": profile.get("opportunity_id")
+            },
+            projection={
+                "_id": 0,
+                "profile_ids": 0
+            }
+        )
+
+        profile["opportunity_details"] = (
+            opportunity if opportunity else {}
+        )
+
+    total = count_documents(
+        "profiles",
+        query
+    )
+
+    return {
+        "items": profiles,
+        "total": total,
+        "limit": limit,
+        "skip": skip
+    }

@@ -66,7 +66,7 @@ def create_opportunity_service(data):
         "skill": data.get("skill"),
         "month": data.get("month"),
         "reqdate": data.get("reqdate").isoformat() if data.get("reqdate") else None,
-        "start_date": data.get("start_date").isoformat() if data.get("start_date") else None,
+        "expected_start_date": data.get("expected_start_date"),
         "location": data.get("location"),
         "no_of_positions": data.get("no_of_positions"),
         "experience": data.get("experience"),
