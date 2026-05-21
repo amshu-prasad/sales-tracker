@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { UPDATE_PROFILE } from "../api/endpoints";
+import { SOURCES } from "../constants/StringConstants.js";
 const PROFILE_STATUS_OPTIONS = [
     "Screening", "L1", "L2", "L3", "HR Round", "Final Selection", "Rejected", "On Hold"
 ];
-
-const SOURCE_OPTIONS = ["TA", "Internal", "Subcon", "Partner"];
 
 const ONBOARDING_TYPE_OPTIONS = ["New", "Replacement"];
 const REVENUE_TYPE_OPTIONS = ["T&M", "Fixed", "Retainer"];
@@ -114,7 +113,7 @@ export default function SelectionEditForm({ initialData, onSave, onCancel }) {
                 <Field label="Source *">
                     <select className="opp-input" value={form.source} onChange={e => set("source", e.target.value)}>
                         <option value="">Select</option>
-                        {SOURCE_OPTIONS.map(o => <option key={o}>{o}</option>)}
+                        {SOURCES.map(o => <option key={o}>{o}</option>)}
                     </select>
                 </Field>
                 <Field label="Engineer Name">
