@@ -110,24 +110,34 @@ def update_opportunity_service(opportunity_id: str, data: dict):
         "opportunity_id": opportunity_id
     }
 
-def get_opportunities_service(search, reqdate, start_date, limit, skip):
+def get_opportunities_service(
+    search,
+    reqdate,
+    start_date,
+    limit,
+    skip
+):
 
     query = {}
 
-    # ------------------------
-    # DATE FILTERS (stored as string YYYY-MM-DD)
-    # ------------------------
+    # -------------------------
+    # FILTERS
+    # -------------------------
     if reqdate:
         query["reqdate"] = reqdate
 
     if start_date:
         query["start_date"] = start_date
 
-    # ------------------------
-    # SEARCH ACROSS FIELDS
-    # ------------------------
+    # -------------------------
+    # SEARCH
+    # -------------------------
     if search:
-        regex = {"$regex": search, "$options": "i"}
+
+        regex = {
+            "$regex": search,
+            "$options": "i"
+        }
 
         query["$or"] = [
             {"client": regex},
@@ -143,21 +153,56 @@ def get_opportunities_service(search, reqdate, start_date, limit, skip):
             {"file_id": regex},
         ]
 
-    # ------------------------
-    # FETCH DATA USING YOUR DAO
-    # ------------------------
+    # -------------------------
+    # GET OPPORTUNITIES
+    # -------------------------
     data = find_many(
         "opportunities",
         query=query,
         limit=limit,
         skip=skip,
-        sort=[("_id", -1)]   # latest first
+        sort=[("_id", -1)]
     )
 
-    # ------------------------
-    # OPTIONAL: total count
-    # ------------------------
-    total = count_documents("opportunities", query)
+    # -------------------------
+    # PROFILE COUNTS
+    # -------------------------
+    for opp in data:
+
+        profile_ids = opp.get("profile_ids", [])
+
+        # total shared profiles
+        opp["no_of_profiles_shared"] = len(profile_ids)
+
+        # -------------------------
+        # FINAL SELECTION COUNT
+        # -------------------------
+        closed_by_ss_count = 0
+
+        for profile_id in profile_ids:
+
+            profile = find_one(
+                "profiles",
+                query={
+                    "profile_id": profile_id
+                }
+            )
+
+            if (
+                profile
+                and profile.get("profile_status") == "Final Selection"
+            ):
+                closed_by_ss_count += 1
+
+        opp["closed_by_ss_count"] = closed_by_ss_count
+
+    # -------------------------
+    # TOTAL COUNT
+    # -------------------------
+    total = count_documents(
+        "opportunities",
+        query
+    )
 
     return {
         "items": data,
@@ -166,25 +211,8 @@ def get_opportunities_service(search, reqdate, start_date, limit, skip):
         "skip": skip
     }
 
-# def get_opportunity_by_id_service(opportunity_id: str):
-
-#     query = {
-#         "opportunity_id": opportunity_id
-#     }
-
-#     data = find_one(
-#         "opportunities",
-#         query=query
-#     )
-
-#     return data
-
-
 def get_opportunity_by_id_service(opportunity_id: str):
 
-    # -----------------------------
-    # GET OPPORTUNITY
-    # -----------------------------
     opportunity = find_one(
         "opportunities",
         query={
@@ -198,14 +226,8 @@ def get_opportunity_by_id_service(opportunity_id: str):
     if not opportunity:
         return None
 
-    # -----------------------------
-    # GET PROFILE IDS
-    # -----------------------------
     profile_ids = opportunity.get("profile_ids", [])
 
-    # -----------------------------
-    # GET PROFILE DETAILS
-    # -----------------------------
     profiles = []
 
     if profile_ids:
@@ -223,9 +245,6 @@ def get_opportunity_by_id_service(opportunity_id: str):
             limit=1000
         )
 
-    # -----------------------------
-    # REPLACE IDS WITH FULL DATA
-    # -----------------------------
     opportunity["profiles"] = profiles
 
     # optional remove profile_ids
