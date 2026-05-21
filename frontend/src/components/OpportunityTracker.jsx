@@ -11,7 +11,7 @@ const PAGE_SIZE = 10; // items per page
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const emptyOpportunity = () => ({
+export const emptyOpportunity = () => ({
     client: "",
     BU: "",
     mode: "",
@@ -967,7 +967,7 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
                                 <th>Skill</th>
                                 <th>Month</th>
                                 <th>Req Date</th>
-                                <th>Start Date</th>
+                                <th>Expected Start Date</th>
                                 <th>Location</th>
                                 <th>Positions</th>
                                 <th>Experience</th>

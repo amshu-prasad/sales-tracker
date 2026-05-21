@@ -15,5 +15,6 @@ export const GET_OPPORTUNITY = `${AUTH_API_BASE_URL}/opportunities`;
 export const GET_OPPORTUNITY_BY_ID = `${AUTH_API_BASE_URL}/opportunities`;
 export const CREATE_PROFILE = `${AUTH_API_BASE_URL}/create-profile`;
 export const UPDATE_PROFILE = `${AUTH_API_BASE_URL}/profiles`;
+export const GET_FINAL_SELECTION_PROFILES = `${AUTH_API_BASE_URL}/profiles-final-selection`;
 
 

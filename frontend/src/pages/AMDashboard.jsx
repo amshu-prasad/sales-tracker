@@ -8,7 +8,7 @@ import OpportunityStatusForm from "../components/OpportunityStatusForm";
 import { CSVLink } from "react-csv";
 import { VERTICALS } from "../constants/StringConstants.js";
 import { GET_OPPORTUNITY, GET_OPPORTUNITY_BY_ID } from "../api/endpoints";
-import { OppForm } from "../components/OpportunityTracker";
+import { OppForm, emptyOpportunity } from "../components/OpportunityTracker";
 
 function fmt(d) {
   if (!d) return "—";
@@ -140,7 +140,7 @@ export default function AMDashboard({ user, onToast }) {
     { label: "Skill", key: "skill" },
     { label: "Month", key: "month" },
     { label: "Req Date", key: "reqdate" },
-    { label: "Start Date", key: "start_date" },
+    { label: "Expected Start Date", key: "expected_start_date" },
     { label: "Location", key: "location" },
     { label: "Positions", key: "no_of_positions" },
     { label: "Experience", key: "experience" },
@@ -293,8 +293,16 @@ export default function AMDashboard({ user, onToast }) {
                         <button
                           className="btn-edit"
                           onClick={() => setEditingOpportunity(selectedOpportunity)}
+                          style={{
+                            marginTop:"17px",
+                            height: "36px",
+                            padding: "0 14px",
+                            fontSize: "13px",
+                            display: "inline-flex",
+                            alignItems: "center"
+                          }}
                         >
-                          ✏️ Edit
+                          ✏️ Edit Opportunity
                         </button>
                         <button className="add-profile-btn" onClick={() => setShowProfilePopup(true)}>
                           <span className="btn-plus">＋</span> Add Profile
@@ -320,7 +328,7 @@ export default function AMDashboard({ user, onToast }) {
                           </tr>
                           <tr>
                             <th>Req Date</th><td>{selectedOpportunity.reqdate || "—"}</td>
-                            <th>Start Date</th><td>{selectedOpportunity.start_date || "—"}</td>
+                            <th>Expected Start Date</th><td>{selectedOpportunity.expected_start_date || "—"}</td>
                           </tr>
                           <tr>
                             <th>Location</th><td>{selectedOpportunity.location || "—"}</td>
@@ -506,7 +514,17 @@ export default function AMDashboard({ user, onToast }) {
                 onClick={(e) => e.stopPropagation()}
               >
                 <OppForm
-                  initial={editingOpportunity}
+                  initial={{
+                    ...emptyOpportunity(),       // safe defaults
+                    ...editingOpportunity,       // everything from API as-is
+                    // API has no jdFileName, so show file_id as fallback indicator
+                    jdFileName: editingOpportunity.jdFileName || "",
+                    jdFileUrl: editingOpportunity.jdFileUrl || "",
+                    open_status: editingOpportunity.open_status || [],
+                    hiring_manager_name: editingOpportunity.hiring_manager_name || "",
+                    hiring_manager_email: editingOpportunity.hiring_manager_email || "",
+                    hiring_location: editingOpportunity.hiring_location || "",
+                  }}
                   onSave={(updated) => {
                     setSelectedOpportunity((prev) => ({ ...prev, ...updated }));
                     setEditingOpportunity(null);
