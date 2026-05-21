@@ -1,7 +1,7 @@
 from typing import Optional
 from fastapi import APIRouter, HTTPException, Query
 from app.db.profile_schema import ProfileSchema
-from app.services.profile_service import create_profile_service, get_final_selected_profiles_service, get_profile_by_id_service, get_profiles_service, update_profile_service
+from app.services.profile_service import create_profile_service, get_client_onboarding_profiles_service, get_final_selected_profiles_service, get_profile_by_id_service, get_profiles_service, update_profile_service
 
 profile_router = APIRouter()
 
@@ -88,6 +88,22 @@ async def get_final_selected_profiles(
             limit,
             skip
         )
+
+    return {
+        "success": True,
+        "data": data
+    }
+
+@profile_router.get("/profiles-client-onboarding")
+async def get_client_onboarding_profiles(
+    limit: int = 100,
+    skip: int = 0
+):
+
+    data = get_client_onboarding_profiles_service(
+        limit,
+        skip
+    )
 
     return {
         "success": True,

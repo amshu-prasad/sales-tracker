@@ -206,3 +206,63 @@ def get_final_selected_profiles_service(
         "limit": limit,
         "skip": skip
     }
+
+
+def get_client_onboarding_profiles_service(
+    limit,
+    skip
+):
+
+    # -----------------------------
+    # FILTER PROFILES
+    # -----------------------------
+    query = {
+        "client_onboarding_date": {
+            "$exists": True,
+            "$ne": None,
+            "$ne": ""
+        }
+    }
+
+    profiles = find_many_profile(
+        collection_name="profiles",
+        query=query,
+        projection={
+            "_id": 0
+        },
+        limit=limit,
+        skip=skip,
+        sort=[("created_at", -1)]
+    )
+
+    # -----------------------------
+    # GET OPPORTUNITY DETAILS
+    # -----------------------------
+    for profile in profiles:
+
+        opportunity = find_one(
+            collection_name="opportunities",
+            query={
+                "opportunity_id": profile.get("opportunity_id")
+            },
+            projection={
+                "_id": 0,
+                "profile_ids": 0
+            }
+        )
+
+        profile["opportunity_details"] = (
+            opportunity if opportunity else {}
+        )
+
+    total = count_documents(
+        "profiles",
+        query
+    )
+
+    return {
+        "items": profiles,
+        "total": total,
+        "limit": limit,
+        "skip": skip
+    }
