@@ -313,10 +313,10 @@ export function OppForm({ initial, onSave, onCancel }) {
             setLoading(true);
 
             let response;
+            let opportunityId;
 
             // ─── EDIT EXISTING OPPORTUNITY ─────────────────
             if (initial?.opportunity_id) {
-
                 const changedFields = {};
 
                 Object.keys(form).forEach((key) => {
@@ -324,7 +324,6 @@ export function OppForm({ initial, onSave, onCancel }) {
                     const currentValue = form[key] ?? "";
 
                     if (initialValue !== currentValue) {
-                        // skip hiring_manager_email if it's empty
                         if (key === "hiring_manager_email" && !currentValue) return;
                         changedFields[key] = currentValue;
                     }
@@ -334,12 +333,12 @@ export function OppForm({ initial, onSave, onCancel }) {
                     `${UPDATE_OPPORTUNITY}/${initial.opportunity_id}`,
                     {
                         method: "PUT",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
+                        headers: { "Content-Type": "application/json" },
                         body: JSON.stringify(changedFields),
                     }
                 );
+
+                opportunityId = initial.opportunity_id;
             }
 
             // ─── CREATE NEW OPPORTUNITY ────────────────────
@@ -351,22 +350,38 @@ export function OppForm({ initial, onSave, onCancel }) {
 
                 response = await fetch(CREATE_OPPORTUNITY, {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload),
                 });
-            }
 
-            const data = await response.json();
+                const createData = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(createData?.message || "Failed to save opportunity");
+                }
+
+                // Extract the new opportunity's ID from the create response
+                opportunityId = createData.data?.opportunity_id ?? createData.data?.id ?? createData.opportunity_id ?? createData.id;
+            }
 
             if (!response.ok) {
-                throw new Error(
-                    data?.message ||
-                    "Failed to save opportunity"
-                );
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData?.message || "Failed to save opportunity");
             }
 
+            // ─── FETCH FRESH OPPORTUNITY DATA ─────────────
+            if (opportunityId) {
+                const freshResponse = await fetch(`${GET_OPPORTUNITY}/${opportunityId}`);
+                const freshData = await freshResponse.json();
+
+                if (freshResponse.ok) {
+                    const freshOpp = freshData.data ?? freshData;
+                    onSave?.(freshOpp);
+                    return;
+                }
+            }
+
+            // Fallback: pass local form state if GET fails
             onSave?.(form);
 
         } catch (error) {
