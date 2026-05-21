@@ -2,8 +2,13 @@ import uuid
 from datetime import datetime
 
 from app.db.models import (
+    count_documents,
     create_one,
-    append_to_list
+    append_to_list,
+    find_many,
+    find_many_profile,
+    find_one,
+    update_one
 )
 
 def create_profile_service(data):
@@ -47,3 +52,114 @@ def create_profile_service(data):
     document.pop("_id", None)
 
     return document
+
+def update_profile_service(
+    profile_id: str,
+    data: dict
+):
+
+    update_data = data.copy()
+
+    # handle optional date
+    if (
+        "selection_date" in update_data
+        and update_data["selection_date"]
+    ):
+
+        if hasattr(update_data["selection_date"], "isoformat"):
+            update_data["selection_date"] = (
+                update_data["selection_date"].isoformat()
+            )
+
+    update_data["updated_at"] = datetime.utcnow()
+
+    result = update_one(
+        collection_name="profiles",
+        query={
+            "profile_id": profile_id
+        },
+        update_data=update_data
+    )
+
+    if result.matched_count == 0:
+        return None
+
+    return {
+        "profile_id": profile_id,
+        "updated": result.modified_count
+    }
+
+def get_profiles_service(
+    search,
+    profile_status,
+    open_status,
+    limit,
+    skip
+):
+
+    query = {}
+
+    if profile_status:
+        query["profile_status"] = profile_status
+
+    if open_status:
+        query["open_status"] = open_status
+
+    if search:
+
+        regex = {
+            "$regex": search,
+            "$options": "i"
+        }
+
+        query["$or"] = [
+            {"source": regex},
+            {"engg_name": regex},
+            {"ss_id": regex},
+            {"projected_experience": regex},
+            {"profile_status": regex},
+            {"open_status": regex},
+            {"BU_name": regex},
+            {"hiring_manager_name": regex},
+            {"hiring_manager_email": regex},
+            {"hiring_location": regex},
+            {"profile_id": regex},
+            {"opportunity_id": regex}
+        ]
+
+    data = find_many_profile(
+        collection_name="profiles",
+        query=query,
+        projection={
+            "_id": 0
+        },
+        limit=limit,
+        skip=skip,
+        sort=[("created_at", -1)]
+    )
+
+    total = count_documents(
+        "profiles",
+        query
+    )
+
+    return {
+        "items": data,
+        "total": total,
+        "limit": limit,
+        "skip": skip
+    }
+
+def get_profile_by_id_service(profile_id: str):
+
+    data = find_one(
+        collection_name="profiles",
+        query={
+            "profile_id": profile_id
+        },
+        projection={
+            "_id": 0
+        }
+    )
+
+    return data
