@@ -714,16 +714,42 @@ function OppCard({ opp, onEdit, onDelete }) {
 }
 
 // ─── Filters bar ──────────────────────────────────────────────────────────────
+// function FiltersBar({ searchInput, setSearchInput, onSearch }) {
+//     return (
+//         <div className="ot-filters">
+//             <input
+//                 className="ot-filter-search"
+//                 placeholder="🔍 Search client, skill, POC…"
+//                 value={searchInput}
+//                 onChange={e => setSearchInput(e.target.value)}
+//                 onKeyDown={e => e.key === "Enter" && onSearch()}
+//             />
+//             <button
+//                 className="ot-search-btn"
+//                 onClick={onSearch}
+//             >
+//                 Search
+//             </button>
+//         </div>
+//     );
+// }
 
-function FiltersBar({ filters, setFilters }) {
+function FiltersBar({ searchInput, setSearchInput, onSearch }) {
     return (
         <div className="ot-filters">
             <input
                 className="ot-filter-search"
                 placeholder="🔍 Search client, skill, POC…"
-                value={filters.search}
-                onChange={e => setFilters(p => ({ ...p, search: e.target.value }))}
+                value={searchInput}
+                onChange={e => setSearchInput(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && onSearch()}
             />
+            <button
+                className="ot-search-btn"
+                onClick={onSearch}
+            >
+                Search
+            </button>
         </div>
     );
 }
@@ -815,6 +841,7 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
         reqdate: "",
         expected_start_date: "",
     });
+    const [searchInput, setSearchInput] = useState("");
 
     // ─── Pagination state ─────────────────────────────
     const [currentPage, setCurrentPage] = useState(1);
@@ -828,7 +855,9 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
             try {
                 setLoading(true);
                 const skip = (currentPage - 1) * pageSize;
-                const url = `${GET_OPPORTUNITY}?limit=${pageSize}&skip=${skip}`;
+                const params = new URLSearchParams({ limit: pageSize, skip });
+                if (filters.search) params.set("search", filters.search);
+                const url = `${GET_OPPORTUNITY}?${params.toString()}`;
                 const response = await fetch(url);
                 const data = await response.json();
 
@@ -894,17 +923,27 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
             setCurrentPage(p => p - 1);
         }
     };
-
-    const filtered = opps.filter(o => {
-        if (filters.status && o.status !== filters.status) return false;
-        if (filters.priority && o.priority !== filters.priority) return false;
-        if (filters.client && o.client !== filters.client) return false;
-        if (filters.search) {
-            const q = filters.search.toLowerCase();
-            if (![o.client, o.skill, o.technical_poc, o.BU].some(v => (v || "").toLowerCase().includes(q))) return false;
+    const handleSearch = async () => {
+        try {
+            setLoading(true);
+            setCurrentPage(1);
+            const params = new URLSearchParams({ limit: pageSize, skip: 0 });
+            if (searchInput) params.set("search", searchInput);
+            const url = `${GET_OPPORTUNITY}?${params.toString()}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            if (!response.ok) throw new Error(data?.message || "Failed to fetch");
+            setOpps(data.data.items);
+            setTotalItems(data.data.total ?? data.data.total_count ?? 0);
+            setFilters(prev => ({ ...prev, search: searchInput }));
+        } catch (error) {
+            console.error("Search error:", error);
+        } finally {
+            setLoading(false);
         }
-        return true;
-    });
+    };
+
+    const filtered = opps;
 
     const handlePageChange = (page) => {
         if (page < 1 || page > totalPages) return;
@@ -955,7 +994,12 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
 
             {/* Action bar */}
             <div className="ot-action-bar">
-                <FiltersBar filters={filters} setFilters={setFilters} opps={opps} />
+                <FiltersBar
+                    searchInput={searchInput}
+                    setSearchInput={setSearchInput}
+                    onSearch={handleSearch}
+                />
+                {/* <FiltersBar filters={filters} setFilters={setFilters} opps={opps} /> */}
                 <button className="ot-new-btn" onClick={() => { setEditingOpp(null); setShowForm(true); }}>
                     + New Opportunity
                 </button>
