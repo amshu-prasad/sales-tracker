@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { CLIENTS, BUS, MODES, TEAMS, LOCATIONS, START_DATE_OPTIONS, PRIORITIES, STATUS_COLORS, PRIORITY_COLORS, OPEN_STATUSES,MONTHS } from "../constants/StringConstants.js";
+import { CLIENTS, BUS, MODES, TEAMS, LOCATIONS, START_DATE_OPTIONS, PRIORITIES, STATUS_COLORS, PRIORITY_COLORS, OPEN_STATUSES, MONTHS } from "../constants/StringConstants.js";
 import { CREATE_OPPORTUNITY, UPLOAD_JD, GET_OPPORTUNITY, UPDATE_OPPORTUNITY } from "../api/endpoints";
 import { postFile } from "../api/clients";
 import { useEffect } from "react";
@@ -291,7 +291,7 @@ function MultiChips({ options, selected = [], onChange }) {
 
 // ─── Opportunity Form ─────────────────────────────────────────────────────────
 
-function OppForm({ initial, onSave, onCancel }) {
+export function OppForm({ initial, onSave, onCancel }) {
     const [form, setForm] = useState(initial || emptyOpportunity());
     const [showClientDropdown, setShowClientDropdown] = useState(false);
     const [showUploadPopup, setShowUploadPopup] = useState(false);

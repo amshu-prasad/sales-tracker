@@ -8,6 +8,7 @@ import OpportunityStatusForm from "../components/OpportunityStatusForm";
 import { CSVLink } from "react-csv";
 import { VERTICALS } from "../constants/StringConstants.js";
 import { GET_OPPORTUNITY, GET_OPPORTUNITY_BY_ID } from "../api/endpoints";
+import { OppForm } from "../components/OpportunityTracker";
 
 function fmt(d) {
   if (!d) return "—";
@@ -35,6 +36,7 @@ export default function AMDashboard({ user, onToast }) {
   const [opps, setOpps] = useState([]);
   const [profiles, setProfiles] = useState([]);
   const [editingProfile, setEditingProfile] = useState(null);
+  const [editingOpportunity, setEditingOpportunity] = useState(null);
 
   const [selectedOpportunity, setSelectedOpportunity] = useState(null);
   const [opportunityDetails, setOpportunityDetails] = useState(null);
@@ -283,20 +285,21 @@ export default function AMDashboard({ user, onToast }) {
                   <div className="details-content">
 
                     <div className="details-topbar">
-                      <button
-                        className="details-back-btn"
-                        onClick={() => setShowDetailsPage(false)}
-                      >
+                      <button className="details-back-btn" onClick={() => setShowDetailsPage(false)}>
                         ← Back
                       </button>
                       <h2>Opportunity Details</h2>
-                      <button
-                        className="add-profile-btn"
-                        onClick={() => setShowProfilePopup(true)}
-                      >
-                        <span className="btn-plus">＋</span>
-                        Add Profile
-                      </button>
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <button
+                          className="btn-edit"
+                          onClick={() => setEditingOpportunity(selectedOpportunity)}
+                        >
+                          ✏️ Edit
+                        </button>
+                        <button className="add-profile-btn" onClick={() => setShowProfilePopup(true)}>
+                          <span className="btn-plus">＋</span> Add Profile
+                        </button>
+                      </div>
                     </div>
 
                     {/* Opportunity info table — unchanged */}
@@ -479,6 +482,37 @@ export default function AMDashboard({ user, onToast }) {
                     onToast("Profile updated ✓");
                   }}
                   onCancel={() => setEditingProfile(null)}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* After the editingProfile modal */}
+          {editingOpportunity && (
+            <div
+              className="modal-overlay"
+              onClick={() => setEditingOpportunity(null)}
+            >
+              <div
+                className="modal"
+                style={{
+                  maxWidth: 950,
+                  width: "95%",
+                  maxHeight: "92vh",
+                  overflowY: "auto",
+                  padding: 0,
+                  borderRadius: 18,
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <OppForm
+                  initial={editingOpportunity}
+                  onSave={(updated) => {
+                    setSelectedOpportunity((prev) => ({ ...prev, ...updated }));
+                    setEditingOpportunity(null);
+                    onToast("Opportunity updated ✓");
+                  }}
+                  onCancel={() => setEditingOpportunity(null)}
                 />
               </div>
             </div>
