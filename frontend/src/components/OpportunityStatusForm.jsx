@@ -40,7 +40,7 @@ function Input({ value, onChange, placeholder, type = "text" }) {
 function EngineerRow({ eng, idx, onChange, onRemove }) {
     return (
         <div className="eng-row">
-            <div className="eng-fields">
+            <div className="eng-fields ops-grid-3">
                 <Input
                     value={eng.name}
                     onChange={v => onChange(idx, "name", v)}
@@ -113,11 +113,11 @@ export default function OpportunityStatusForm({ onSave, onCancel, selectedOpport
     };
     const addEng = () => set("engineers", [...form.engineers, blank()]);
     const removeEng = (idx) => set("engineers", form.engineers.filter((_, i) => i !== idx));
+    console.log("Submitting with engineer:", selectedOpportunity?.opportunity_id);
 
     const handleSubmit = async () => {
         try {
             const engineer = form.engineers?.[0] || {};
-
             const payload = {
                 opportunity_id: selectedOpportunity?.opportunity_id,
                 source: form.source,
@@ -172,14 +172,15 @@ export default function OpportunityStatusForm({ onSave, onCancel, selectedOpport
                 {/* ── Section 1: Core Details ── */}
                 <div className="ops-section">
                     <div className="ops-grid-2">
-                        <Field label="No. of Resumes Proposed" required>
-                            <Input
-                                type="number"
-                                value={form.resumeCount}
-                                onChange={v => set("resumeCount", v)}
-                                placeholder="e.g. 3"
-                            />
-                        </Field>
+
+                    </div>
+                </div>
+
+                {/* ── Section 2: Engineer Details ── */}
+                <div className="ops-section">
+                    <div className="ops-section-title">Engineer Details</div>
+
+                    <div className="ops-grid-2">
                         <Field label="Source" required>
                             <Select
                                 value={form.source}
@@ -188,30 +189,30 @@ export default function OpportunityStatusForm({ onSave, onCancel, selectedOpport
                                 placeholder="Select source…"
                             />
                         </Field>
-                        {/* <Field label="Vertical" required>
-                            <Select
-                                value={form.vertical}
-                                onChange={v => set("vertical", v)}
-                                options={VERTICALS}
-                                placeholder="Select vertical…"
-                            />
-                        </Field> */}
-                    </div>
-                </div>
 
-                {/* ── Section 2: Engineer Details ── */}
-                <div className="ops-section">
-                    <div className="ops-section-title">Engineer Details</div>
-                    <div className="eng-rows">
-                        {form.engineers.map((eng, idx) => (
-                            <EngineerRow
-                                key={idx}
-                                eng={eng}
-                                idx={idx}
-                                onChange={updateEng}
-                                onRemove={removeEng}
+                        <Field label="Engineer Name">
+                            <Input
+                                value={form.engineers?.[0]?.name}
+                                onChange={v => updateEng(0, "name", v)}
+                                placeholder="Engineer name"
                             />
-                        ))}
+                        </Field>
+
+                        <Field label="SS ID">
+                            <Input
+                                value={form.engineers?.[0]?.ssId}
+                                onChange={v => updateEng(0, "ssId", v)}
+                                placeholder="SS ID"
+                            />
+                        </Field>
+
+                        <Field label="Projected Exp (yrs)">
+                            <Input
+                                value={form.engineers?.[0]?.projectedExp}
+                                onChange={v => updateEng(0, "projectedExp", v)}
+                                placeholder="Projected Exp (yrs)"
+                            />
+                        </Field>
                     </div>
                 </div>
 
