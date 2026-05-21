@@ -89,7 +89,6 @@ export default function AMDashboard({ user, onToast }) {
     }
   }, [activeForm]);
 
-
   // fetch meta once
   useEffect(() => {
     api.meta().then(m => setMeta(m)).catch(() => { });
@@ -458,6 +457,7 @@ export default function AMDashboard({ user, onToast }) {
             </div>
           )}
 
+
           {activeForm && activeForm !== "opportunity-status" && (
             activeForm === "on-off-boarding" ? (
               <div className="ops-container">
@@ -526,6 +526,72 @@ export default function AMDashboard({ user, onToast }) {
                                   <button
                                     className="btn-edit"
                                     onClick={() => setEditingOnboardProfile(p)}
+                                  >
+                                    ✏️
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : activeForm === "selection" ? (
+              <div className="ops-container">
+                <div className="ops-page slide-center">
+                  <div className="ops-main-wrap">
+                    <div className="ops-page-head">
+                      <div className="ops-title-row">
+                        <span className="ops-back-arrow" onClick={() => setActiveForm(null)}>{"<"}</span>
+                        <h2 className="ops-page-title">Selection</h2>
+                      </div>
+                    </div>
+                    {loading ? (
+                      <Spinner />
+                    ) : selectionProfiles.length === 0 ? (
+                      <Empty message="No selection profiles found" />
+                    ) : (
+                      <div className="table-wrap">
+                        <table className="opp-table">
+                          <thead>
+                            <tr>
+                              <th>Engineer Name</th>
+                              <th>SS ID</th>
+                              <th>Client</th>
+                              <th>Client BU</th>
+                              <th>Source</th>
+                              <th>Status</th>
+                              <th>Selection Date</th>
+                              <th>Skill</th>
+                              <th>Experience</th>
+                              <th>Priority</th>
+                              <th>Action</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {selectionProfiles.map((p) => (
+                              <tr key={p.profile_id}>
+                                <td><strong>{p.engg_name || "—"}</strong></td>
+                                <td>{p.ss_id || "—"}</td>
+                                <td>{p.client_name || p.opportunity_details?.client || "—"}</td>
+                                <td>{p.client_bu_name || p.opportunity_details?.BU || "—"}</td>
+                                <td><Badge type={p.source} /></td>
+                                <td>
+                                  <span className={`status-pill status-${p.profile_status?.toLowerCase().replace(/\s+/g, "-")}`}>
+                                    {p.profile_status || "—"}
+                                  </span>
+                                </td>
+                                <td>{p.selection_date ? fmt(p.selection_date) : "—"}</td>
+                                <td>{p.opportunity_details?.skill || "—"}</td>
+                                <td>{p.opportunity_details?.experience || "—"}</td>
+                                <td>{p.opportunity_details?.priority || "—"}</td>
+                                <td>
+                                  <button
+                                    className="btn-edit"
+                                    onClick={() => setEditingSelectionProfile(p)}
                                   >
                                     ✏️
                                   </button>
@@ -699,17 +765,6 @@ export default function AMDashboard({ user, onToast }) {
             </div>
           )}
         </>
-      )}
-
-      {/* ── MY RECORDS ── */}
-      {tab === "records" && (
-        <MyRecordsSection
-          entries={entries}
-          setEntries={setEntries}
-          meta={meta}
-          loading={loading}
-          onToast={onToast}
-        />
       )}
     </div>
   );
