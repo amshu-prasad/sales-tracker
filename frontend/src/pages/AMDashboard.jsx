@@ -355,7 +355,7 @@ export default function AMDashboard({ user, onToast }) {
                           <table className="opp-table">
                             <thead>
                               <tr>
-                                <th>Engineer</th>
+                                <th>Engineer Name</th>
                                 <th>SS ID</th>
                                 <th>Source</th>
                                 <th>Exp (yrs)</th>

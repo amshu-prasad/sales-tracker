@@ -119,3 +119,18 @@ export const PRIORITY_COLORS = {
     "Medium": { bg: "#e0f2fe", color: "#075985", dot: "#0284c7" },
     "Low": { bg: "#f3f4f6", color: "#374151", dot: "#6b7280" },
 };
+
+export const MONTHS = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December"
+];

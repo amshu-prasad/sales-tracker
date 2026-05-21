@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { CLIENTS, BUS, MODES, TEAMS, LOCATIONS, START_DATE_OPTIONS, PRIORITIES, STATUS_COLORS, PRIORITY_COLORS, OPEN_STATUSES } from "../constants/StringConstants.js";
+import { CLIENTS, BUS, MODES, TEAMS, LOCATIONS, START_DATE_OPTIONS, PRIORITIES, STATUS_COLORS, PRIORITY_COLORS, OPEN_STATUSES,MONTHS } from "../constants/StringConstants.js";
 import { CREATE_OPPORTUNITY, UPLOAD_JD, GET_OPPORTUNITY, UPDATE_OPPORTUNITY } from "../api/endpoints";
 import { postFile } from "../api/clients";
 import { useEffect } from "react";
@@ -296,20 +296,6 @@ function OppForm({ initial, onSave, onCancel }) {
     const [showClientDropdown, setShowClientDropdown] = useState(false);
     const [showUploadPopup, setShowUploadPopup] = useState(false);
     const [loading, setLoading] = useState(false);
-    const MONTHS = [
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December"
-    ];
     const set = (key) => (val) =>
         setForm((p) => ({ ...p, [key]: val }));
 
@@ -321,69 +307,6 @@ function OppForm({ initial, onSave, onCancel }) {
             jdFileUrl: fileUrl,
         }));
     };
-
-    // const handleSubmit = async () => {
-    //     try {
-    //         setLoading(true);
-
-    //         let response;
-
-    //         // ─── EDIT EXISTING OPPORTUNITY ─────────────────
-    //         if (initial?.opportunity_id) {
-
-    //             // only send changed fields
-    //             const changedFields = {};
-
-    //             Object.keys(form).forEach((key) => {
-    //                 const initialValue = initial[key] ?? "";
-    //                 const currentValue = form[key] ?? "";
-
-    //                 if (initialValue !== currentValue) {
-    //                     changedFields[key] = currentValue;
-    //                 }
-    //             });
-
-    //             response = await fetch(
-    //                 `${UPDATE_OPPORTUNITY}/${initial.opportunity_id}`,
-    //                 {
-    //                     method: "PUT",
-    //                     headers: {
-    //                         "Content-Type": "application/json",
-    //                     },
-    //                     body: JSON.stringify(changedFields),
-    //                 }
-    //             );
-    //         }
-
-    //         // ─── CREATE NEW OPPORTUNITY ────────────────────
-    //         else {
-    //             response = await fetch(CREATE_OPPORTUNITY, {
-    //                 method: "POST",
-    //                 headers: {
-    //                     "Content-Type": "application/json",
-    //                 },
-    //                 body: JSON.stringify(form),
-    //             });
-    //         }
-
-    //         const data = await response.json();
-
-    //         if (!response.ok) {
-    //             throw new Error(
-    //                 data?.message ||
-    //                 "Failed to save opportunity"
-    //             );
-    //         }
-
-    //         onSave?.(form);
-
-    //     } catch (error) {
-    //         console.error("Error:", error.message);
-    //         alert(error.message);
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // };
 
     const handleSubmit = async () => {
         try {
