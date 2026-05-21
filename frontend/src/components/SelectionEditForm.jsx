@@ -19,7 +19,6 @@ export default function SelectionEditForm({ initialData, onSave, onCancel }) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    console.log(initialData,"ixiiissi")
     const od = initialData?.opportunity_details || {};
 
     const handleSubmit = async () => {

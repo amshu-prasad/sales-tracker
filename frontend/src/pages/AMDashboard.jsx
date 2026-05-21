@@ -174,9 +174,24 @@ export default function AMDashboard({ user, onToast }) {
     setActiveForm(null);
     onToast("Entry saved ✓");
   };
-  const handleSaveOppProfile = (entry) => {
+
+  const handleSaveOppProfile = async (entry) => {
     setEntries(prev => [entry, ...prev]);
     onToast("Entry saved ✓");
+    await refreshOpportunityProfiles();
+  };
+
+  const refreshOpportunityProfiles = async () => {
+    if (!selectedOpportunity?.opportunity_id) return;
+    try {
+      const url = `${GET_OPPORTUNITY_BY_ID}/${selectedOpportunity.opportunity_id}`;
+      const response = await fetch(url);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.message || "Failed to refresh profiles");
+      setProfiles(data.data?.profiles || []);
+    } catch (error) {
+      console.error("Refresh profiles error:", error);
+    }
   };
 
   const columns = [
