@@ -2446,3 +2446,17 @@ textarea {
   background: #fef3c7;
   color: #92400e;
 }
+
+
+.opp-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr)); /* 2 fields per row */
+  gap: 16px;
+}
+
+/* optional: better responsiveness */
+@media (max-width: 768px) {
+  .opp-form-grid {
+    grid-template-columns: 1fr; /* single column on mobile */
+  }
+}

@@ -5,9 +5,10 @@ import EntryForm from "../components/EntryForm";
 import OpportunityTracker from "../components/OpportunityTracker";
 import OnboardingOffboarding from "../components/OnBoardOffBoard";
 import OpportunityStatusForm from "../components/OpportunityStatusForm";
+import SelectionEditForm from "../components/SelectionEditForm.jsx";
 import { CSVLink } from "react-csv";
 import { VERTICALS } from "../constants/StringConstants.js";
-import { GET_OPPORTUNITY, GET_OPPORTUNITY_BY_ID } from "../api/endpoints";
+import { GET_OPPORTUNITY, GET_OPPORTUNITY_BY_ID, GET_FINAL_SELECTION_PROFILES } from "../api/endpoints";
 import { OppForm, emptyOpportunity } from "../components/OpportunityTracker";
 
 function fmt(d) {
@@ -37,11 +38,37 @@ export default function AMDashboard({ user, onToast }) {
   const [profiles, setProfiles] = useState([]);
   const [editingProfile, setEditingProfile] = useState(null);
   const [editingOpportunity, setEditingOpportunity] = useState(null);
-
   const [selectedOpportunity, setSelectedOpportunity] = useState(null);
   const [opportunityDetails, setOpportunityDetails] = useState(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [showDetailsPage, setShowDetailsPage] = useState(false);
+  const [selectionProfiles, setSelectionProfiles] = useState([]);
+  const [editingSelectionProfile, setEditingSelectionProfile] = useState(null);
+
+
+  const fetchFinalSelectionProfiles = async () => {
+    try {
+      setLoading(true);
+      const url = `${GET_FINAL_SELECTION_PROFILES}?limit=100&skip=0`;
+      const response = await fetch(url);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.message || "Failed to fetch selection profiles");
+      setSelectionProfiles(data.data.items || []);
+    } catch (error) {
+      console.error("Fetch selection profiles error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Add this useEffect alongside the opportunity-status one
+  useEffect(() => {
+    if (activeForm === "selection") {
+      fetchFinalSelectionProfiles();
+    }
+  }, [activeForm]);
+
+
   // fetch meta once
   useEffect(() => {
     api.meta().then(m => setMeta(m)).catch(() => { });
@@ -294,7 +321,7 @@ export default function AMDashboard({ user, onToast }) {
                           className="btn-edit"
                           onClick={() => setEditingOpportunity(selectedOpportunity)}
                           style={{
-                            marginTop:"17px",
+                            marginTop: "17px",
                             height: "36px",
                             padding: "0 14px",
                             fontSize: "13px",
@@ -410,25 +437,135 @@ export default function AMDashboard({ user, onToast }) {
             </div>
           )}
 
-          {/* ── Other Forms ── */}
-          {activeForm &&
-            activeForm !== "opportunity-status" && (
-              activeForm === "on-off-boarding" ? (
-                <OnboardingOffboarding
-                  onSave={handleSave}
-                  onCancel={() => setActiveForm(null)}
-                  setActiveForm={setActiveForm}
-                />
-              ) : (
-                <OpportunityTracker
-                  type={activeForm}
-                  onSave={handleSave}
-                  onCancel={() => setActiveForm(null)}
-                  setActiveForm={setActiveForm}
-                />
-              )
+          {activeForm && activeForm !== "opportunity-status" && (
+            activeForm === "on-off-boarding" ? (
+              <OnboardingOffboarding
+                onSave={handleSave}
+                onCancel={() => setActiveForm(null)}
+                setActiveForm={setActiveForm}
+              />
+            ) : activeForm === "selection" ? (
+              <div className="ops-container">
+                <div className="ops-page slide-center">
+                  <div className="ops-main-wrap">
+                    <div className="ops-page-head">
+                      <div className="ops-title-row">
+                        <span className="ops-back-arrow" onClick={() => setActiveForm(null)}>{"<"}</span>
+                        <h2 className="ops-page-title">Final Selection Profiles</h2>
+                      </div>
+                    </div>
+
+                    {loading ? (
+                      <Spinner />
+                    ) : selectionProfiles.length === 0 ? (
+                      <Empty message="No final selection profiles found" />
+                    ) : (
+                      <div className="table-wrap">
+                        <table className="opp-table">
+                          <thead>
+                            <tr>
+                              <th>Engineer Name</th>
+                              <th>SS ID</th>
+                              <th>Source</th>
+                              <th>Exp (yrs)</th>
+                              <th>Status</th>
+                              <th>Selection Date</th>
+                              <th>Client</th>
+                              <th>BU</th>
+                              <th>Skill</th>
+                              <th>Location</th>
+                              <th>Priority</th>
+                              <th>Positions</th>
+                              <th>Tech POC</th>
+                              <th>Action</th>  {/* ← add this */}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {selectionProfiles.map((p) => (
+                              <tr key={p.profile_id}>
+                                <td><strong>{p.engg_name || "—"}</strong></td>
+                                <td>{p.ss_id || "—"}</td>
+                                <td><Badge type={p.source} /></td>
+                                <td>{p.projected_experience || "—"}</td>
+                                <td>
+                                  <span className={`status-pill status-${p.profile_status?.toLowerCase().replace(/\s+/g, "-")}`}>
+                                    {p.profile_status || "—"}
+                                  </span>
+                                </td>
+                                <td>{p.selection_date ? fmt(p.selection_date) : "—"}</td>
+                                <td>{p.opportunity_details?.client || "—"}</td>
+                                <td>{p.opportunity_details?.BU || "—"}</td>
+                                <td>{p.opportunity_details?.skill || "—"}</td>
+                                <td>{p.opportunity_details?.location || "—"}</td>
+                                <td>{p.opportunity_details?.priority || "—"}</td>
+                                <td>{p.opportunity_details?.no_of_positions ?? "—"}</td>
+                                <td>{p.opportunity_details?.technical_poc || "—"}</td>
+                                <td>   {/* ← add this */}
+                                  <button
+                                    className="btn-edit"
+                                    onClick={() => setEditingSelectionProfile(p)}
+                                  >
+                                    ✏️
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                          {/* <thead>
+                            <tr>
+                              <th>Engineer Name</th>
+                              <th>SS ID</th>
+                              <th>Source</th>
+                              <th>Exp (yrs)</th>
+                              <th>Status</th>
+                              <th>Selection Date</th>
+                              <th>Client</th>
+                              <th>BU</th>
+                              <th>Skill</th>
+                              <th>Location</th>
+                              <th>Priority</th>
+                              <th>Positions</th>
+                              <th>Tech POC</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {selectionProfiles.map((p) => (
+                              <tr key={p.profile_id}>
+                                <td><strong>{p.engg_name || "—"}</strong></td>
+                                <td>{p.ss_id || "—"}</td>
+                                <td><Badge type={p.source} /></td>
+                                <td>{p.projected_experience || "—"}</td>
+                                <td>
+                                  <span className={`status-pill status-${p.profile_status?.toLowerCase().replace(/\s+/g, "-")}`}>
+                                    {p.profile_status || "—"}
+                                  </span>
+                                </td>
+                                <td>{p.selection_date ? fmt(p.selection_date) : "—"}</td>
+                                <td>{p.opportunity_details?.client || "—"}</td>
+                                <td>{p.opportunity_details?.BU || "—"}</td>
+                                <td>{p.opportunity_details?.skill || "—"}</td>
+                                <td>{p.opportunity_details?.location || "—"}</td>
+                                <td>{p.opportunity_details?.priority || "—"}</td>
+                                <td>{p.opportunity_details?.no_of_positions ?? "—"}</td>
+                                <td>{p.opportunity_details?.technical_poc || "—"}</td>
+                              </tr>
+                            ))}
+                          </tbody> */}
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <OpportunityTracker
+                type={activeForm}
+                onSave={handleSave}
+                onCancel={() => setActiveForm(null)}
+                setActiveForm={setActiveForm}
+              />
             )
-          }
+          )}
 
           {/* ── Opportunity Status Popup ── */}
           {showProfilePopup && (
@@ -531,6 +668,28 @@ export default function AMDashboard({ user, onToast }) {
                     onToast("Opportunity updated ✓");
                   }}
                   onCancel={() => setEditingOpportunity(null)}
+                />
+              </div>
+            </div>
+          )}
+
+          {editingSelectionProfile && (
+            <div className="modal-overlay" onClick={() => setEditingSelectionProfile(null)}>
+              <div
+                className="modal"
+                style={{ maxWidth: 950, width: "95%", maxHeight: "92vh", overflowY: "auto", padding: 0, borderRadius: 18 }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <SelectionEditForm
+                  initialData={editingSelectionProfile}
+                  onSave={(updated) => {
+                    setSelectionProfiles(prev =>
+                      prev.map(p => p.profile_id === updated.profile_id ? { ...p, ...updated } : p)
+                    );
+                    setEditingSelectionProfile(null);
+                    onToast("Profile updated ✓");
+                  }}
+                  onCancel={() => setEditingSelectionProfile(null)}
                 />
               </div>
             </div>
