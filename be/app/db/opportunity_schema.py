@@ -20,7 +20,7 @@ class OpportunitySchema(BaseModel):
     doable_headcount: int
     file_id: Optional[str] = None
     vertical: str
-    open_status: Optional[list]
-    hiring_manager_name: Optional[str]
-    hiring_manager_email: Optional[EmailStr]
-    hiring_location: Optional[str]
+    open_status: Optional[list] = None
+    hiring_manager_name: Optional[str] = None
+    hiring_manager_email: Optional[EmailStr] = None
+    hiring_location: Optional[str] = None
