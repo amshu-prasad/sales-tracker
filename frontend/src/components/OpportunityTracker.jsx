@@ -713,27 +713,6 @@ function OppCard({ opp, onEdit, onDelete }) {
     );
 }
 
-// ─── Filters bar ──────────────────────────────────────────────────────────────
-// function FiltersBar({ searchInput, setSearchInput, onSearch }) {
-//     return (
-//         <div className="ot-filters">
-//             <input
-//                 className="ot-filter-search"
-//                 placeholder="🔍 Search client, skill, POC…"
-//                 value={searchInput}
-//                 onChange={e => setSearchInput(e.target.value)}
-//                 onKeyDown={e => e.key === "Enter" && onSearch()}
-//             />
-//             <button
-//                 className="ot-search-btn"
-//                 onClick={onSearch}
-//             >
-//                 Search
-//             </button>
-//         </div>
-//     );
-// }
-
 function FiltersBar({ searchInput, setSearchInput, onSearch }) {
     return (
         <div className="ot-filters">
