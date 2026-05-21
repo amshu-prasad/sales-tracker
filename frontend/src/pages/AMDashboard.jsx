@@ -33,6 +33,8 @@ export default function AMDashboard({ user, onToast }) {
   const [meta, setMeta] = useState({ clients: [], verticals: [], ams: [] });
   const [showProfilePopup, setShowProfilePopup] = useState(false);
   const [opps, setOpps] = useState([]);
+  const [profiles, setProfiles] = useState([]);
+  const [editingProfile, setEditingProfile] = useState(null);
 
   const [selectedOpportunity, setSelectedOpportunity] = useState(null);
   const [opportunityDetails, setOpportunityDetails] = useState(null);
@@ -84,7 +86,7 @@ export default function AMDashboard({ user, onToast }) {
       }
 
       setSelectedOpportunity(data.data || null);
-
+      setProfiles(data.data?.profiles || []);
       // open details page
       setShowDetailsPage(true);
 
@@ -276,10 +278,7 @@ export default function AMDashboard({ user, onToast }) {
               </div>
 
               {/* DETAILS PAGE */}
-              <div
-                className={`details-page ${showDetailsPage ? "details-show" : "details-hide"
-                  }`}
-              >
+              <div className={`details-page ${showDetailsPage ? "details-show" : "details-hide"}`}>
                 {selectedOpportunity && (
                   <div className="details-content">
 
@@ -300,74 +299,98 @@ export default function AMDashboard({ user, onToast }) {
                       </button>
                     </div>
 
+                    {/* Opportunity info table — unchanged */}
                     <div className="details-table-wrap">
                       <table className="details-table">
                         <tbody>
                           <tr>
-                            <th>Client</th>
-                            <td>{selectedOpportunity.client || "—"}</td>
-
-                            <th>BU</th>
-                            <td>{selectedOpportunity.BU || "—"}</td>
+                            <th>Client</th><td>{selectedOpportunity.client || "—"}</td>
+                            <th>BU</th><td>{selectedOpportunity.BU || "—"}</td>
                           </tr>
-
                           <tr>
-                            <th>Mode</th>
-                            <td>{selectedOpportunity.mode || "—"}</td>
-
-                            <th>Team</th>
-                            <td>{selectedOpportunity.team || "—"}</td>
+                            <th>Mode</th><td>{selectedOpportunity.mode || "—"}</td>
+                            <th>Team</th><td>{selectedOpportunity.team || "—"}</td>
                           </tr>
-
                           <tr>
-                            <th>Skill</th>
-                            <td>{selectedOpportunity.skill || "—"}</td>
-
-                            <th>Month</th>
-                            <td>{selectedOpportunity.month || "—"}</td>
+                            <th>Skill</th><td>{selectedOpportunity.skill || "—"}</td>
+                            <th>Month</th><td>{selectedOpportunity.month || "—"}</td>
                           </tr>
-
                           <tr>
-                            <th>Req Date</th>
-                            <td>{selectedOpportunity.reqdate || "—"}</td>
-
-                            <th>Start Date</th>
-                            <td>{selectedOpportunity.start_date || "—"}</td>
+                            <th>Req Date</th><td>{selectedOpportunity.reqdate || "—"}</td>
+                            <th>Start Date</th><td>{selectedOpportunity.start_date || "—"}</td>
                           </tr>
-
                           <tr>
-                            <th>Location</th>
-                            <td>{selectedOpportunity.location || "—"}</td>
-
-                            <th>Positions</th>
-                            <td>{selectedOpportunity.no_of_positions || "—"}</td>
+                            <th>Location</th><td>{selectedOpportunity.location || "—"}</td>
+                            <th>Positions</th><td>{selectedOpportunity.no_of_positions || "—"}</td>
                           </tr>
-
                           <tr>
-                            <th>Experience</th>
-                            <td>{selectedOpportunity.experience || "—"}</td>
-
-                            <th>Priority</th>
-                            <td>{selectedOpportunity.priority || "—"}</td>
+                            <th>Experience</th><td>{selectedOpportunity.experience || "—"}</td>
+                            <th>Priority</th><td>{selectedOpportunity.priority || "—"}</td>
                           </tr>
-
                           <tr>
-                            <th>Technical POC</th>
-                            <td>{selectedOpportunity.technical_poc || "—"}</td>
-
-                            <th>Headcount</th>
-                            <td>{selectedOpportunity.doable_headcount || "—"}</td>
+                            <th>Technical POC</th><td>{selectedOpportunity.technical_poc || "—"}</td>
+                            <th>Headcount</th><td>{selectedOpportunity.doable_headcount || "—"}</td>
                           </tr>
-
                           <tr>
-                            <th>Created At</th>
-                            <td>{selectedOpportunity.created_at || "—"}</td>
-
-                            <th>Updated At</th>
-                            <td>{selectedOpportunity.updated_at || "—"}</td>
+                            <th>Created At</th><td>{selectedOpportunity.created_at || "—"}</td>
+                            <th>Updated At</th><td>{selectedOpportunity.updated_at || "—"}</td>
                           </tr>
                         </tbody>
                       </table>
+                    </div>
+
+                    {/* ── Profiles Section ── */}
+                    <div className="profiles-section">
+                      <p className="section-title" style={{ marginTop: 24, marginBottom: 10 }}>
+                        Profiles
+                        <span className="profile-count-badge">{profiles.length}</span>
+                      </p>
+
+                      {detailsLoading ? (
+                        <Spinner />
+                      ) : profiles.length === 0 ? (
+                        <Empty message="No profiles added yet" />
+                      ) : (
+                        <div className="table-wrap">
+                          <table className="opp-table">
+                            <thead>
+                              <tr>
+                                <th>Engineer</th>
+                                <th>SS ID</th>
+                                <th>Source</th>
+                                <th>Exp (yrs)</th>
+                                <th>Status</th>
+                                <th>Selection Date</th>
+                                <th>Action</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {profiles.map((p) => (
+                                <tr key={p.profile_id}>
+                                  <td><strong>{p.engg_name || "—"}</strong></td>
+                                  <td>{p.ss_id || "—"}</td>
+                                  <td><Badge type={p.source} /></td>
+                                  <td>{p.projected_experience || "—"}</td>
+                                  <td>
+                                    <span className={`status-pill status-${p.profile_status?.toLowerCase().replace(/\s+/g, "-")}`}>
+                                      {p.profile_status || "—"}
+                                    </span>
+                                  </td>
+                                  <td>{p.selection_date ? fmt(p.selection_date) : "—"}</td>
+                                  <td>
+                                    <button
+                                      className="btn-edit"
+                                      onClick={() => setEditingProfile(p)}
+                                    >
+                                      ✏️
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
                     </div>
 
                   </div>
@@ -421,6 +444,41 @@ export default function AMDashboard({ user, onToast }) {
                     setShowProfilePopup(false);
                   }}
                   onCancel={() => setShowProfilePopup(false)}
+                />
+              </div>
+            </div>
+          )}
+          {editingProfile && (
+            <div
+              className="modal-overlay"
+              onClick={() => setEditingProfile(null)}
+            >
+              <div
+                className="modal"
+                style={{
+                  maxWidth: 950,
+                  width: "95%",
+                  maxHeight: "92vh",
+                  overflowY: "auto",
+                  padding: 0,
+                  borderRadius: 18,
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <OpportunityStatusForm
+                  mode="edit"
+                  selectedOpportunity={selectedOpportunity}
+                  initialData={editingProfile}
+                  onSave={(updated) => {
+                    setProfiles(prev =>
+                      prev.map(p =>
+                        p.profile_id === updated.profile_id ? updated : p
+                      )
+                    );
+                    setEditingProfile(null);
+                    onToast("Profile updated ✓");
+                  }}
+                  onCancel={() => setEditingProfile(null)}
                 />
               </div>
             </div>

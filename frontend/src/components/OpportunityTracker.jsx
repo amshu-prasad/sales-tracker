@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { CLIENTS, BUS, MODES, TEAMS, LOCATIONS, START_DATE_OPTIONS, PRIORITIES, STATUS_COLORS, PRIORITY_COLORS } from "../constants/StringConstants.js";
+import { CLIENTS, BUS, MODES, TEAMS, LOCATIONS, START_DATE_OPTIONS, PRIORITIES, STATUS_COLORS, PRIORITY_COLORS, OPEN_STATUSES } from "../constants/StringConstants.js";
 import { CREATE_OPPORTUNITY, UPLOAD_JD, GET_OPPORTUNITY, UPDATE_OPPORTUNITY } from "../api/endpoints";
 import { postFile } from "../api/clients";
 import { useEffect } from "react";
@@ -30,6 +30,10 @@ const emptyOpportunity = () => ({
     jdFileUrl: "",
     jdFileName: "",
     vertical: "",
+    open_status: [],
+    hiring_manager_name: "",
+    hiring_manager_email: "",
+    hiring_location: "",
     createdAt: new Date().toISOString(),
 });
 
@@ -262,6 +266,29 @@ function Textarea({ value, onChange, placeholder, rows = 3 }) {
     );
 }
 
+// ── Multi-Select Chips ─────────────────────────────────────────────────────
+function MultiChips({ options, selected = [], onChange }) {
+    const toggle = (opt) => {
+        onChange(
+            selected.includes(opt) ? selected.filter(s => s !== opt) : [...selected, opt]
+        );
+    };
+    return (
+        <div className="chip-group">
+            {options.map(opt => (
+                <button
+                    key={opt}
+                    type="button"
+                    className={`chip ${selected.includes(opt) ? "chip-active" : ""}`}
+                    onClick={() => toggle(opt)}
+                >
+                    {opt}
+                </button>
+            ))}
+        </div>
+    );
+}
+
 // ─── Opportunity Form ─────────────────────────────────────────────────────────
 
 function OppForm({ initial, onSave, onCancel }) {
@@ -282,68 +309,137 @@ function OppForm({ initial, onSave, onCancel }) {
         }));
     };
 
+    // const handleSubmit = async () => {
+    //     try {
+    //         setLoading(true);
+
+    //         let response;
+
+    //         // ─── EDIT EXISTING OPPORTUNITY ─────────────────
+    //         if (initial?.opportunity_id) {
+
+    //             // only send changed fields
+    //             const changedFields = {};
+
+    //             Object.keys(form).forEach((key) => {
+    //                 const initialValue = initial[key] ?? "";
+    //                 const currentValue = form[key] ?? "";
+
+    //                 if (initialValue !== currentValue) {
+    //                     changedFields[key] = currentValue;
+    //                 }
+    //             });
+
+    //             response = await fetch(
+    //                 `${UPDATE_OPPORTUNITY}/${initial.opportunity_id}`,
+    //                 {
+    //                     method: "PUT",
+    //                     headers: {
+    //                         "Content-Type": "application/json",
+    //                     },
+    //                     body: JSON.stringify(changedFields),
+    //                 }
+    //             );
+    //         }
+
+    //         // ─── CREATE NEW OPPORTUNITY ────────────────────
+    //         else {
+    //             response = await fetch(CREATE_OPPORTUNITY, {
+    //                 method: "POST",
+    //                 headers: {
+    //                     "Content-Type": "application/json",
+    //                 },
+    //                 body: JSON.stringify(form),
+    //             });
+    //         }
+
+    //         const data = await response.json();
+
+    //         if (!response.ok) {
+    //             throw new Error(
+    //                 data?.message ||
+    //                 "Failed to save opportunity"
+    //             );
+    //         }
+
+    //         onSave?.(form);
+
+    //     } catch (error) {
+    //         console.error("Error:", error.message);
+    //         alert(error.message);
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
+
     const handleSubmit = async () => {
-        try {
-            setLoading(true);
+    try {
+        setLoading(true);
 
-            let response;
+        let response;
 
-            // ─── EDIT EXISTING OPPORTUNITY ─────────────────
-            if (initial?.opportunity_id) {
+        // ─── EDIT EXISTING OPPORTUNITY ─────────────────
+        if (initial?.opportunity_id) {
 
-                // only send changed fields
-                const changedFields = {};
+            const changedFields = {};
 
-                Object.keys(form).forEach((key) => {
-                    const initialValue = initial[key] ?? "";
-                    const currentValue = form[key] ?? "";
+            Object.keys(form).forEach((key) => {
+                const initialValue = initial[key] ?? "";
+                const currentValue = form[key] ?? "";
 
-                    if (initialValue !== currentValue) {
-                        changedFields[key] = currentValue;
-                    }
-                });
+                if (initialValue !== currentValue) {
+                    // skip hiring_manager_email if it's empty
+                    if (key === "hiring_manager_email" && !currentValue) return;
+                    changedFields[key] = currentValue;
+                }
+            });
 
-                response = await fetch(
-                    `${UPDATE_OPPORTUNITY}/${initial.opportunity_id}`,
-                    {
-                        method: "PUT",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify(changedFields),
-                    }
-                );
-            }
-
-            // ─── CREATE NEW OPPORTUNITY ────────────────────
-            else {
-                response = await fetch(CREATE_OPPORTUNITY, {
-                    method: "POST",
+            response = await fetch(
+                `${UPDATE_OPPORTUNITY}/${initial.opportunity_id}`,
+                {
+                    method: "PUT",
                     headers: {
                         "Content-Type": "application/json",
                     },
-                    body: JSON.stringify(form),
-                });
-            }
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    data?.message ||
-                    "Failed to save opportunity"
-                );
-            }
-
-            onSave?.(form);
-
-        } catch (error) {
-            console.error("Error:", error.message);
-            alert(error.message);
-        } finally {
-            setLoading(false);
+                    body: JSON.stringify(changedFields),
+                }
+            );
         }
-    };
+
+        // ─── CREATE NEW OPPORTUNITY ────────────────────
+        else {
+            const payload = { ...form };
+            if (!payload.hiring_manager_email) {
+                delete payload.hiring_manager_email;
+            }
+
+            response = await fetch(CREATE_OPPORTUNITY, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(payload),
+            });
+        }
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data?.message ||
+                "Failed to save opportunity"
+            );
+        }
+
+        onSave?.(form);
+
+    } catch (error) {
+        console.error("Error:", error.message);
+        alert(error.message);
+    } finally {
+        setLoading(false);
+    }
+};
 
     const Section = ({ title, icon }) => (
         <div className="ot-section-header">
@@ -488,6 +584,60 @@ function OppForm({ initial, onSave, onCancel }) {
                                 )}
                             </div>
                         </Field>
+                    </div>
+                    {/* ── Section 4: Open / Closure Status ── */}
+                    <div className="ops-section">
+                        <div className="ops-section-title">Open / Closure Status</div>
+                        <Field label="Status" hint="(multiple selections allowed)">
+                            <MultiChips
+                                options={OPEN_STATUSES}
+                                selected={form.open_status}
+                                onChange={set("open_status")}
+                            />
+                        </Field>
+                    </div>
+
+                    {/* ── Section 5: Hiring Manager ── */}
+                    <div className="ops-section">
+                        <div className="ops-section-title">Hiring Manager Details</div>
+                        <div className="hm-card">
+                            <div className="ops-grid-2" style={{ gap: 12 }}>
+                                {/* <Field label="BU (Business Unit)">
+                                    <Select
+                                        value={form.buName}
+                                        onChange={set("buName")}
+
+                                        // onChange={v => set("buName", v)}
+                                        options={BUS}
+                                        placeholder="Select BU…"
+                                    />
+                                </Field> */}
+                                <Field label="HM Name">
+                                    <Input
+                                        value={form.hiring_manager_name}
+                                        onChange={set("hiring_manager_name")}
+                                        placeholder="Hiring Manager name"
+                                    />
+                                </Field>
+
+                                <Field label="HM Email ID">
+                                    <Input
+                                        type="email"
+                                        value={form.hiring_manager_email}
+                                        onChange={set("hiring_manager_email")}
+                                        placeholder="hm@company.com"
+                                    />
+                                </Field>
+
+                                <Field label="HM Location">
+                                    <Input
+                                        value={form.hiring_location}
+                                        onChange={set("hiring_location")}
+                                        placeholder="City / Office"
+                                    />
+                                </Field>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

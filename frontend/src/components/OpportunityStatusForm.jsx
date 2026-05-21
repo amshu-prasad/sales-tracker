@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { VERTICALS, SOURCES, PROFILE_STATUSES, OPEN_STATUSES, BUS } from "../constants/StringConstants.js";
-import { CREATE_PROFILE } from "../api/endpoints";
+import { CREATE_PROFILE, UPDATE_PROFILE } from "../api/endpoints";
 // ── Helpers ────────────────────────────────────────────────────────────────
 function Field({ label, required, children, hint }) {
     return (
@@ -61,47 +61,43 @@ function EngineerRow({ eng, idx, onChange, onRemove }) {
     );
 }
 
-// ── Multi-Select Chips ─────────────────────────────────────────────────────
-function MultiChips({ options, selected, onChange }) {
-    const toggle = (opt) => {
-        onChange(
-            selected.includes(opt) ? selected.filter(s => s !== opt) : [...selected, opt]
-        );
+
+
+function profileToForm(p) {
+    return {
+        source: p.source || "",
+        engineers: [{ name: p.engg_name || "", ssId: p.ss_id || "", projectedExp: p.projected_experience || "" }],
+        profileStatuses: p.profile_status || "",
+        selectionDate: p.selection_date || "",
+        open_status: p.open_status ? [p.open_status] : [],
+        buName: p.BU_name || "",
+        hmName: p.hiring_manager_name || "",
+        hmEmail: p.hiring_manager_email || "",
+        hmLocation: p.hiring_location || "",
     };
-    return (
-        <div className="chip-group">
-            {options.map(opt => (
-                <button
-                    key={opt}
-                    type="button"
-                    className={`chip ${selected.includes(opt) ? "chip-active" : ""}`}
-                    onClick={() => toggle(opt)}
-                >
-                    {opt}
-                </button>
-            ))}
-        </div>
-    );
 }
 
 // ── Main Form ──────────────────────────────────────────────────────────────
-export default function OpportunityStatusForm({ onSave, onCancel, selectedOpportunity }) {
+export default function OpportunityStatusForm({ onSave, onCancel, selectedOpportunity, initialData = null, mode = "create" }) {
     const blank = () => ({ name: "", ssId: "", projectedExp: "" });
     const [loading, setLoading] = useState(false);
 
-    const [form, setForm] = useState({
-        resumeCount: "",
-        source: "",
-        vertical: "",
-        engineers: [blank()],
-        profileStatuses: "",
-        selectionDate: "",
-        openStatuses: [],
-        buName: "",
-        hmName: "",
-        hmEmail: "",
-        hmLocation: "",
-    });
+    const [form, setForm] = useState(() =>
+        mode === "edit" && initialData
+            ? profileToForm(initialData)
+            : {
+                source: "",
+                engineers: [blank()],
+                profileStatuses: "",
+                selectionDate: "",
+                open_status: [],
+                buName: "",
+                // hmName: "",
+                // hmEmail: "",
+                // hmLocation: "",
+            }
+    );
+
 
     const set = (key, val) => setForm(f => ({ ...f, [key]: val }));
 
@@ -113,41 +109,56 @@ export default function OpportunityStatusForm({ onSave, onCancel, selectedOpport
     };
     const addEng = () => set("engineers", [...form.engineers, blank()]);
     const removeEng = (idx) => set("engineers", form.engineers.filter((_, i) => i !== idx));
-    console.log("Submitting with engineer:", selectedOpportunity?.opportunity_id);
 
     const handleSubmit = async () => {
+        setLoading(true);
         try {
             const engineer = form.engineers?.[0] || {};
-            const payload = {
+
+            const raw = {
                 opportunity_id: selectedOpportunity?.opportunity_id,
                 source: form.source,
-                engg_name: engineer.name || "",
-                ss_id: engineer.ssId || "",
-                projected_experience: engineer.projectedExp || "",
+                engg_name: engineer.name,
+                ss_id: engineer.ssId || null,
+                projected_experience: engineer.projectedExp,
                 profile_status: form.profileStatuses,
-                selection_date: form.selectionDate,
-                open_status: form.openStatuses?.[0] || "",
-                BU_name: form.buName,
-                hiring_manager_name: form.hmName,
-                hiring_manager_email: form.hmEmail,
-                hiring_location: form.hmLocation,
+                selection_date: form.selectionDate || null,
+                open_status: form.open_status?.[0] || null,
+                BU_name: form.buName || null,
+                hiring_manager_name: form.hmName || null,
+                hiring_manager_email: form.hmEmail || null,
+                hiring_location: form.hmLocation || null,
             };
 
-            const response = await fetch(CREATE_PROFILE, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+            // Only strip truly missing required fields (opportunity_id, source, etc.)
+            // Keep null values so backend receives all expected keys
+            const payload = Object.fromEntries(
+                Object.entries(raw).filter(([_, v]) => v !== "" && v !== undefined)
+            );
+
+            const isEdit = mode === "edit" && initialData?.profile_id;
+            const url = isEdit ? `${UPDATE_PROFILE}/${initialData.profile_id}` : CREATE_PROFILE;
+            const method = isEdit ? "PUT" : "POST";
+
+            const response = await fetch(url, {
+                method,
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
             });
+
             const data = await response.json();
-            if (!response.ok) {
-                throw new Error(data?.message || "Failed to create profile");
-            }
-            onSave?.(data);
+            if (!response.ok) throw new Error(data?.message || "Failed to save profile");
+
+            const result = isEdit
+                ? { ...initialData, ...payload, ...(data.data || {}), profile_id: initialData.profile_id }
+                : data.data || data;
+
+            onSave?.(result);
         } catch (error) {
-            console.error("Create profile error:", error);
+            console.error("Save profile error:", error);
             alert(error.message);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -155,7 +166,17 @@ export default function OpportunityStatusForm({ onSave, onCancel, selectedOpport
         <>
             <div className="ops-form">
                 {/* Header */}
-                <div className="ops-header">
+                <div>
+                    <div className="ops-header-title">
+                        {mode === "edit" ? "Edit Profile" : "Opportunity Status"}
+                    </div>
+                    {mode === "edit" && initialData?.engg_name && (
+                        <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>
+                            {initialData.engg_name} · {initialData.ss_id}
+                        </div>
+                    )}
+                </div>
+                {/* <div className="ops-header">
                     <div className="ops-header-icon">📋</div>
                     <div>
                         <div className="ops-header-title">Opportunity Status</div>
@@ -167,7 +188,7 @@ export default function OpportunityStatusForm({ onSave, onCancel, selectedOpport
                     >
                         ✕
                     </button>
-                </div>
+                </div> */}
 
                 {/* ── Section 1: Core Details ── */}
                 <div className="ops-section">
@@ -240,61 +261,13 @@ export default function OpportunityStatusForm({ onSave, onCancel, selectedOpport
                     </div>
                 </div>
 
-                {/* ── Section 4: Open / Closure Status ── */}
-                <div className="ops-section">
-                    <div className="ops-section-title">Open / Closure Status</div>
-                    <Field label="Status" hint="(multiple selections allowed)">
-                        <MultiChips
-                            options={OPEN_STATUSES}
-                            selected={form.openStatuses}
-                            onChange={v => set("openStatuses", v)}
-                        />
-                    </Field>
-                </div>
-
-                {/* ── Section 5: Hiring Manager ── */}
-                <div className="ops-section">
-                    <div className="ops-section-title">Hiring Manager Details</div>
-                    <div className="hm-card">
-                        <div className="ops-grid-2" style={{ gap: 12 }}>
-                            <Field label="BU (Business Unit)">
-                                <Select
-                                    value={form.buName}
-                                    onChange={v => set("buName", v)}
-                                    options={BUS}
-                                    placeholder="Select BU…"
-                                />
-                            </Field>
-                            <Field label="HM Name">
-                                <Input
-                                    value={form.hmName}
-                                    onChange={v => set("hmName", v)}
-                                    placeholder="Hiring Manager name"
-                                />
-                            </Field>
-                            <Field label="HM Email ID">
-                                <Input
-                                    type="email"
-                                    value={form.hmEmail}
-                                    onChange={v => set("hmEmail", v)}
-                                    placeholder="hm@company.com"
-                                />
-                            </Field>
-                            <Field label="HM Location">
-                                <Input
-                                    value={form.hmLocation}
-                                    onChange={v => set("hmLocation", v)}
-                                    placeholder="City / Office"
-                                />
-                            </Field>
-                        </div>
-                    </div>
-                </div>
-
                 {/* Footer */}
                 <div className="ops-footer">
                     <button className="btn-ghost-ops" onClick={onCancel}>Cancel</button>
-                    <button className="btn-primary" onClick={handleSubmit}>Save Opportunity Status</button>
+                    <button className="btn-primary" onClick={handleSubmit} disabled={loading}>
+                        {loading ? "Saving…" : mode === "edit" ? "Update Profile" : "Save Opportunity Status"}
+                    </button>
+                    {/* <button className="btn-primary" onClick={handleSubmit}>Save Opportunity Status</button> */}
                 </div>
             </div>
         </>
