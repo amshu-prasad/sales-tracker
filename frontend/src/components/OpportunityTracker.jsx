@@ -1019,21 +1019,22 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
                     <table className="ot-main-table">
                         <thead>
                             <tr>
-                                <th>Client</th>
-                                <th>BU</th>
                                 <th>Mode</th>
-                                <th>Team</th>
-                                <th>Skill</th>
                                 <th>Month</th>
                                 <th>Req Date</th>
-                                <th>Expected Start Date</th>
                                 <th>Location</th>
-                                <th>Positions</th>
-                                <th>Experience</th>
-                                <th>SS Technical POC</th>
+                                <th>Client</th>
+                                <th>BU</th>
+                                <th>Skill</th>
                                 <th>Vertical</th>
-                                <th>Priority</th>
+                                <th>SS Tech POC</th>
+                                <th>Experience</th>
+                                <th>Positions</th>
                                 <th>Doable HC</th>
+                                <th>Filled by SS</th>
+                                <th>Exp Start Date</th>
+                                <th>Priority</th>
+                                <th>No. Of Profiles Shared</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -1041,19 +1042,22 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
                         <tbody>
                             {filtered.map((opp) => (
                                 <tr key={opp.opportunity_id}>
-                                    <td>{opp.client || "—"}</td>
-                                    <td>{opp.BU || "—"}</td>
                                     <td>{opp.mode || "—"}</td>
-                                    <td>{opp.team || "—"}</td>
-                                    <td>{opp.skill || "—"}</td>
                                     <td>{opp.month || "—"}</td>
                                     <td>{opp.reqdate || "—"}</td>
-                                    <td>{opp.expected_start_date || "—"}</td>
                                     <td>{opp.location || "—"}</td>
-                                    <td>{opp.no_of_positions || "—"}</td>
-                                    <td>{opp.experience || "—"}</td>
-                                    <td>{opp.technical_poc || "—"}</td>
+                                    <td>{opp.client || "—"}</td>
+                                    <td>{opp.BU || "—"}</td>
+                                    <td>{opp.skill || "—"}</td>
                                     <td>{opp.vertical || "—"}</td>
+                                    <td>{opp.technical_poc || "—"}</td>
+                                    <td>{opp.experience || "—"}</td>
+                                    <td>{opp.no_of_positions || "—"}</td>
+                                    <td>{opp.doable_headcount || "—"}</td>
+                                    <td>{opp.filled_by_ss || "—"}</td>
+                                    <td>{opp.expected_start_date || "—"}</td>
+
+                
 
                                     <td>
                                         <StatusBadge
@@ -1062,7 +1066,8 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
                                         />
                                     </td>
 
-                                    <td>{opp.doable_headcount || "—"}</td>
+                                    <td>{opp.no_of_profiles_shared || "—"}</td>
+
                                     <td>
                                         <div className="ot-table-actions">
                                             <button
