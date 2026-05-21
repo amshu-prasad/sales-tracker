@@ -789,7 +789,6 @@ function Pagination({ currentPage, totalPages, totalItems, pageSize, onPageChang
             <span className="ot-pagination-info">
                 Showing {startItem}–{endItem} of {totalItems}
             </span>
-
             <div className="ot-pagination-controls">
                 <button
                     className="ot-page-btn"
@@ -799,7 +798,6 @@ function Pagination({ currentPage, totalPages, totalItems, pageSize, onPageChang
                 >
                     ‹
                 </button>
-
                 {withEllipsis.map((item, idx) =>
                     item === "..." ? (
                         <span key={`ellipsis-${idx}`} className="ot-page-ellipsis">…</span>
@@ -813,7 +811,6 @@ function Pagination({ currentPage, totalPages, totalItems, pageSize, onPageChang
                         </button>
                     )
                 )}
-
                 <button
                     className="ot-page-btn"
                     onClick={() => onPageChange(currentPage + 1)}
@@ -828,13 +825,11 @@ function Pagination({ currentPage, totalPages, totalItems, pageSize, onPageChang
 }
 
 // ─── Main OpportunityTracker ──────────────────────────────────────────────────
-
 export default function OpportunityTracker({ onToast, setActiveForm }) {
     const [opps, setOpps] = useState([]);
     const [showForm, setShowForm] = useState(false);
     const [editingOpp, setEditingOpp] = useState(null);
     const [deletingId, setDeletingId] = useState(null);
-    // const [filters, setFilters] = useState({ status: "", priority: "", client: "", am: "", search: "" });
     const [loading, setLoading] = useState(false);
     const [filters, setFilters] = useState({
         search: "",
@@ -866,7 +861,6 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
                 }
 
                 setOpps(data.data.items);
-                // Support both `total` and `total_count` field names from the API
                 setTotalItems(data.data.total ?? data.data.total_count ?? 0);
             } catch (error) {
                 console.error("Fetch opportunities error:", error);
@@ -878,7 +872,6 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
         fetchOpportunities();
     }, [currentPage]);
 
-    // Reset to page 1 whenever search filter changes
     useEffect(() => {
         setCurrentPage(1);
     }, [filters.search]);
@@ -886,8 +879,6 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
     // ─── Save / Edit ──────────────────────────────────
     const handleSave = (updatedFormData) => {
         if (editingOpp) {
-
-            // immediately update UI with edited values
             setOpps(prev =>
                 prev.map(opp =>
                     opp.opportunity_id === editingOpp.opportunity_id
@@ -898,12 +889,10 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
                         : opp
                 )
             );
-
             onToast?.("Opportunity updated ✓");
         } else {
             setCurrentPage(1);
 
-            // optionally prepend new opportunity
             setOpps(prev => [updatedFormData, ...prev]);
 
             onToast?.("Opportunity saved ✓");
@@ -918,7 +907,6 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
         setTotalItems(t => t - 1);
         setDeletingId(null);
         onToast?.("Deleted ✓");
-        // If we just deleted the last item on this page, go back one
         if (opps.length === 1 && currentPage > 1) {
             setCurrentPage(p => p - 1);
         }
@@ -1054,20 +1042,15 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
                                     <td>{opp.experience || "—"}</td>
                                     <td>{opp.no_of_positions || "—"}</td>
                                     <td>{opp.doable_headcount || "—"}</td>
-                                    <td>{opp.filled_by_ss || "—"}</td>
+                                    <td>{opp.closed_by_ss_count || "—"}</td>
                                     <td>{opp.expected_start_date || "—"}</td>
-
-                
-
                                     <td>
                                         <StatusBadge
                                             value={opp.priority}
                                             map={PRIORITY_COLORS}
                                         />
                                     </td>
-
                                     <td>{opp.no_of_profiles_shared || "—"}</td>
-
                                     <td>
                                         <div className="ot-table-actions">
                                             <button
