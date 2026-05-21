@@ -296,7 +296,20 @@ function OppForm({ initial, onSave, onCancel }) {
     const [showClientDropdown, setShowClientDropdown] = useState(false);
     const [showUploadPopup, setShowUploadPopup] = useState(false);
     const [loading, setLoading] = useState(false);
-
+    const MONTHS = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December"
+    ];
     const set = (key) => (val) =>
         setForm((p) => ({ ...p, [key]: val }));
 
@@ -373,73 +386,73 @@ function OppForm({ initial, onSave, onCancel }) {
     // };
 
     const handleSubmit = async () => {
-    try {
-        setLoading(true);
+        try {
+            setLoading(true);
 
-        let response;
+            let response;
 
-        // ─── EDIT EXISTING OPPORTUNITY ─────────────────
-        if (initial?.opportunity_id) {
+            // ─── EDIT EXISTING OPPORTUNITY ─────────────────
+            if (initial?.opportunity_id) {
 
-            const changedFields = {};
+                const changedFields = {};
 
-            Object.keys(form).forEach((key) => {
-                const initialValue = initial[key] ?? "";
-                const currentValue = form[key] ?? "";
+                Object.keys(form).forEach((key) => {
+                    const initialValue = initial[key] ?? "";
+                    const currentValue = form[key] ?? "";
 
-                if (initialValue !== currentValue) {
-                    // skip hiring_manager_email if it's empty
-                    if (key === "hiring_manager_email" && !currentValue) return;
-                    changedFields[key] = currentValue;
+                    if (initialValue !== currentValue) {
+                        // skip hiring_manager_email if it's empty
+                        if (key === "hiring_manager_email" && !currentValue) return;
+                        changedFields[key] = currentValue;
+                    }
+                });
+
+                response = await fetch(
+                    `${UPDATE_OPPORTUNITY}/${initial.opportunity_id}`,
+                    {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(changedFields),
+                    }
+                );
+            }
+
+            // ─── CREATE NEW OPPORTUNITY ────────────────────
+            else {
+                const payload = { ...form };
+                if (!payload.hiring_manager_email) {
+                    delete payload.hiring_manager_email;
                 }
-            });
 
-            response = await fetch(
-                `${UPDATE_OPPORTUNITY}/${initial.opportunity_id}`,
-                {
-                    method: "PUT",
+                response = await fetch(CREATE_OPPORTUNITY, {
+                    method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                     },
-                    body: JSON.stringify(changedFields),
-                }
-            );
-        }
-
-        // ─── CREATE NEW OPPORTUNITY ────────────────────
-        else {
-            const payload = { ...form };
-            if (!payload.hiring_manager_email) {
-                delete payload.hiring_manager_email;
+                    body: JSON.stringify(payload),
+                });
             }
 
-            response = await fetch(CREATE_OPPORTUNITY, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(payload),
-            });
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data?.message ||
+                    "Failed to save opportunity"
+                );
+            }
+
+            onSave?.(form);
+
+        } catch (error) {
+            console.error("Error:", error.message);
+            alert(error.message);
+        } finally {
+            setLoading(false);
         }
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(
-                data?.message ||
-                "Failed to save opportunity"
-            );
-        }
-
-        onSave?.(form);
-
-    } catch (error) {
-        console.error("Error:", error.message);
-        alert(error.message);
-    } finally {
-        setLoading(false);
-    }
-};
+    };
 
     const Section = ({ title, icon }) => (
         <div className="ot-section-header">
@@ -521,7 +534,12 @@ function OppForm({ initial, onSave, onCancel }) {
                             <Input value={form.skill} onChange={set("skill")} placeholder="e.g. RTL Design, DFT…" />
                         </Field>
                         <Field label="Month">
-                            <Input value={form.month} onChange={set("month")} placeholder="e.g. January" />
+                            <Select
+                                value={form.month}
+                                onChange={set("month")}
+                                options={MONTHS}
+                                placeholder="Select month"
+                            />
                         </Field>
                         <Field label="Req Date">
                             <Input type="date" value={form.reqdate} onChange={set("reqdate")} />
