@@ -405,8 +405,8 @@ export default function AMDashboard({ user, onToast }) {
                             <th>Headcount</th><td>{selectedOpportunity.doable_headcount || "—"}</td>
                           </tr>
                           <tr>
-                            <th>Created At</th><td>{selectedOpportunity.created_at || "—"}</td>
-                            <th>Updated At</th><td>{selectedOpportunity.updated_at || "—"}</td>
+                            <th>No. Of Profiles Shared</th><td>{selectedOpportunity.no_of_profiles_shared || "—"}</td>
+                            <th>Filled by SS</th><td>{selectedOpportunity.closed_by_ss_count || "—"}</td>
                           </tr>
                         </tbody>
                       </table>
@@ -767,6 +767,7 @@ export default function AMDashboard({ user, onToast }) {
               >
                 <SelectionEditForm
                   initialData={editingOnboardProfile}
+                  fetchEndpoint={`${GET_ON_BOARD_OFF_BOARD_PROFILES}?limit=100&skip=0`}
                   onSave={(updated) => {
                     setOnboardProfiles(prev =>
                       prev.map(p => p.profile_id === updated.profile_id ? { ...p, ...updated } : p)
