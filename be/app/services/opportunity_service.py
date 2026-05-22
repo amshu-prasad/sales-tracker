@@ -16,7 +16,7 @@ ALLOWED_TYPES = [
 ]
 
 
-async def upload_document(file):
+async def upload_document(file, user):
 
     if file.content_type not in ALLOWED_TYPES:
         raise HTTPException(
@@ -42,6 +42,7 @@ async def upload_document(file):
     s3_url = f"https://{bucket_name}.s3.amazonaws.com/{s3_key}"
 
     document = {
+        "AM": user,
         "file_id": str(file_id),
         "file_name": file.filename,
         "file_type": file.content_type,

@@ -1,7 +1,8 @@
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Query, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
 from app.services.opportunity_service import create_opportunity_service, get_opportunities_service, get_opportunity_by_id_service, update_opportunity_service, upload_document
 from app.db.opportunity_schema import OpportunitySchema
+from be.app.api.authenticator import get_current_user
 
 # aws_s3_object = aws_s3_access_class()
 
@@ -9,9 +10,9 @@ opportunity_router = APIRouter()
 
 @opportunity_router.post("/upload-jd")
 async def upload_file(
-    file: UploadFile = File(...)
+    file: UploadFile = File(...), user = Depends(get_current_user)
 ):
-    response = await upload_document(file)
+    response = await upload_document(file, user)
     return {
         "success": True,
         "data": response

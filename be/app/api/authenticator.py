@@ -2,7 +2,7 @@ import logging
 import requests as http_requests
 from fastapi import Depends, HTTPException, Security, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from app.api.utility import MODULE_ID
+from app.config import MODULE_ID
 
 
 
