@@ -11,7 +11,7 @@ from app.db.models import (
     update_one
 )
 
-def create_profile_service(data):
+def create_profile_service(data, user):
     profile_id = str(uuid.uuid4())
     document = {
         "profile_id": profile_id,
@@ -26,7 +26,8 @@ def create_profile_service(data):
             if data.get("selection_date")
             else None
         ),
-        "created_at": datetime.utcnow()
+        "created_at": datetime.utcnow(),
+        "AM": user
     }
 
     # create profile
@@ -50,7 +51,8 @@ def create_profile_service(data):
 
 def update_profile_service(
     profile_id: str,
-    data: dict
+    data: dict,
+    user
 ):
 
     update_data = data.copy()
@@ -71,7 +73,8 @@ def update_profile_service(
     result = update_one(
         collection_name="profiles",
         query={
-            "profile_id": profile_id
+            "profile_id": profile_id,
+            "AM" : user
         },
         update_data=update_data
     )
@@ -89,10 +92,11 @@ def get_profiles_service(
     profile_status,
     open_status,
     limit,
-    skip
+    skip, user
 ):
 
     query = {}
+    query["AM"] = user
 
     if profile_status:
         query["profile_status"] = profile_status
@@ -145,12 +149,13 @@ def get_profiles_service(
         "skip": skip
     }
 
-def get_profile_by_id_service(profile_id: str):
+def get_profile_by_id_service(profile_id: str, user):
 
     data = find_one(
         collection_name="profiles",
         query={
-            "profile_id": profile_id
+            "profile_id": profile_id,
+            "AM": user
         },
         projection={
             "_id": 0
@@ -161,10 +166,11 @@ def get_profile_by_id_service(profile_id: str):
 
 def get_final_selected_profiles_service(
     limit,
-    skip
+    skip, user
 ):
     query = {
-        "profile_status": "Final Selection"
+        "profile_status": "Final Selection",
+        "AM": user
     }
 
     profiles = find_many_profile(
@@ -210,7 +216,8 @@ def get_final_selected_profiles_service(
 
 def get_client_onboarding_profiles_service(
     limit,
-    skip
+    skip,
+    user
 ):
 
     # -----------------------------
@@ -221,7 +228,8 @@ def get_client_onboarding_profiles_service(
             "$exists": True,
             "$ne": None,
             "$ne": ""
-        }
+        },
+        "AM": user
     }
 
     profiles = find_many_profile(

@@ -1,15 +1,16 @@
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from app.db.profile_schema import ProfileSchema
 from app.services.profile_service import create_profile_service, get_client_onboarding_profiles_service, get_final_selected_profiles_service, get_profile_by_id_service, get_profiles_service, update_profile_service
+from be.app.api.authenticator import get_current_user
 
 profile_router = APIRouter()
 
 
 @profile_router.post("/create-profile")
-async def create_profile(payload: ProfileSchema):
+async def create_profile(payload: ProfileSchema, user = Depends(get_current_user)):
 
-    response = create_profile_service(payload.dict())
+    response = create_profile_service(payload.dict(), user)
 
     return {
         "success": True,
@@ -19,12 +20,13 @@ async def create_profile(payload: ProfileSchema):
 @profile_router.put("/profiles/{profile_id}")
 async def update_profile(
     profile_id: str,
-    payload: dict
+    payload: dict, user = Depends(get_current_user)
 ):
 
     response = update_profile_service(
         profile_id,
-        payload
+        payload,
+        user
     )
 
     if not response:
@@ -40,16 +42,12 @@ async def update_profile(
 
 @profile_router.get("/profiles")
 async def get_profiles(
-
     search: Optional[str] = Query(None),
-
     profile_status: Optional[str] = Query(None),
-
     open_status: Optional[str] = Query(None),
-
     limit: int = 100,
-
-    skip: int = 0
+    skip: int = 0,
+    user = Depends(get_current_user)
 ):
 
     return {
@@ -59,14 +57,14 @@ async def get_profiles(
             profile_status,
             open_status,
             limit,
-            skip
+            skip, user
         )
     }
 
 @profile_router.get("/profiles/{profile_id}")
-async def get_profile_by_id(profile_id: str):
+async def get_profile_by_id(profile_id: str, user = Depends(get_current_user)):
 
-    response = get_profile_by_id_service(profile_id)
+    response = get_profile_by_id_service(profile_id, user)
 
     if not response:
         raise HTTPException(
@@ -82,11 +80,11 @@ async def get_profile_by_id(profile_id: str):
 @profile_router.get("/profiles-final-selection")
 async def get_final_selected_profiles(
     limit: int = 100,
-    skip: int = 0
+    skip: int = 0, user = Depends(get_current_user)
 ):
     data =get_final_selected_profiles_service(
             limit,
-            skip
+            skip, user
         )
 
     return {
@@ -97,12 +95,12 @@ async def get_final_selected_profiles(
 @profile_router.get("/profiles-client-onboarding")
 async def get_client_onboarding_profiles(
     limit: int = 100,
-    skip: int = 0
+    skip: int = 0, user = Depends(get_current_user)
 ):
 
     data = get_client_onboarding_profiles_service(
         limit,
-        skip
+        skip, user
     )
 
     return {
