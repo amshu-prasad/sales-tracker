@@ -244,7 +244,27 @@ def get_opportunity_by_id_service(opportunity_id: str):
             limit=1000
         )
 
+        closed_by_ss_count = 0
+
+        for profile_id in profile_ids:
+
+                profile = find_one(
+                    "profiles",
+                    query={
+                        "profile_id": profile_id
+                    }
+                )
+
+                if (
+                    profile
+                    and profile.get("profile_status") == "Final Selection"
+                ):
+                    closed_by_ss_count += 1
+
+        opportunity["closed_by_ss_count"] = closed_by_ss_count
+
     opportunity["profiles"] = profiles
+    opportunity["no_of_profiles_shared"] = len(profile_ids)
 
     # optional remove profile_ids
     opportunity.pop("_id", None)
