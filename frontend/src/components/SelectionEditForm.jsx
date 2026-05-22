@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { UPDATE_PROFILE } from "../api/endpoints";
-import { SOURCES,PROFILE_STATUSES } from "../constants/StringConstants.js";
+import { UPDATE_PROFILE, GET_FINAL_SELECTION_PROFILES } from "../api/endpoints";
+import { SOURCES, PROFILE_STATUSES } from "../constants/StringConstants.js";
 
 
 const ONBOARDING_TYPE_OPTIONS = ["New", "Replacement"];
@@ -29,24 +29,85 @@ export default function SelectionEditForm({ initialData, onSave, onCancel }) {
                 ...form,
             };
 
+            // Step 1: Update the profile
             const res = await fetch(
-                `${UPDATE_PROFILE}/${initialData?.profile_id}`, // adjust id if needed
+                `${UPDATE_PROFILE}/${initialData?.profile_id}`,
                 {
                     method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload),
                 }
             );
 
             const data = await res.json();
-            
+
             if (!res.ok) {
                 throw new Error(data?.message || "Failed to update profile");
             }
 
-            onSave(data); // send updated response back
+            // Step 2: Fetch the final selection profiles list
+            const finalRes = await fetch(
+                `${GET_FINAL_SELECTION_PROFILES}?limit=100&skip=0`
+            );
+
+            const finalData = await finalRes.json();
+
+            if (!finalRes.ok) {
+                throw new Error(finalData?.message || "Failed to fetch final selection profile");
+            }
+
+            // Step 3: Drill into data.items and find the matching profile
+            const items = finalData?.data?.items ?? [];
+            const updated = items.find(p => p.profile_id === initialData?.profile_id);
+
+            if (!updated) {
+                throw new Error("Updated profile not found in response");
+            }
+
+            // Step 4: Sync local form state so UI reflects new values immediately
+            setForm(prev => ({
+                ...prev,
+                source: updated.source || "",
+                engg_name: updated.engg_name || "",
+                ss_id: updated.ss_id || "",
+                projected_experience: updated.projected_experience || "",
+                profile_status: updated.profile_status || "",
+                selection_date: updated.selection_date || "",
+                onboarding_engg_name: updated.onboarding_engg_name || "",
+                onboarding_month: updated.onboarding_month || "",
+                client_onboarding_date: updated.client_onboarding_date || "",
+                billing_start_date: updated.billing_start_date || "",
+                emp_id: updated.emp_id || "",
+                client_bu_name: updated.client_bu_name || "",
+                hiring_manager_name: updated.hiring_manager_name || "",
+                hiring_manager_email: updated.hiring_manager_email || "",
+                engg_source: updated.engg_source || "",
+                client_onboarding_location: updated.client_onboarding_location || "",
+                onboarding_type: updated.onboarding_type || "",
+                revenue_type: updated.revenue_type || "",
+                currency: updated.currency || "",
+                rate_at_onboarding: updated.rate_at_onboarding || "",
+                rate_type: updated.rate_type || "",
+                client_spoc: updated.client_spoc || "",
+                offboarding_month: updated.offboarding_month || "",
+                offboarding_date: updated.offboarding_date || "",
+                offboard_emp_id: updated.offboard_emp_id || "",
+                offboard_name: updated.offboard_name || "",
+                department: updated.department || "",
+                account_manager: updated.account_manager || "",
+                client_name: updated.client_name || "",
+                direct_subcon: updated.direct_subcon || "",
+                offboard_revenue_type: updated.offboard_revenue_type || "",
+                vertical_head: updated.vertical_head || "",
+                client_offboarding_location: updated.client_offboarding_location || "",
+                reason: updated.reason || "",
+                revenue_impact: updated.revenue_impact || "",
+                roll_over: updated.roll_over || "",
+                comments: updated.comments || "",
+            }));
+
+            onSave(updated);
+
         } catch (err) {
             console.error(err);
             setError(err.message);
@@ -54,7 +115,6 @@ export default function SelectionEditForm({ initialData, onSave, onCancel }) {
             setLoading(false);
         }
     };
-
     const [form, setForm] = useState({
         // Engineer Details
         source: initialData?.source || "",
