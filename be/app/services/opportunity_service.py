@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 from fastapi import HTTPException
 
 from app.helper.aws_helper import aws_s3_access_class
@@ -91,10 +91,9 @@ def update_opportunity_service(opportunity_id: str, data: dict):
 
     # handle date fields (if present)
     if "reqdate" in update_data and update_data["reqdate"]:
-        update_data["reqdate"] = update_data["reqdate"].isoformat()
+        if isinstance(update_data["reqdate"], (datetime, date)):
+            update_data["reqdate"] = update_data["reqdate"].isoformat()
 
-    if "start_date" in update_data and update_data["start_date"]:
-        update_data["start_date"] = update_data["start_date"].isoformat()
 
     update_data["updated_at"] = datetime.utcnow()
 
