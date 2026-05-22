@@ -2,11 +2,12 @@ import { localStorageUtil } from "../utils/LocalStorageUtil";
 import { logOutUser } from "../utils/NavigationUtil";
 import { AUTH_TOKEN_REFRESH } from "./endpoints";
 import renderErrorModal from "../utils/renderErrorModal";
+const TIMEOUT = 3 * 60 * 1000;
 
 export async function refreshAccessToken(): Promise<string | null> {
   try {
     const refresh_token = localStorageUtil.getItem("refresh_token");
-    
+
     const response = await fetch(AUTH_TOKEN_REFRESH, {
       method: 'POST',
       headers: {
@@ -37,7 +38,6 @@ export async function refreshAccessToken(): Promise<string | null> {
 }
 
 
-const TIMEOUT = 3 * 60 * 1000;
 async function fetchWithAuth(url: string, options: RequestInit = {},) {
   const accessToken = localStorageUtil.getItem("access_token");
 
@@ -70,7 +70,7 @@ async function fetchWithAuth(url: string, options: RequestInit = {},) {
 
       return await fetch(url, { ...options, headers: retryHeaders });
     }
-    if(response.status === 403){
+    if (response.status === 403) {
       renderErrorModal();
     }
 
@@ -81,33 +81,35 @@ async function fetchWithAuth(url: string, options: RequestInit = {},) {
   }
 }
 
+// Helper function to handle errors
+const handleErrors = async (response: Response) => {
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'An error occurred');
+  }
+  return response.json();
+};
+
 export const postFile = async (endpoint: string, formData: FormData) => {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60_000);
-
-    try {
-        const response = await fetch(endpoint, {
-            method: 'POST',
-            body: formData,
-            signal: controller.signal,
-        });
-
-        clearTimeout(timeoutId);
-
-        if (!response.ok) {
-            const error = await response.json().catch(() => ({}));
-            throw new Error(error?.message || `Upload failed with status ${response.status}`);
-        }
-
-        return await response.json();
-
-    } catch (error) {
-        clearTimeout(timeoutId);
-
-        if (error instanceof DOMException && error.name === 'AbortError') {
-            throw new Error('File upload timed out. Please try again.');
-        }
-
-        throw error;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 60_000);
+  try {
+    const response = await fetchWithAuth(endpoint, {
+      method: 'POST',
+      body: formData,
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error?.message || `Upload failed with status ${response.status}`);
     }
+    return await response.json();
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new Error('File upload timed out. Please try again.');
+    }
+    throw error;
+  }
 };
