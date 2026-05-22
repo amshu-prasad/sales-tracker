@@ -56,7 +56,7 @@ async def upload_document(file, user):
 
     return document
 
-def create_opportunity_service(data):
+def create_opportunity_service(data, user):
 
     document = {
         "opportunity_id": str(uuid.uuid4()),
@@ -76,7 +76,8 @@ def create_opportunity_service(data):
         "doable_headcount": data.get("doable_headcount"),
         "file_id": data.get("file_id"),
         "vertical": data.get("vertical"),
-        "created_at": datetime.utcnow()
+        "created_at": datetime.utcnow(),
+        "AM" : user
     }
 
     inserted_id = create_one("opportunities", document)
@@ -115,10 +116,12 @@ def get_opportunities_service(
     reqdate,
     start_date,
     limit,
-    skip
+    skip, user
 ):
 
     query = {}
+
+    query["AM"] = user
 
     # -------------------------
     # FILTERS
@@ -211,12 +214,13 @@ def get_opportunities_service(
         "skip": skip
     }
 
-def get_opportunity_by_id_service(opportunity_id: str):
+def get_opportunity_by_id_service(opportunity_id: str, user):
 
     opportunity = find_one(
         "opportunities",
         query={
-            "opportunity_id": opportunity_id
+            "opportunity_id": opportunity_id,
+            "AM" : user
         },
         projection={
             "_id": 0

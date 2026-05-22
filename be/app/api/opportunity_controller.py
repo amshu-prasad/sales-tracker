@@ -4,8 +4,6 @@ from app.services.opportunity_service import create_opportunity_service, get_opp
 from app.db.opportunity_schema import OpportunitySchema
 from app.api.authenticator import get_current_user
 
-# aws_s3_object = aws_s3_access_class()
-
 opportunity_router = APIRouter()
 
 @opportunity_router.post("/upload-jd")
@@ -19,9 +17,9 @@ async def upload_file(
     }
 
 @opportunity_router.post("/create-opportunity")
-async def create_opportunity(payload: OpportunitySchema):
+async def create_opportunity(payload: OpportunitySchema, user = Depends(get_current_user)):
 
-    response = create_opportunity_service(payload.dict())
+    response = create_opportunity_service(payload.dict(), user)
 
     return {
         "success": True,
@@ -30,7 +28,7 @@ async def create_opportunity(payload: OpportunitySchema):
 
 
 @opportunity_router.put("/update-opportunity/{opportunity_id}")
-async def update_opportunity(opportunity_id: str, payload: dict):
+async def update_opportunity(opportunity_id: str, payload: dict, user = Depends(get_current_user)):
 
     response = update_opportunity_service(opportunity_id, payload)
 
@@ -48,18 +46,19 @@ async def get_opportunities(
     reqdate: Optional[str] = Query(None),
     start_date: Optional[str] = Query(None),
     limit: int = 100,
-    skip: int = 0
+    skip: int = 0,
+    user = Depends(get_current_user)
 ):
 
     return {
         "success": True,
-        "data": get_opportunities_service(search, reqdate, start_date, limit, skip)
+        "data": get_opportunities_service(search, reqdate, start_date, limit, skip, user)
     }
 
 @opportunity_router.get("/opportunities/{opportunity_id}")
-async def get_opportunity_by_id(opportunity_id: str):
+async def get_opportunity_by_id(opportunity_id: str, user = Depends(get_current_user)):
 
-    response = get_opportunity_by_id_service(opportunity_id)
+    response = get_opportunity_by_id_service(opportunity_id, user)
 
     if not response:
         raise HTTPException(
