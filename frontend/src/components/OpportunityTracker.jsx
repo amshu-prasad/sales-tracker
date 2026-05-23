@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from "react";
 import { CLIENTS, BUS, MODES, TEAMS, LOCATIONS, START_DATE_OPTIONS, PRIORITIES, STATUS_COLORS, PRIORITY_COLORS, OPEN_STATUSES, MONTHS } from "../constants/StringConstants.js";
 import { CREATE_OPPORTUNITY, UPLOAD_JD, GET_OPPORTUNITY, UPDATE_OPPORTUNITY } from "../api/endpoints";
-import { postFile } from "../api/clients";
+import { fetchData, postFile } from "../api/clients";
 import { useEffect } from "react";
 import { VERTICALS } from "../constants/StringConstants.js";
 
@@ -824,23 +824,50 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
     const totalPages = Math.ceil(totalItems / pageSize);
 
     // ─── Fetch (re-runs on page change) ──────────────
+    // useEffect(() => {
+    //     const fetchOpportunities = async () => {
+    //         try {
+    //             setLoading(true);
+    //             const skip = (currentPage - 1) * pageSize;
+    //             const params = new URLSearchParams({ limit: pageSize, skip });
+    //             if (filters.search) params.set("search", filters.search);
+    //             const url = `${GET_OPPORTUNITY}?${params.toString()}`;
+    //             const response = await fetchData(url);
+    //             const data = await response.json();
+
+    //             if (!response.ok) {
+    //                 throw new Error(data?.message || "Failed to fetch opportunities");
+    //             }
+
+    //             setOpps(data.data.items);
+    //             setTotalItems(data.data.total ?? data.data.total_count ?? 0);
+    //         } catch (error) {
+    //             console.error("Fetch opportunities error:", error);
+    //         } finally {
+    //             setLoading(false);
+    //         }
+    //     };
+
+    //     fetchOpportunities();
+    // }, [currentPage]);
+
     useEffect(() => {
         const fetchOpportunities = async () => {
             try {
                 setLoading(true);
                 const skip = (currentPage - 1) * pageSize;
-                const params = new URLSearchParams({ limit: pageSize, skip });
-                if (filters.search) params.set("search", filters.search);
-                const url = `${GET_OPPORTUNITY}?${params.toString()}`;
-                const response = await fetch(url);
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data?.message || "Failed to fetch opportunities");
+                const params = new URLSearchParams({
+                    limit: String(pageSize),
+                    skip: String(skip),
+                });
+                if (filters.search) {
+                    params.set("search", filters.search);
                 }
+                const url = `${GET_OPPORTUNITY}?${params.toString()}`;
+                const data = await fetchData(url);
+                setOpps(data?.data?.items || []);
+                setTotalItems(data?.data?.total || 0);
 
-                setOpps(data.data.items);
-                setTotalItems(data.data.total ?? data.data.total_count ?? 0);
             } catch (error) {
                 console.error("Fetch opportunities error:", error);
             } finally {
@@ -897,7 +924,7 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
             const params = new URLSearchParams({ limit: pageSize, skip: 0 });
             if (searchInput) params.set("search", searchInput);
             const url = `${GET_OPPORTUNITY}?${params.toString()}`;
-            const response = await fetch(url);
+            const response = await fetchData(url);
             const data = await response.json();
             if (!response.ok) throw new Error(data?.message || "Failed to fetch");
             setOpps(data.data.items);
@@ -966,7 +993,6 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
                     setSearchInput={setSearchInput}
                     onSearch={handleSearch}
                 />
-                {/* <FiltersBar filters={filters} setFilters={setFilters} opps={opps} /> */}
                 <button className="ot-new-btn" onClick={() => { setEditingOpp(null); setShowForm(true); }}>
                     + New Opportunity
                 </button>

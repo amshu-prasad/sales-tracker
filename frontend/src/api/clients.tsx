@@ -2,7 +2,6 @@ import { localStorageUtil } from "../utils/LocalStorageUtil";
 import { logOutUser } from "../utils/NavigationUtil";
 import { AUTH_TOKEN_REFRESH } from "./endpoints";
 import renderErrorModal from "../utils/renderErrorModal";
-const TIMEOUT = 3 * 60 * 1000;
 
 export async function refreshAccessToken(): Promise<string | null> {
   try {
@@ -110,6 +109,19 @@ export const postFile = async (endpoint: string, formData: FormData) => {
     if (error instanceof DOMException && error.name === 'AbortError') {
       throw new Error('File upload timed out. Please try again.');
     }
+    throw error;
+  }
+};
+export const fetchData = async (endpoint: string) => {
+  try {
+    const response = await fetchWithAuth(endpoint);
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data?.message || "Request failed");
+    }
+    return data;
+  } catch (error) {
+    console.error("GET request error:", error);
     throw error;
   }
 };

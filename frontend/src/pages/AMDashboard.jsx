@@ -9,6 +9,7 @@ import { CSVLink } from "react-csv";
 import { VERTICALS } from "../constants/StringConstants.js";
 import { GET_OPPORTUNITY, GET_OPPORTUNITY_BY_ID, GET_FINAL_SELECTION_PROFILES, GET_ON_BOARD_OFF_BOARD_PROFILES } from "../api/endpoints";
 import { OppForm, emptyOpportunity } from "../components/OpportunityTracker";
+import { fetchData } from "../api/clients";
 
 function fmt(d) {
   if (!d) return "—";
@@ -100,7 +101,7 @@ export default function AMDashboard({ user, onToast }) {
 
       const url = `${GET_OPPORTUNITY}?limit=100&skip=0`;
 
-      const response = await fetch(url);
+      const response = await fetchData(url);
       const data = await response.json();
 
       if (!response.ok) {
@@ -125,7 +126,7 @@ export default function AMDashboard({ user, onToast }) {
 
       const url = `${GET_OPPORTUNITY_BY_ID}/${id}`;
 
-      const response = await fetch(url);
+      const response = await fetchData(url);
       const data = await response.json();
 
       if (!response.ok) {
@@ -185,7 +186,7 @@ export default function AMDashboard({ user, onToast }) {
     if (!selectedOpportunity?.opportunity_id) return;
     try {
       const url = `${GET_OPPORTUNITY_BY_ID}/${selectedOpportunity.opportunity_id}`;
-      const response = await fetch(url);
+      const response = await fetchData(url);
       const data = await response.json();
       if (!response.ok) throw new Error(data?.message || "Failed to refresh profiles");
       setProfiles(data.data?.profiles || []);
