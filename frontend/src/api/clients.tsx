@@ -3,6 +3,7 @@ import { logOutUser } from "../utils/NavigationUtil";
 import { AUTH_TOKEN_REFRESH } from "./endpoints";
 import renderErrorModal from "../utils/renderErrorModal";
 
+const TIMEOUT = 3 * 60 * 1000;
 export async function refreshAccessToken(): Promise<string | null> {
   try {
     const refresh_token = localStorageUtil.getItem("refresh_token");
@@ -112,6 +113,8 @@ export const postFile = async (endpoint: string, formData: FormData) => {
     throw error;
   }
 };
+
+// GET request
 export const fetchData = async (endpoint: string) => {
   try {
     const response = await fetchWithAuth(endpoint);
@@ -122,6 +125,26 @@ export const fetchData = async (endpoint: string) => {
     return data;
   } catch (error) {
     console.error("GET request error:", error);
+    throw error;
+  }
+};
+
+// POST request
+export const postData = async (endpoint: string, data: any = {}) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), TIMEOUT);
+  try {
+    const response = await fetchWithAuth(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    return handleErrors(response);
+  } catch (error) {
+    clearTimeout(timeoutId);
+    console.error('POST request error:', error);
     throw error;
   }
 };
