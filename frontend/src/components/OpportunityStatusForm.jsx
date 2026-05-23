@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { VERTICALS, SOURCES, PROFILE_STATUSES, OPEN_STATUSES, BUS } from "../constants/StringConstants.js";
 import { CREATE_PROFILE, UPDATE_PROFILE } from "../api/endpoints";
-import { postData } from "../api/clients";
+import { postData, putData } from "../api/clients";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 function Field({ label, required, children, hint }) {
@@ -111,57 +111,7 @@ export default function OpportunityStatusForm({ onSave, onCancel, selectedOpport
     };
     const addEng = () => set("engineers", [...form.engineers, blank()]);
     const removeEng = (idx) => set("engineers", form.engineers.filter((_, i) => i !== idx));
-
-    // const handleSubmit = async () => {
-    //     setLoading(true);
-    //     try {
-    //         const engineer = form.engineers?.[0] || {};
-
-    //         const raw = {
-    //             opportunity_id: selectedOpportunity?.opportunity_id,
-    //             source: form.source,
-    //             engg_name: engineer.name,
-    //             ss_id: engineer.ssId || null,
-    //             projected_experience: engineer.projectedExp,
-    //             profile_status: form.profileStatuses,
-    //             selection_date: form.selectionDate || null,
-    //             open_status: form.open_status?.[0] || null,
-    //             BU_name: form.buName || null,
-    //             hiring_manager_name: form.hmName || null,
-    //             hiring_manager_email: form.hmEmail || null,
-    //             hiring_location: form.hmLocation || null,
-    //         };
-
-    //         const payload = Object.fromEntries(
-    //             Object.entries(raw).filter(([_, v]) => v !== "" && v !== undefined)
-    //         );
-
-    //         const isEdit = mode === "edit" && initialData?.profile_id;
-    //         const url = isEdit ? `${UPDATE_PROFILE}/${initialData.profile_id}` : CREATE_PROFILE;
-    //         const method = isEdit ? "PUT" : "POST";
-
-    //         const response = await fetch(url, {
-    //             method,
-    //             headers: { "Content-Type": "application/json" },
-    //             body: JSON.stringify(payload),
-    //         });
-
-    //         const data = await response.json();
-    //         if (!response.ok) throw new Error(data?.message || "Failed to save profile");
-
-    //         const result = isEdit
-    //             ? { ...initialData, ...payload, ...(data.data || {}), profile_id: initialData.profile_id }
-    //             : data.data || data;
-
-    //         onSave?.(result);
-    //     } catch (error) {
-    //         console.error("Save profile error:", error);
-    //         alert(error.message);
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // };
-
+    
     const handleSubmit = async () => {
         setLoading(true);
         try {
@@ -191,13 +141,7 @@ export default function OpportunityStatusForm({ onSave, onCancel, selectedOpport
             let result;
 
             if (isEdit) {
-                const response = await fetch(`${UPDATE_PROFILE}/${initialData.profile_id}`, {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload),
-                });
-                const data = await response.json();
-                if (!response.ok) throw new Error(data?.message || "Failed to update profile");
+                const data = await putData(`${UPDATE_PROFILE}/${initialData.profile_id}`, payload);
                 result = { ...initialData, ...payload, ...(data.data || {}), profile_id: initialData.profile_id };
             } else {
                 const data = await postData(CREATE_PROFILE, payload);

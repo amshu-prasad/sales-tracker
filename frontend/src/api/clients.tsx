@@ -148,3 +148,18 @@ export const postData = async (endpoint: string, data: any = {}) => {
     throw error;
   }
 };
+
+// PUT request
+export const putData = async (endpoint: string, data: any) => {
+  try {
+    const response = await fetchWithAuth(endpoint, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return handleErrors(response);
+  } catch (error) {
+    console.error('PUT request error:', error);
+    throw error;
+  }
+};

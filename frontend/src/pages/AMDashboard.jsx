@@ -46,13 +46,12 @@ export default function AMDashboard({ user, onToast }) {
   const [editingSelectionProfile, setEditingSelectionProfile] = useState(null);
   const [onboardProfiles, setOnboardProfiles] = useState([]);
   const [editingOnboardProfile, setEditingOnboardProfile] = useState(null);
+
   const fetchOnboardOffboardProfiles = async () => {
     try {
       setLoading(true);
       const url = `${GET_ON_BOARD_OFF_BOARD_PROFILES}?limit=100&skip=0`;
-      const response = await fetch(url);
-      const data = await response.json();
-      if (!response.ok) throw new Error(data?.message || "Failed to fetch onboard/offboard profiles");
+      const data = await fetchData(url);
       setOnboardProfiles(data.data.items || []);
     } catch (error) {
       console.error("Fetch onboard/offboard profiles error:", error);
@@ -60,7 +59,7 @@ export default function AMDashboard({ user, onToast }) {
       setLoading(false);
     }
   };
-
+  
   useEffect(() => {
     if (activeForm === "on-off-boarding") {
       fetchOnboardOffboardProfiles();
@@ -546,7 +545,7 @@ export default function AMDashboard({ user, onToast }) {
                               <th>Engineer Name</th>
                               <th>SS ID</th>
                               <th>Client</th>
-                              <th>Client BU</th>
+                              <th>Client/BU</th>
                               <th>Source</th>
                               <th>Status</th>
                               <th>Selection Date</th>

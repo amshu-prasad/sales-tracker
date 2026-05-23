@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { UPDATE_PROFILE, GET_FINAL_SELECTION_PROFILES } from "../api/endpoints";
 import { SOURCES, PROFILE_STATUSES } from "../constants/StringConstants.js";
-import { fetchData } from "../api/clients";
+import { fetchData, putData } from "../api/clients";
 
 
 const ONBOARDING_TYPE_OPTIONS = ["New", "Replacement"];
@@ -31,32 +31,13 @@ export default function SelectionEditForm({ initialData, onSave, onCancel }) {
             };
 
             // Step 1: Update the profile
-            const res = await fetch(
-                `${UPDATE_PROFILE}/${initialData?.profile_id}`,
-                {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload),
-                }
-            );
-
-            const data = await res.json();
-
-            if (!res.ok) {
-                throw new Error(data?.message || "Failed to update profile");
-            }
+            await putData(`${UPDATE_PROFILE}/${initialData?.profile_id}`, payload);
 
             // Step 2: Fetch the final selection profiles list
-            const finalRes = await fetchData(`${GET_FINAL_SELECTION_PROFILES}?limit=100&skip=0`);
+            const finalData = await fetchData(`${GET_FINAL_SELECTION_PROFILES}?limit=100&skip=0`);
             const items = finalData?.data?.items ?? [];
 
-            // const finalData = await finalRes.json();
-
-            // if (!finalRes.ok) {
-            //     throw new Error(finalData?.message || "Failed to fetch final selection profile");
-            // }
-
-            // Step 3: Drill into data.items and find the matching profile
+            // Step 3: Find the matching profile
             const updated = items.find(p => p.profile_id === initialData?.profile_id);
 
             if (!updated) {
