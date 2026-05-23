@@ -2,7 +2,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from app.db.profile_schema import ProfileSchema
 from app.services.profile_service import create_profile_service, get_client_onboarding_profiles_service, get_final_selected_profiles_service, get_profile_by_id_service, get_profiles_service, update_profile_service
-from be.app.api.authenticator import get_current_user
+from app.api.authenticator import get_current_user
 
 profile_router = APIRouter()
 

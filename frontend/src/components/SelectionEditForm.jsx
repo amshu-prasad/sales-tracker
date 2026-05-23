@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { UPDATE_PROFILE, GET_FINAL_SELECTION_PROFILES } from "../api/endpoints";
 import { SOURCES, PROFILE_STATUSES } from "../constants/StringConstants.js";
+import { fetchData } from "../api/clients";
 
 
 const ONBOARDING_TYPE_OPTIONS = ["New", "Replacement"];
@@ -46,18 +47,16 @@ export default function SelectionEditForm({ initialData, onSave, onCancel }) {
             }
 
             // Step 2: Fetch the final selection profiles list
-            const finalRes = await fetch(
-                `${GET_FINAL_SELECTION_PROFILES}?limit=100&skip=0`
-            );
+            const finalRes = await fetchData(`${GET_FINAL_SELECTION_PROFILES}?limit=100&skip=0`);
+            const items = finalData?.data?.items ?? [];
 
-            const finalData = await finalRes.json();
+            // const finalData = await finalRes.json();
 
-            if (!finalRes.ok) {
-                throw new Error(finalData?.message || "Failed to fetch final selection profile");
-            }
+            // if (!finalRes.ok) {
+            //     throw new Error(finalData?.message || "Failed to fetch final selection profile");
+            // }
 
             // Step 3: Drill into data.items and find the matching profile
-            const items = finalData?.data?.items ?? [];
             const updated = items.find(p => p.profile_id === initialData?.profile_id);
 
             if (!updated) {
@@ -105,9 +104,7 @@ export default function SelectionEditForm({ initialData, onSave, onCancel }) {
                 roll_over: updated.roll_over || "",
                 comments: updated.comments || "",
             }));
-
             onSave(updated);
-
         } catch (err) {
             console.error(err);
             setError(err.message);

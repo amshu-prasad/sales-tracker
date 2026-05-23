@@ -68,13 +68,26 @@ export default function AMDashboard({ user, onToast }) {
   }, [activeForm]);
 
 
+  // const fetchFinalSelectionProfiles = async () => {
+  //   try {
+  //     setLoading(true);
+  //     const url = `${GET_FINAL_SELECTION_PROFILES}?limit=100&skip=0`;
+  //     const response = await fetchData(url);
+  //     const data = await response.json();
+  //     if (!response.ok) throw new Error(data?.message || "Failed to fetch selection profiles");
+  //     setSelectionProfiles(data.data.items || []);
+  //   } catch (error) {
+  //     console.error("Fetch selection profiles error:", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const fetchFinalSelectionProfiles = async () => {
     try {
       setLoading(true);
       const url = `${GET_FINAL_SELECTION_PROFILES}?limit=100&skip=0`;
-      const response = await fetch(url);
-      const data = await response.json();
-      if (!response.ok) throw new Error(data?.message || "Failed to fetch selection profiles");
+      const data = await fetchData(url);
       setSelectionProfiles(data.data.items || []);
     } catch (error) {
       console.error("Fetch selection profiles error:", error);
@@ -90,26 +103,34 @@ export default function AMDashboard({ user, onToast }) {
     }
   }, [activeForm]);
 
-  // fetch meta once
-  useEffect(() => {
-    api.meta().then(m => setMeta(m)).catch(() => { });
-  }, []);
+  // const fetchOpportunities = async () => {
+  //   try {
+  //     setLoading(true);
+
+  //     const url = `${GET_OPPORTUNITY}?limit=100&skip=0`;
+
+  //     const response = await fetchData(url);
+  //     const data = await response.json();
+
+  //     if (!response.ok) {
+  //       throw new Error(
+  //         data?.message || "Failed to fetch opportunities"
+  //       );
+  //     }
+
+  //     setOpps(data.data.items || []);
+  //   } catch (error) {
+  //     console.error("Fetch opportunities error:", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const fetchOpportunities = async () => {
     try {
       setLoading(true);
-
       const url = `${GET_OPPORTUNITY}?limit=100&skip=0`;
-
-      const response = await fetchData(url);
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data?.message || "Failed to fetch opportunities"
-        );
-      }
-
+      const data = await fetchData(url);  // fetchData already returns parsed JSON
       setOpps(data.data.items || []);
     } catch (error) {
       console.error("Fetch opportunities error:", error);
@@ -119,33 +140,48 @@ export default function AMDashboard({ user, onToast }) {
   };
 
 
+  // const fetchOpportunityById = async (id) => {
+  //   try {
+  //     setLoading(true);
+
+  //     const url = `${GET_OPPORTUNITY_BY_ID}/${id}`;
+
+  //     const response = await fetchData(url);
+  //     const data = await response.json();
+
+  //     if (!response.ok) {
+  //       throw new Error(
+  //         data?.message || "Failed to fetch opportunity details"
+  //       );
+  //     }
+
+  //     setSelectedOpportunity(data.data || null);
+  //     setProfiles(data.data?.profiles || []);
+  //     // open details page
+  //     setShowDetailsPage(true);
+
+  //   } catch (error) {
+  //     console.error("Fetch opportunity detail error:", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const fetchOpportunityById = async (id) => {
     try {
       setLoading(true);
-
       const url = `${GET_OPPORTUNITY_BY_ID}/${id}`;
-
-      const response = await fetchData(url);
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data?.message || "Failed to fetch opportunity details"
-        );
-      }
-
+      const data = await fetchData(url);
       setSelectedOpportunity(data.data || null);
       setProfiles(data.data?.profiles || []);
-      // open details page
       setShowDetailsPage(true);
-
     } catch (error) {
       console.error("Fetch opportunity detail error:", error);
     } finally {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     if (activeForm === "opportunity-status") {
       fetchOpportunities();
@@ -182,13 +218,24 @@ export default function AMDashboard({ user, onToast }) {
     await refreshOpportunityProfiles();
   };
 
+  // const refreshOpportunityProfiles = async () => {
+  //   if (!selectedOpportunity?.opportunity_id) return;
+  //   try {
+  //     const url = `${GET_OPPORTUNITY_BY_ID}/${selectedOpportunity.opportunity_id}`;
+  //     const response = await fetchData(url);
+  //     const data = await response.json();
+  //     if (!response.ok) throw new Error(data?.message || "Failed to refresh profiles");
+  //     setProfiles(data.data?.profiles || []);
+  //   } catch (error) {
+  //     console.error("Refresh profiles error:", error);
+  //   }
+  // };
+
   const refreshOpportunityProfiles = async () => {
     if (!selectedOpportunity?.opportunity_id) return;
     try {
       const url = `${GET_OPPORTUNITY_BY_ID}/${selectedOpportunity.opportunity_id}`;
-      const response = await fetchData(url);
-      const data = await response.json();
-      if (!response.ok) throw new Error(data?.message || "Failed to refresh profiles");
+      const data = await fetchData(url);  // already parsed
       setProfiles(data.data?.profiles || []);
     } catch (error) {
       console.error("Refresh profiles error:", error);

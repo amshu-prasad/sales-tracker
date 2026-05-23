@@ -370,15 +370,22 @@ export function OppForm({ initial, onSave, onCancel }) {
             }
 
             // ─── FETCH FRESH OPPORTUNITY DATA ─────────────
-            if (opportunityId) {
-                const freshResponse = await fetch(`${GET_OPPORTUNITY}/${opportunityId}`);
-                const freshData = await freshResponse.json();
+            // if (opportunityId) {
+            //     const freshResponse = await fetch(`${GET_OPPORTUNITY}/${opportunityId}`);
+            //     const freshData = await freshResponse.json();
 
-                if (freshResponse.ok) {
-                    const freshOpp = freshData.data ?? freshData;
-                    onSave?.(freshOpp);
-                    return;
-                }
+            //     if (freshResponse.ok) {
+            //         const freshOpp = freshData.data ?? freshData;
+            //         onSave?.(freshOpp);
+            //         return;
+            //     }
+            // }
+
+            if (opportunityId) {
+                const freshData = await fetchData(`${GET_OPPORTUNITY}/${opportunityId}`);
+                const freshOpp = freshData.data ?? freshData;
+                onSave?.(freshOpp);
+                return;
             }
 
             // Fallback: pass local form state if GET fails
@@ -917,6 +924,26 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
             setCurrentPage(p => p - 1);
         }
     };
+    // const handleSearch = async () => {
+    //     try {
+    //         setLoading(true);
+    //         setCurrentPage(1);
+    //         const params = new URLSearchParams({ limit: pageSize, skip: 0 });
+    //         if (searchInput) params.set("search", searchInput);
+    //         const url = `${GET_OPPORTUNITY}?${params.toString()}`;
+    //         const response = await fetchData(url);
+    //         const data = await response.json();
+    //         if (!response.ok) throw new Error(data?.message || "Failed to fetch");
+    //         setOpps(data.data.items);
+    //         setTotalItems(data.data.total ?? data.data.total_count ?? 0);
+    //         setFilters(prev => ({ ...prev, search: searchInput }));
+    //     } catch (error) {
+    //         console.error("Search error:", error);
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
+
     const handleSearch = async () => {
         try {
             setLoading(true);
@@ -924,9 +951,7 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
             const params = new URLSearchParams({ limit: pageSize, skip: 0 });
             if (searchInput) params.set("search", searchInput);
             const url = `${GET_OPPORTUNITY}?${params.toString()}`;
-            const response = await fetchData(url);
-            const data = await response.json();
-            if (!response.ok) throw new Error(data?.message || "Failed to fetch");
+            const data = await fetchData(url);
             setOpps(data.data.items);
             setTotalItems(data.data.total ?? data.data.total_count ?? 0);
             setFilters(prev => ({ ...prev, search: searchInput }));
