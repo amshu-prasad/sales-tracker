@@ -301,33 +301,32 @@ export default function AMDashboard({ user, onToast }) {
                             Proposals
                             <span className="profile-count-badge">{data.rows.length}</span>
                           </p>
-                          <div className="table-wrap sales-review-table-wrap" style={{ width: "fit-content" }}>
-                            <table className="opp-table" style={{ tableLayout: "auto", width: "auto", minWidth: "unset" }}>
-                              <thead>
-                                <tr>
-                                  <th style={{ padding: "20px 26px", fontSize: "16px" }}>Client</th>
-                                  <th style={{ padding: "20px 26px", fontSize: "16px" }}>Proposal</th>
-                                  <th style={{ padding: "20px 26px", fontSize: "16px" }}>BU</th>
-                                  <th style={{ padding: "20px 26px", fontSize: "16px" }}>Submitted Date</th>
-                                  <th style={{ padding: "20px 26px", fontSize: "16px" }}>Status</th>
+                          <div className="table-wrap sales-review-table-wrap" style={{ width: "fit-content", margin: "0 auto" }}>                            <table className="opp-table" style={{ tableLayout: "auto", width: "auto", minWidth: "unset" }}>
+                            <thead>
+                              <tr>
+                                <th style={{ padding: "20px 26px", fontSize: "16px" }}>Client</th>
+                                <th style={{ padding: "20px 26px", fontSize: "16px" }}>Proposal</th>
+                                <th style={{ padding: "20px 26px", fontSize: "16px" }}>BU</th>
+                                <th style={{ padding: "20px 26px", fontSize: "16px" }}>Submitted Date</th>
+                                <th style={{ padding: "20px 26px", fontSize: "16px" }}>Status</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {data.rows.map((row, i) => (
+                                <tr key={i}>
+                                  <td style={{ padding: "20px 26px", fontSize: "13px" }}><strong>{row.client}</strong></td>
+                                  <td style={{ padding: "20px 26px", fontSize: "13px" }}>{row.proposal}</td>
+                                  <td style={{ padding: "20px 26px", fontSize: "13px" }}>{row.bu}</td>
+                                  <td style={{ padding: "20px 26px", fontSize: "13px" }}>{row.submitted}</td>
+                                  <td style={{ padding: "20px 26px", fontSize: "13px" }}>
+                                    <span className={`status-pill ${statusClass(row.status)}`}>
+                                      {row.status}
+                                    </span>
+                                  </td>
                                 </tr>
-                              </thead>
-                              <tbody>
-                                {data.rows.map((row, i) => (
-                                  <tr key={i}>
-                                    <td style={{ padding: "20px 26px", fontSize: "13px" }}><strong>{row.client}</strong></td>
-                                    <td style={{ padding: "20px 26px", fontSize: "13px" }}>{row.proposal}</td>
-                                    <td style={{ padding: "20px 26px", fontSize: "13px" }}>{row.bu}</td>
-                                    <td style={{ padding: "20px 26px", fontSize: "13px" }}>{row.submitted}</td>
-                                    <td style={{ padding: "20px 26px", fontSize: "13px" }}>
-                                      <span className={`status-pill ${statusClass(row.status)}`}>
-                                        {row.status}
-                                      </span>
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
+                              ))}
+                            </tbody>
+                          </table>
                           </div>
                         </>
                       );
