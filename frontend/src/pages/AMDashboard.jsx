@@ -162,6 +162,68 @@ export default function AMDashboard({ user, onToast }) {
     }
   };
 
+
+  const DUMMY_DATA = {
+    vlsi: {
+      proposals: { submitted: 8, underReview: 3, partlyApproved: 2 },
+      status: { won: 5, lost: 3 },
+      rows: [
+        { client: "Qualcomm", proposal: "RTL Design Augmentation", submitted: "12 Jan '25", status: "Won", bu: "VLSI" },
+        { client: "MediaTek", proposal: "Physical Design Support", submitted: "20 Feb '25", status: "Lost", bu: "VLSI" },
+        { client: "Marvell", proposal: "DFT Staffing Q1", submitted: "05 Mar '25", status: "Won", bu: "VLSI" },
+        { client: "Broadcom", proposal: "Analog Mixed Signal Eng", submitted: "18 Mar '25", status: "Under Review", bu: "VLSI" },
+        { client: "NXP", proposal: "Verification Bench", submitted: "02 Apr '25", status: "Partly Approved", bu: "VLSI" },
+      ],
+    },
+    embedded: {
+      proposals: { submitted: 6, underReview: 1, partlyApproved: 3 },
+      status: { won: 4, lost: 2 },
+      rows: [
+        { client: "Bosch", proposal: "Embedded Firmware Team", submitted: "08 Jan '25", status: "Won", bu: "Embedded" },
+        { client: "Continental", proposal: "AUTOSAR Engineers", submitted: "15 Feb '25", status: "Partly Approved", bu: "Embedded" },
+        { client: "Honeywell", proposal: "IoT Embedded Devs", submitted: "22 Feb '25", status: "Won", bu: "Embedded" },
+        { client: "Siemens", proposal: "RTOS Staffing", submitted: "10 Mar '25", status: "Lost", bu: "Embedded" },
+        { client: "ABB", proposal: "Firmware Engineers", submitted: "01 Apr '25", status: "Under Review", bu: "Embedded" },
+      ],
+    },
+    ai: {
+      proposals: { submitted: 5, underReview: 2, partlyApproved: 1 },
+      status: { won: 3, lost: 2 },
+      rows: [
+        { client: "NVIDIA", proposal: "ML Infra Engineers", submitted: "10 Jan '25", status: "Won", bu: "AI" },
+        { client: "Google", proposal: "LLM Research Eng", submitted: "18 Feb '25", status: "Under Review", bu: "AI" },
+        { client: "Microsoft", proposal: "AI Platform Staffing", submitted: "05 Mar '25", status: "Won", bu: "AI" },
+        { client: "Arm", proposal: "Edge AI Engineers", submitted: "20 Mar '25", status: "Lost", bu: "AI" },
+        { client: "AMD", proposal: "AI Compiler Team", submitted: "08 Apr '25", status: "Partly Approved", bu: "AI" },
+      ],
+    },
+    pes: {
+      proposals: { submitted: 7, underReview: 2, partlyApproved: 2 },
+      status: { won: 4, lost: 3 },
+      rows: [
+        { client: "TCS", proposal: "Power Electronics Staffing", submitted: "03 Jan '25", status: "Won", bu: "PES" },
+        { client: "GE", proposal: "Energy Systems Engineers", submitted: "14 Feb '25", status: "Lost", bu: "PES" },
+        { client: "Schneider", proposal: "Power Design Team", submitted: "25 Feb '25", status: "Won", bu: "PES" },
+        { client: "Eaton", proposal: "Motor Drive Engineers", submitted: "12 Mar '25", status: "Under Review", bu: "PES" },
+        { client: "ABB", proposal: "Grid Automation Devs", submitted: "28 Mar '25", status: "Partly Approved", bu: "PES" },
+      ],
+    },
+  };
+
+  function getDummyData(bu) {
+    return DUMMY_DATA[bu] || null;
+  }
+
+  function statusClass(s) {
+    const map = {
+      "Won": "status-selected",
+      "Lost": "status-rejected",
+      "Under Review": "status-under-review",
+      "Partly Approved": "status-partly-approved",
+    };
+    return map[s] || "";
+  }
+
   return (
     <div className="page">
       {userRole !== "Sb_Tracker_Admin" && (
@@ -179,19 +241,6 @@ export default function AMDashboard({ user, onToast }) {
           ))}
         </div>
       )}
-      {/* <div className="tab-bar">
-        {[
-          ["log", "Employee Lifecycle Tracker"]
-        ].map(([id, label]) => (
-          <button
-            key={id}
-            className={`tab ${tab === id ? "active" : ""}`}
-            onClick={() => { setTab(id); if (id !== "log" && id !== "opps") load(); }}
-          >
-            {label}
-          </button>
-        ))}
-      </div> */}
 
       {/* ── EMPLOYEE LIFECYCLE TRACKER ── */}
       {tab === "log" && (
@@ -206,22 +255,88 @@ export default function AMDashboard({ user, onToast }) {
                         <h2 className="ops-page-title">Sales Reviews</h2>
                       </div>
                     </div>
-                    <div className="sales-reviews-field">
-                      <label>BU</label>
-                      <select
-                        value={selectedBU}
-                        onChange={(e) => setSelectedBU(e.target.value)}
-                      >
-                        <option value="" disabled>Select BU</option>
-                        <option value="silicon">Silicon</option>
-                        <option value="ai">AI</option>
-                        <option value="rtl">RTL</option>
-                        <option value="verification">Verification</option>
-                      </select>
-                    </div>
+
+                    <select
+                      value={selectedBU}
+                      onChange={(e) => setSelectedBU(e.target.value)}
+                    >
+                      <option value="">Select BU</option>
+                      <option value="vlsi">VLSI</option>
+                      <option value="embedded">Embedded</option>
+                      <option value="ai">AI</option>
+                      <option value="pes">PES</option>
+                    </select>
+
+                    {selectedBU && (() => {
+                      const data = getDummyData(selectedBU);
+                      if (!data) return null;
+                      return (
+                        <>
+                          {/* ── Metric Cards ── */}
+                          <div className="metric-grid" style={{ marginTop: 14 }}>
+                            <div className="metric-card">
+                              <p className="metric-label">Submitted</p>
+                              <p className="metric-value" style={{ color: "#1d4ed8" }}>{data.proposals.submitted}</p>
+                            </div>
+                            <div className="metric-card">
+                              <p className="metric-label">Under Review</p>
+                              <p className="metric-value" style={{ color: "#d97706" }}>{data.proposals.underReview}</p>
+                            </div>
+                            <div className="metric-card">
+                              <p className="metric-label">Partly Approved</p>
+                              <p className="metric-value" style={{ color: "#7c3aed" }}>{data.proposals.partlyApproved}</p>
+                            </div>
+                            <div className="metric-card">
+                              <p className="metric-label">Won</p>
+                              <p className="metric-value" style={{ color: "#16a34a" }}>{data.status.won}</p>
+                            </div>
+                            <div className="metric-card">
+                              <p className="metric-label">Lost</p>
+                              <p className="metric-value" style={{ color: "#dc2626" }}>{data.status.lost}</p>
+                            </div>
+                          </div>
+
+                          {/* ── Proposals Table ── */}
+                          <p className="section-title" style={{ marginTop: 28, marginBottom: 12 }}>
+                            Proposals
+                            <span className="profile-count-badge">{data.rows.length}</span>
+                          </p>
+                          <div className="table-wrap sales-review-table-wrap" style={{ width: "fit-content" }}>
+                            <table className="opp-table" style={{ tableLayout: "auto", width: "auto", minWidth: "unset" }}>
+                              <thead>
+                                <tr>
+                                  <th style={{ padding: "20px 26px", fontSize: "16px" }}>Client</th>
+                                  <th style={{ padding: "20px 26px", fontSize: "16px" }}>Proposal</th>
+                                  <th style={{ padding: "20px 26px", fontSize: "16px" }}>BU</th>
+                                  <th style={{ padding: "20px 26px", fontSize: "16px" }}>Submitted Date</th>
+                                  <th style={{ padding: "20px 26px", fontSize: "16px" }}>Status</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {data.rows.map((row, i) => (
+                                  <tr key={i}>
+                                    <td style={{ padding: "20px 26px", fontSize: "13px" }}><strong>{row.client}</strong></td>
+                                    <td style={{ padding: "20px 26px", fontSize: "13px" }}>{row.proposal}</td>
+                                    <td style={{ padding: "20px 26px", fontSize: "13px" }}>{row.bu}</td>
+                                    <td style={{ padding: "20px 26px", fontSize: "13px" }}>{row.submitted}</td>
+                                    <td style={{ padding: "20px 26px", fontSize: "13px" }}>
+                                      <span className={`status-pill ${statusClass(row.status)}`}>
+                                        {row.status}
+                                      </span>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </>
+                      );
+                    })()}
+
                   </div>
                 </div>
               </div>
+
             ) : (
               <div className="log-cards">
                 {[
