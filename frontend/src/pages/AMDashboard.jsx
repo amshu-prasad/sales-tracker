@@ -6,7 +6,7 @@ import OpportunityTracker from "../components/OpportunityTracker";
 import OpportunityStatusForm from "../components/OpportunityStatusForm";
 import SelectionEditForm from "../components/SelectionEditForm.jsx";
 import { CSVLink } from "react-csv";
-import { VERTICALS } from "../constants/StringConstants.js";
+import { VERTICALS, HEADERS } from "../constants/StringConstants.js";
 import { GET_OPPORTUNITY, GET_OPPORTUNITY_BY_ID, GET_FINAL_SELECTION_PROFILES, GET_ON_BOARD_OFF_BOARD_PROFILES } from "../api/endpoints";
 import { OppForm, emptyOpportunity } from "../components/OpportunityTracker";
 import { fetchData } from "../api/clients";
@@ -46,7 +46,8 @@ export default function AMDashboard({ user, onToast }) {
   const [editingSelectionProfile, setEditingSelectionProfile] = useState(null);
   const [onboardProfiles, setOnboardProfiles] = useState([]);
   const [editingOnboardProfile, setEditingOnboardProfile] = useState(null);
-
+  const userRole = localStorage.getItem("role");
+  const [selectedBU, setSelectedBU] = useState("");
   const fetchOnboardOffboardProfiles = async () => {
     try {
       setLoading(true);
@@ -59,28 +60,12 @@ export default function AMDashboard({ user, onToast }) {
       setLoading(false);
     }
   };
-  
+
   useEffect(() => {
     if (activeForm === "on-off-boarding") {
       fetchOnboardOffboardProfiles();
     }
   }, [activeForm]);
-
-
-  // const fetchFinalSelectionProfiles = async () => {
-  //   try {
-  //     setLoading(true);
-  //     const url = `${GET_FINAL_SELECTION_PROFILES}?limit=100&skip=0`;
-  //     const response = await fetchData(url);
-  //     const data = await response.json();
-  //     if (!response.ok) throw new Error(data?.message || "Failed to fetch selection profiles");
-  //     setSelectionProfiles(data.data.items || []);
-  //   } catch (error) {
-  //     console.error("Fetch selection profiles error:", error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
   const fetchFinalSelectionProfiles = async () => {
     try {
@@ -102,34 +87,11 @@ export default function AMDashboard({ user, onToast }) {
     }
   }, [activeForm]);
 
-  // const fetchOpportunities = async () => {
-  //   try {
-  //     setLoading(true);
-
-  //     const url = `${GET_OPPORTUNITY}?limit=100&skip=0`;
-
-  //     const response = await fetchData(url);
-  //     const data = await response.json();
-
-  //     if (!response.ok) {
-  //       throw new Error(
-  //         data?.message || "Failed to fetch opportunities"
-  //       );
-  //     }
-
-  //     setOpps(data.data.items || []);
-  //   } catch (error) {
-  //     console.error("Fetch opportunities error:", error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
   const fetchOpportunities = async () => {
     try {
       setLoading(true);
       const url = `${GET_OPPORTUNITY}?limit=100&skip=0`;
-      const data = await fetchData(url);  // fetchData already returns parsed JSON
+      const data = await fetchData(url);
       setOpps(data.data.items || []);
     } catch (error) {
       console.error("Fetch opportunities error:", error);
@@ -137,34 +99,6 @@ export default function AMDashboard({ user, onToast }) {
       setLoading(false);
     }
   };
-
-
-  // const fetchOpportunityById = async (id) => {
-  //   try {
-  //     setLoading(true);
-
-  //     const url = `${GET_OPPORTUNITY_BY_ID}/${id}`;
-
-  //     const response = await fetchData(url);
-  //     const data = await response.json();
-
-  //     if (!response.ok) {
-  //       throw new Error(
-  //         data?.message || "Failed to fetch opportunity details"
-  //       );
-  //     }
-
-  //     setSelectedOpportunity(data.data || null);
-  //     setProfiles(data.data?.profiles || []);
-  //     // open details page
-  //     setShowDetailsPage(true);
-
-  //   } catch (error) {
-  //     console.error("Fetch opportunity detail error:", error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
   const fetchOpportunityById = async (id) => {
     try {
@@ -217,50 +151,35 @@ export default function AMDashboard({ user, onToast }) {
     await refreshOpportunityProfiles();
   };
 
-  // const refreshOpportunityProfiles = async () => {
-  //   if (!selectedOpportunity?.opportunity_id) return;
-  //   try {
-  //     const url = `${GET_OPPORTUNITY_BY_ID}/${selectedOpportunity.opportunity_id}`;
-  //     const response = await fetchData(url);
-  //     const data = await response.json();
-  //     if (!response.ok) throw new Error(data?.message || "Failed to refresh profiles");
-  //     setProfiles(data.data?.profiles || []);
-  //   } catch (error) {
-  //     console.error("Refresh profiles error:", error);
-  //   }
-  // };
-
   const refreshOpportunityProfiles = async () => {
     if (!selectedOpportunity?.opportunity_id) return;
     try {
       const url = `${GET_OPPORTUNITY_BY_ID}/${selectedOpportunity.opportunity_id}`;
-      const data = await fetchData(url);  // already parsed
+      const data = await fetchData(url);
       setProfiles(data.data?.profiles || []);
     } catch (error) {
       console.error("Refresh profiles error:", error);
     }
   };
 
-  const columns = [
-    { label: "Client", key: "client" },
-    { label: "BU", key: "BU" },
-    { label: "Mode", key: "mode" },
-    { label: "Team", key: "team" },
-    { label: "Skill", key: "skill" },
-    { label: "Month", key: "month" },
-    { label: "Req Date", key: "reqdate" },
-    { label: "Expected Start Date", key: "expected_start_date" },
-    { label: "Location", key: "location" },
-    { label: "Positions", key: "no_of_positions" },
-    { label: "Experience", key: "experience" },
-    { label: "Technical POC", key: "technical_poc" },
-    { label: "Priority", key: "priority" },
-    { label: "Doable HC", key: "doable_headcount" },
-    { label: "Vertical", key: "vertical" },
-  ];
   return (
     <div className="page">
-      <div className="tab-bar">
+      {userRole !== "Sb_Tracker_Admin" && (
+        <div className="tab-bar">
+          {[
+            ["log", "Employee Lifecycle Tracker"]
+          ].map(([id, label]) => (
+            <button
+              key={id}
+              className={`tab ${tab === id ? "active" : ""}`}
+              onClick={() => { setTab(id); if (id !== "log" && id !== "opps") load(); }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+      {/* <div className="tab-bar">
         {[
           ["log", "Employee Lifecycle Tracker"]
         ].map(([id, label]) => (
@@ -272,59 +191,87 @@ export default function AMDashboard({ user, onToast }) {
             {label}
           </button>
         ))}
-      </div>
+      </div> */}
 
       {/* ── EMPLOYEE LIFECYCLE TRACKER ── */}
       {tab === "log" && (
         <>
           {!activeForm && (
-            <div className="log-cards">
-              {[
-                {
-                  type: "opportunity",
-                  color: "#1d4ed8",
-                  bg: "#eff6ff",
-                  border: "#bfdbfe",
-                  title: "Opportunity",
-                  sub: "New business opportunity identified",
-                },
-                {
-                  type: "opportunity-status",
-                  color: "#1d4ed8",
-                  bg: "#eff6ff",
-                  border: "#bfdbfe",
-                  title: "Opportunity Status",
-                  sub: "Update opportunity status",
-                },
-                {
-                  type: "selection",
-                  color: "#1d4ed8",
-                  bg: "#eff6ff",
-                  border: "#bfdbfe",
-                  title: "Selection",
-                  sub: "Engineer selected by client",
-                },
-                {
-                  type: "on-off-boarding",
-                  color: "#1d4ed8",
-                  bg: "#eff6ff",
-                  border: "#bfdbfe",
-                  title: "On/Off-Boarding",
-                  sub: "Update employee on/off-boarding status",
-                }
-              ].map(({ type, color, bg, border, title, sub }) => (
-                <div
-                  key={type}
-                  className="log-card"
-                  style={{ background: bg, borderColor: border }}
-                  onClick={() => setActiveForm(type)}
-                >
-                  <p className="log-card-title" style={{ color }}>{title}</p>
-                  <p className="log-card-sub">{sub}</p>
+            userRole === "Sb_Tracker_Admin" ? (
+              <div className="ops-container">
+                <div className="ops-page slide-center">
+                  <div className="ops-main-wrap">
+                    <div className="ops-page-head">
+                      <div className="ops-title-row">
+                        <h2 className="ops-page-title">Sales Reviews</h2>
+                      </div>
+                    </div>
+                    <div className="sales-reviews-field">
+                      <label>BU</label>
+                      <select
+                        value={selectedBU}
+                        onChange={(e) => setSelectedBU(e.target.value)}
+                      >
+                        <option value="" disabled>Select BU</option>
+                        <option value="silicon">Silicon</option>
+                        <option value="ai">AI</option>
+                        <option value="rtl">RTL</option>
+                        <option value="verification">Verification</option>
+                      </select>
+                    </div>
+                  </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ) : (
+              <div className="log-cards">
+                {[
+                  {
+                    type: "opportunity",
+                    color: "#1d4ed8",
+                    bg: "#eff6ff",
+                    border: "#bfdbfe",
+                    title: "Opportunity",
+                    sub: "New business opportunity identified",
+                  },
+                  {
+                    type: "opportunity-status",
+                    color: "#1d4ed8",
+                    bg: "#eff6ff",
+                    border: "#bfdbfe",
+                    title: "Opportunity Status",
+                    sub: "Update opportunity status",
+                  },
+                  {
+                    type: "selection",
+                    color: "#1d4ed8",
+                    bg: "#eff6ff",
+                    border: "#bfdbfe",
+                    title: "Selection",
+                    sub: "Engineer selected by client",
+                  },
+                  {
+                    type: "on-off-boarding",
+                    color: "#1d4ed8",
+                    bg: "#eff6ff",
+                    border: "#bfdbfe",
+                    title: "On/Off-Boarding",
+                    sub: "Update employee on/off-boarding status",
+                  },
+                ].map(({ type, color, bg, border, title, sub }) => (
+                  <div
+                    key={type}
+                    className="log-card"
+                    style={{ background: bg, borderColor: border }}
+                    onClick={() => setActiveForm(type)}
+                  >
+                    <p className="log-card-title" style={{ color }}>{title}</p>
+                    <p className="log-card-sub">{sub}</p>
+                  </div>
+                ))}
+              </div>
+            )
           )}
+
           {/* ── Opportunity Status Section ── */}
           {activeForm === "opportunity-status" && (
             <div className="ops-container">
@@ -525,14 +472,12 @@ export default function AMDashboard({ user, onToast }) {
               <div className="ops-container">
                 <div className="ops-page slide-center">
                   <div className="ops-main-wrap">
-
                     <div className="ops-page-head">
                       <div className="ops-title-row">
                         <span className="ops-back-arrow" onClick={() => setActiveForm(null)}>{"<"}</span>
                         <h2 className="ops-page-title">On / Off-Boarding</h2>
                       </div>
                     </div>
-
                     {loading ? (
                       <Spinner />
                     ) : onboardProfiles.length === 0 ? (
@@ -585,12 +530,7 @@ export default function AMDashboard({ user, onToast }) {
                                 <td>{p.opportunity_details?.no_of_positions ?? "—"}</td>
                                 <td>{p.opportunity_details?.technical_poc || "—"}</td>
                                 <td>
-                                  <button
-                                    className="btn-edit"
-                                    onClick={() => setEditingOnboardProfile(p)}
-                                  >
-                                    ✏️
-                                  </button>
+                                  <button className="btn-edit" onClick={() => setEditingOnboardProfile(p)}>✏️</button>
                                 </td>
                               </tr>
                             ))}
@@ -651,12 +591,7 @@ export default function AMDashboard({ user, onToast }) {
                                 <td>{p.opportunity_details?.experience || "—"}</td>
                                 <td>{p.opportunity_details?.priority || "—"}</td>
                                 <td>
-                                  <button
-                                    className="btn-edit"
-                                    onClick={() => setEditingSelectionProfile(p)}
-                                  >
-                                    ✏️
-                                  </button>
+                                  <button className="btn-edit" onClick={() => setEditingSelectionProfile(p)}>✏️</button>
                                 </td>
                               </tr>
                             ))}
@@ -664,6 +599,32 @@ export default function AMDashboard({ user, onToast }) {
                         </table>
                       </div>
                     )}
+                  </div>
+                </div>
+              </div>
+            ) : activeForm === "new-dashboard" && userRole === "Sb_Tracker_Admin" ? (
+              <div className="ops-container">
+                <div className="ops-page slide-center">
+                  <div className="ops-main-wrap">
+                    <div className="ops-page-head">
+                      <div className="ops-title-row">
+                        <span className="ops-back-arrow" onClick={() => setActiveForm(null)}>{"<"}</span>
+                        <h2 className="ops-page-title">Sales Reviews</h2>
+                      </div>
+                    </div>
+                    <div className="sales-reviews-field">
+                      <label>BU</label>
+                      <select
+                        value={selectedBU}
+                        onChange={(e) => setSelectedBU(e.target.value)}
+                      >
+                        <option value="" disabled>Select BU</option>
+                        <option value="silicon">Silicon</option>
+                        <option value="ai">AI</option>
+                        <option value="rtl">RTL</option>
+                        <option value="verification">Verification</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -858,17 +819,6 @@ function MyRecordsSection({ entries: initialEntries, setEntries: setParentEntrie
     Remarks: r.remarks || "",
   }));
 
-  const headers = [
-    { label: "Date", key: "Date" },
-    { label: "Type", key: "Type" },
-    { label: "Client", key: "Client" },
-    { label: "Vertical", key: "Vertical" },
-    { label: "Source", key: "Source" },
-    { label: "Emp Type", key: "Emp Type" },
-    { label: "Candidate", key: "Candidate" },
-    { label: "Remarks", key: "Remarks" },
-  ];
-
   const startEdit = (r) => setEditingEntry(r);
   const cancelEdit = () => setEditingEntry(null);
   const handleEditSave = (updated) => {
@@ -894,7 +844,7 @@ function MyRecordsSection({ entries: initialEntries, setEntries: setParentEntrie
       <div style={{ position: "absolute", top: 0, right: 0, zIndex: 10 }}>
         <CSVLink
           data={csvData}
-          headers={headers}
+          headers={HEADERS}
           filename={`entries_${new Date().toISOString().split("T")[0]}.csv`}
           className="no-underline"
         >

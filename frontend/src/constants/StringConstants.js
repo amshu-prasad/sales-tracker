@@ -134,3 +134,14 @@ export const MONTHS = [
     "November",
     "December"
 ];
+
+export const HEADERS = [
+    { label: "Date", key: "Date" },
+    { label: "Type", key: "Type" },
+    { label: "Client", key: "Client" },
+    { label: "Vertical", key: "Vertical" },
+    { label: "Source", key: "Source" },
+    { label: "Emp Type", key: "Emp Type" },
+    { label: "Candidate", key: "Candidate" },
+    { label: "Remarks", key: "Remarks" },
+];
