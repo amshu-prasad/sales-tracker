@@ -26,6 +26,7 @@ export const emptyOpportunity = () => ({
     technical_poc: "",
     priority: "",
     doable_headcount: 0,
+    expected_closure_date: "",
     file_id: "",
     jdFileUrl: "",
     jdFileName: "",
@@ -307,15 +308,12 @@ export function OppForm({ initial, onSave, onCancel }) {
             jdFileUrl: fileUrl,
         }));
     };
-
     const handleSubmit = async () => {
         try {
             setLoading(true);
 
-            let response;
             let opportunityId;
 
-            // ─── EDIT EXISTING OPPORTUNITY ─────────────────
             if (initial?.opportunity_id) {
                 const changedFields = {};
 
@@ -329,17 +327,24 @@ export function OppForm({ initial, onSave, onCancel }) {
                     }
                 });
 
-                await putData(`${UPDATE_OPPORTUNITY}/${initial.opportunity_id}`, changedFields);
+                // Always send expected_closure_date if it has a value
+                if (form.expected_closure_date) {
+                    changedFields.expected_closure_date = form.expected_closure_date;
+                }
 
+                await putData(`${UPDATE_OPPORTUNITY}/${initial.opportunity_id}`, changedFields);
                 opportunityId = initial.opportunity_id;
+
             } else {
                 const payload = { ...form };
-                if (!payload.hiring_manager_email) {
-                    delete payload.hiring_manager_email;
-                }
+
+                if (!payload.hiring_manager_email) delete payload.hiring_manager_email;
+                if (!payload.expected_closure_date) delete payload.expected_closure_date;
+
                 const createData = await postData(CREATE_OPPORTUNITY, payload);
                 opportunityId = createData.data?.opportunity_id ?? createData.data?.id ?? createData.opportunity_id ?? createData.id;
             }
+
             if (opportunityId) {
                 const freshData = await fetchData(`${GET_OPPORTUNITY}/${opportunityId}`);
                 const freshOpp = freshData.data ?? freshData;
@@ -347,7 +352,6 @@ export function OppForm({ initial, onSave, onCancel }) {
                 return;
             }
 
-            // Fallback: pass local form state if GET fails
             onSave?.(form);
 
         } catch (error) {
@@ -357,6 +361,56 @@ export function OppForm({ initial, onSave, onCancel }) {
             setLoading(false);
         }
     };
+
+    // const handleSubmit = async () => {
+    //     try {
+    //         setLoading(true);
+
+    //         let response;
+    //         let opportunityId;
+
+    //         // ─── EDIT EXISTING OPPORTUNITY ─────────────────
+    //         if (initial?.opportunity_id) {
+    //             const changedFields = {};
+
+    //             Object.keys(form).forEach((key) => {
+    //                 const initialValue = initial[key] ?? "";
+    //                 const currentValue = form[key] ?? "";
+
+    //                 if (initialValue !== currentValue) {
+    //                     if (key === "hiring_manager_email" && !currentValue) return;
+    //                     changedFields[key] = currentValue;
+    //                 }
+    //             });
+
+    //             await putData(`${UPDATE_OPPORTUNITY}/${initial.opportunity_id}`, changedFields);
+
+    //             opportunityId = initial.opportunity_id;
+    //         } else {
+    //             const payload = { ...form };
+    //             if (!payload.hiring_manager_email) {
+    //                 delete payload.hiring_manager_email;
+    //             }
+    //             const createData = await postData(CREATE_OPPORTUNITY, payload);
+    //             opportunityId = createData.data?.opportunity_id ?? createData.data?.id ?? createData.opportunity_id ?? createData.id;
+    //         }
+    //         if (opportunityId) {
+    //             const freshData = await fetchData(`${GET_OPPORTUNITY}/${opportunityId}`);
+    //             const freshOpp = freshData.data ?? freshData;
+    //             onSave?.(freshOpp);
+    //             return;
+    //         }
+
+    //         // Fallback: pass local form state if GET fails
+    //         onSave?.(form);
+
+    //     } catch (error) {
+    //         console.error("Error:", error.message);
+    //         alert(error.message);
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
 
     const Section = ({ title, icon }) => (
         <div className="ot-section-header">
@@ -477,6 +531,9 @@ export function OppForm({ initial, onSave, onCancel }) {
                         </Field>
                         <Field label="Doable Head Count">
                             <Input type="number" value={form.doable_headcount} onChange={set("doable_headcount")} placeholder="e.g. 3" />
+                        </Field>
+                        <Field label="Expected Closure Date (Vertical Heads to Commit)">
+                            <Input type="date" value={form.expected_closure_date} onChange={set("expected_closure_date")} />
                         </Field>
                         <Field label="Vertical" required>
                             <Select
@@ -999,9 +1056,10 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
                                 <th>Positions</th>
                                 <th>Doable HC</th>
                                 <th>Filled by SS</th>
-                                <th>Exp Start Date</th>
+                                <th>Expected Start Date</th>
                                 <th>Priority</th>
                                 <th>No. Of Profiles Shared</th>
+                                <th>Expected Closure Date</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -1030,6 +1088,7 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
                                         />
                                     </td>
                                     <td>{opp.no_of_profiles_shared || "—"}</td>
+                                    <td>{opp.expected_closure_date || "—"}</td>
                                     <td>
                                         <div className="ot-table-actions">
                                             <button

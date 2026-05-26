@@ -95,10 +95,12 @@ export const STATUSES = [
 export const SOURCES = ["Bench", "Partner", "TA", "Employee Referral", "Pass Through"];
 
 export const PROFILE_STATUSES = [
-    "Profile Select",
+    "Profile Shortlist",
     "Profile Reject",
-    "Interview Scheduled",
-    "Interview Happened",
+    "Interview to be Scheduled",
+    "Interview in Progress",
+    "Interview Happend",
+    "Interview Hold",
     "Interview Select",
     "Interview Reject",
     "Final Selection",
@@ -145,3 +147,9 @@ export const HEADERS = [
     { label: "Candidate", key: "Candidate" },
     { label: "Remarks", key: "Remarks" },
 ];
+
+export const REVENUE_TYPE_OPTIONS = ["T&M", "Milestone", "Fixed"];
+export const ONBOARDING_TYPE_OPTIONS = ["New", "Replacement"];
+export const CURRENCY_OPTIONS = ["INR", "USD", "EUR", "GBP"];
+export const RATE_TYPE_OPTIONS = ["Monthly", "Daily", "Hourly"];
+export const ROLL_OVER_OPTIONS = ["Yes", "No"];

@@ -56,14 +56,12 @@ function EngineerRow({ eng, idx, onChange, onRemove }) {
                 <Input
                     value={eng.projectedExp}
                     onChange={v => onChange(idx, "projectedExp", v)}
-                    placeholder="Projected Exp (yrs)"
+                    placeholder="Projected Expereince (yrs)"
                 />
             </div>
         </div>
     );
 }
-
-
 
 function profileToForm(p) {
     return {
@@ -71,6 +69,7 @@ function profileToForm(p) {
         engineers: [{ name: p.engg_name || "", ssId: p.ss_id || "", projectedExp: p.projected_experience || "" }],
         profileStatuses: p.profile_status || "",
         selectionDate: p.selection_date || "",
+        remarks: p.remarks || "",
         open_status: p.open_status ? [p.open_status] : [],
         buName: p.BU_name || "",
         hmName: p.hiring_manager_name || "",
@@ -92,14 +91,11 @@ export default function OpportunityStatusForm({ onSave, onCancel, selectedOpport
                 engineers: [blank()],
                 profileStatuses: "",
                 selectionDate: "",
+                remarks: "",
                 open_status: [],
                 buName: "",
-                // hmName: "",
-                // hmEmail: "",
-                // hmLocation: "",
             }
     );
-
 
     const set = (key, val) => setForm(f => ({ ...f, [key]: val }));
 
@@ -111,7 +107,7 @@ export default function OpportunityStatusForm({ onSave, onCancel, selectedOpport
     };
     const addEng = () => set("engineers", [...form.engineers, blank()]);
     const removeEng = (idx) => set("engineers", form.engineers.filter((_, i) => i !== idx));
-    
+
     const handleSubmit = async () => {
         setLoading(true);
         try {
@@ -125,6 +121,7 @@ export default function OpportunityStatusForm({ onSave, onCancel, selectedOpport
                 projected_experience: engineer.projectedExp,
                 profile_status: form.profileStatuses,
                 selection_date: form.selectionDate || null,
+                remarks: form.remarks || null,
                 open_status: form.open_status?.[0] || null,
                 BU_name: form.buName || null,
                 hiring_manager_name: form.hmName || null,
@@ -171,31 +168,15 @@ export default function OpportunityStatusForm({ onSave, onCancel, selectedOpport
                         </div>
                     )}
                 </div>
-                {/* <div className="ops-header">
-                    <div className="ops-header-icon">📋</div>
-                    <div>
-                        <div className="ops-header-title">Opportunity Status</div>
-                    </div>
-                    <button
-                        className="ot-close-btn"
-                        onClick={onCancel}
-                        style={{ marginLeft: "auto" }}
-                    >
-                        ✕
-                    </button>
-                </div> */}
 
                 {/* ── Section 1: Core Details ── */}
                 <div className="ops-section">
-                    <div className="ops-grid-2">
-
-                    </div>
+                    <div className="ops-grid-2"></div>
                 </div>
 
                 {/* ── Section 2: Engineer Details ── */}
                 <div className="ops-section">
                     <div className="ops-section-title">Engineer Details</div>
-
                     <div className="ops-grid-2">
                         <Field label="Source" required>
                             <Select
@@ -205,7 +186,6 @@ export default function OpportunityStatusForm({ onSave, onCancel, selectedOpport
                                 placeholder="Select source…"
                             />
                         </Field>
-
                         <Field label="Engineer Name">
                             <Input
                                 value={form.engineers?.[0]?.name}
@@ -213,7 +193,6 @@ export default function OpportunityStatusForm({ onSave, onCancel, selectedOpport
                                 placeholder="Engineer name"
                             />
                         </Field>
-
                         <Field label="SS ID">
                             <Input
                                 value={form.engineers?.[0]?.ssId}
@@ -221,12 +200,11 @@ export default function OpportunityStatusForm({ onSave, onCancel, selectedOpport
                                 placeholder="SS ID"
                             />
                         </Field>
-
-                        <Field label="Projected Exp (yrs)">
+                        <Field label="Projected Experience (yrs)">
                             <Input
                                 value={form.engineers?.[0]?.projectedExp}
                                 onChange={v => updateEng(0, "projectedExp", v)}
-                                placeholder="Projected Exp (yrs)"
+                                placeholder="Projected Experience (yrs)"
                             />
                         </Field>
                     </div>
@@ -254,6 +232,19 @@ export default function OpportunityStatusForm({ onSave, onCancel, selectedOpport
                             />
                         </Field>
                     </div>
+
+                    <div style={{ marginTop: 14 }}>
+                        <Field label="Remarks">
+                            <textarea
+                                className="ops-input"
+                                value={form.remarks}
+                                onChange={e => set("remarks", e.target.value)}
+                                placeholder="Enter remarks..."
+                                rows={3}
+                                style={{ resize: "vertical", minHeight: 72 }}
+                            />
+                        </Field>
+                    </div>
                 </div>
 
                 {/* Footer */}
@@ -262,7 +253,6 @@ export default function OpportunityStatusForm({ onSave, onCancel, selectedOpport
                     <button className="btn-primary" onClick={handleSubmit} disabled={loading}>
                         {loading ? "Saving…" : mode === "edit" ? "Update Profile" : "Save Opportunity Status"}
                     </button>
-                    {/* <button className="btn-primary" onClick={handleSubmit}>Save Opportunity Status</button> */}
                 </div>
             </div>
         </>

@@ -1,26 +1,45 @@
 import { useState } from "react";
 import { UPDATE_PROFILE, GET_FINAL_SELECTION_PROFILES } from "../api/endpoints";
-import { SOURCES, PROFILE_STATUSES } from "../constants/StringConstants.js";
+import { SOURCES, PROFILE_STATUSES, REVENUE_TYPE_OPTIONS, ONBOARDING_TYPE_OPTIONS, CURRENCY_OPTIONS, RATE_TYPE_OPTIONS, ROLL_OVER_OPTIONS } from "../constants/StringConstants.js";
 import { fetchData, putData } from "../api/clients";
-
-
-const ONBOARDING_TYPE_OPTIONS = ["New", "Replacement"];
-const REVENUE_TYPE_OPTIONS = ["T&M", "Fixed", "Retainer"];
-const CURRENCY_OPTIONS = ["INR", "USD", "EUR", "GBP"];
-const RATE_TYPE_OPTIONS = ["Monthly", "Daily", "Hourly"];
-const ROLL_OVER_OPTIONS = ["Yes", "No"];
-const REVENUE_IMPACT_OPTIONS = ["Rev Loss", "No Rev Loss", "WIP", "Working on Replacement"];
-
-
 
 export default function SelectionEditForm({ initialData, onSave, onCancel }) {
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [errors, setErrors] = useState({});
 
     const od = initialData?.opportunity_details || {};
 
+    const ONBOARDING_REQUIRED_FIELDS = [
+        { key: "onboarding_month", label: "Onboarding Month" },
+        { key: "client_onboarding_date", label: "Client Onboarding Date" },
+        { key: "billing_start_date", label: "Billing Start Date" },
+        { key: "reporting_manager_name", label: "Reporting Manager Name" },
+        { key: "reporting_manager_email", label: "Reporting Manager Email" },
+        { key: "client_onboarding_location", label: "Client Onboarding Location" },
+        { key: "onboarding_type", label: "Onboarding Type" },
+        { key: "revenue_type", label: "Revenue Type" },
+        { key: "currency", label: "Currency" },
+        { key: "rate_at_onboarding", label: "Rate at Onboarding" },
+        { key: "rate_type", label: "Rate Type" },
+        { key: "client_spoc", label: "Client SPOC Contact Person" },
+    ];
+
+    const validate = () => {
+        const newErrors = {};
+        ONBOARDING_REQUIRED_FIELDS.forEach(({ key, label }) => {
+            if (!form[key] || String(form[key]).trim() === "") {
+                newErrors[key] = `${label} is required`;
+            }
+        });
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
     const handleSubmit = async () => {
+        if (!validate()) return;
+
         try {
             setLoading(true);
             setError(null);
@@ -93,8 +112,8 @@ export default function SelectionEditForm({ initialData, onSave, onCancel }) {
             setLoading(false);
         }
     };
+
     const [form, setForm] = useState({
-        // Engineer Details
         source: initialData?.source || "",
         engg_name: initialData?.engg_name || "",
         ss_id: initialData?.ss_id || "",
@@ -132,9 +151,15 @@ export default function SelectionEditForm({ initialData, onSave, onCancel }) {
         revenue_impact: initialData?.revenue_impact || "",
         roll_over: initialData?.roll_over || "",
         comments: initialData?.comments || "",
+        reporting_manager_name: initialData?.reporting_manager_name || "",
+        reporting_manager_email: initialData?.reporting_manager_email || "",
     });
 
-    const set = (k, v) => setForm(prev => ({ ...prev, [k]: v }));
+    const set = (k, v) => {
+        setForm(prev => ({ ...prev, [k]: v }));
+        // Clear error for field on change
+        if (errors[k]) setErrors(prev => ({ ...prev, [k]: undefined }));
+    };
 
     return (
         <div style={{ padding: "28px 32px", fontFamily: "inherit" }}>
@@ -154,7 +179,7 @@ export default function SelectionEditForm({ initialData, onSave, onCancel }) {
                 <Field label="SS ID">
                     <input className="opp-input" value={form.ss_id} onChange={e => set("ss_id", e.target.value)} />
                 </Field>
-                <Field label="Projected Exp (Yrs)">
+                <Field label="Projected Experience (Yrs)">
                     <input className="opp-input" type="number" value={form.projected_experience} onChange={e => set("projected_experience", e.target.value)} />
                 </Field>
             </div>
@@ -176,58 +201,111 @@ export default function SelectionEditForm({ initialData, onSave, onCancel }) {
             {/* ── ONBOARDING ── */}
             <SectionHeader title="Onboarding" />
             <div className="opp-form-grid">
-                <Field label="Onboarding Month">
-                    <input className="opp-input" type="month" value={form.onboarding_month} onChange={e => set("onboarding_month", e.target.value)} />
+                <Field label="Onboarding Month *" error={errors.onboarding_month}>
+                    <input
+                        className={`opp-input${errors.onboarding_month ? " opp-input-error" : ""}`}
+                        type="month"
+                        value={form.onboarding_month}
+                        onChange={e => set("onboarding_month", e.target.value)}
+                    />
                 </Field>
-                <Field label="Client Onboarding Date">
-                    <input className="opp-input" type="date" value={form.client_onboarding_date} onChange={e => set("client_onboarding_date", e.target.value)} />
+                <Field label="Client Onboarding Date *" error={errors.client_onboarding_date}>
+                    <input
+                        className={`opp-input${errors.client_onboarding_date ? " opp-input-error" : ""}`}
+                        type="date"
+                        value={form.client_onboarding_date}
+                        onChange={e => set("client_onboarding_date", e.target.value)}
+                    />
                 </Field>
-                <Field label="Billing Start Date">
-                    <input className="opp-input" type="date" value={form.billing_start_date} onChange={e => set("billing_start_date", e.target.value)} />
+                <Field label="Billing Start Date *" error={errors.billing_start_date}>
+                    <input
+                        className={`opp-input${errors.billing_start_date ? " opp-input-error" : ""}`}
+                        type="date"
+                        value={form.billing_start_date}
+                        onChange={e => set("billing_start_date", e.target.value)}
+                    />
                 </Field>
-                <Field label="Reporting Manager Name">
-                    <input className="opp-input" value={form.reporting_manager_name} onChange={e => set("reporting_manager_name", e.target.value)} />
+                <Field label="Reporting Manager Name *" error={errors.reporting_manager_name}>
+                    <input
+                        className={`opp-input${errors.reporting_manager_name ? " opp-input-error" : ""}`}
+                        value={form.reporting_manager_name}
+                        onChange={e => set("reporting_manager_name", e.target.value)}
+                    />
                 </Field>
-                <Field label="Reporting Manager Email">
-                    <input className="opp-input" type="email" value={form.reporting_manager_email} onChange={e => set("reporting_manager_email", e.target.value)} />
+                <Field label="Reporting Manager Email *" error={errors.reporting_manager_email}>
+                    <input
+                        className={`opp-input${errors.reporting_manager_email ? " opp-input-error" : ""}`}
+                        type="email"
+                        value={form.reporting_manager_email}
+                        onChange={e => set("reporting_manager_email", e.target.value)}
+                    />
                 </Field>
-                <Field label="Client Onboarding Location">
-                    <input className="opp-input" value={form.client_onboarding_location} onChange={e => set("client_onboarding_location", e.target.value)} />
+                <Field label="Client Onboarding Location *" error={errors.client_onboarding_location}>
+                    <input
+                        className={`opp-input${errors.client_onboarding_location ? " opp-input-error" : ""}`}
+                        value={form.client_onboarding_location}
+                        onChange={e => set("client_onboarding_location", e.target.value)}
+                    />
                 </Field>
-                <Field label="Onboarding Type">
-                    <select className="opp-input" value={form.onboarding_type} onChange={e => set("onboarding_type", e.target.value)}>
+                <Field label="Onboarding Type *" error={errors.onboarding_type}>
+                    <select
+                        className={`opp-input${errors.onboarding_type ? " opp-input-error" : ""}`}
+                        value={form.onboarding_type}
+                        onChange={e => set("onboarding_type", e.target.value)}
+                    >
                         <option value="">Select</option>
                         {ONBOARDING_TYPE_OPTIONS.map(o => <option key={o}>{o}</option>)}
                     </select>
                 </Field>
-                <Field label="Revenue Type">
-                    <select className="opp-input" value={form.revenue_type} onChange={e => set("revenue_type", e.target.value)}>
+                <Field label="Revenue Type *" error={errors.revenue_type}>
+                    <select
+                        className={`opp-input${errors.revenue_type ? " opp-input-error" : ""}`}
+                        value={form.revenue_type}
+                        onChange={e => set("revenue_type", e.target.value)}
+                    >
                         <option value="">Select</option>
                         {REVENUE_TYPE_OPTIONS.map(o => <option key={o}>{o}</option>)}
                     </select>
                 </Field>
-                <Field label="Currency">
-                    <select className="opp-input" value={form.currency} onChange={e => set("currency", e.target.value)}>
+                <Field label="Currency *" error={errors.currency}>
+                    <select
+                        className={`opp-input${errors.currency ? " opp-input-error" : ""}`}
+                        value={form.currency}
+                        onChange={e => set("currency", e.target.value)}
+                    >
                         <option value="">Select</option>
                         {CURRENCY_OPTIONS.map(o => <option key={o}>{o}</option>)}
                     </select>
                 </Field>
-                <Field label="Rate at Onboarding">
-                    <input className="opp-input" type="number" value={form.rate_at_onboarding} onChange={e => set("rate_at_onboarding", e.target.value)} />
+                <Field label="Bill Rate *" error={errors.rate_at_onboarding}>
+                    <input
+                        className={`opp-input${errors.rate_at_onboarding ? " opp-input-error" : ""}`}
+                        type="number"
+                        value={form.rate_at_onboarding}
+                        onChange={e => set("rate_at_onboarding", e.target.value)}
+                    />
                 </Field>
-                <Field label="Rate Type">
-                    <select className="opp-input" value={form.rate_type} onChange={e => set("rate_type", e.target.value)}>
+                <Field label="Rate Type *" error={errors.rate_type}>
+                    <select
+                        className={`opp-input${errors.rate_type ? " opp-input-error" : ""}`}
+                        value={form.rate_type}
+                        onChange={e => set("rate_type", e.target.value)}
+                    >
                         <option value="">Select</option>
                         {RATE_TYPE_OPTIONS.map(o => <option key={o}>{o}</option>)}
                     </select>
                 </Field>
-                <Field label="Client SPOC Contact Person">
-                    <input className="opp-input" value={form.client_spoc} onChange={e => set("client_spoc", e.target.value)} />
+                <Field label="Client SPOC Contact Person *" error={errors.client_spoc}>
+                    <input
+                        className={`opp-input${errors.client_spoc ? " opp-input-error" : ""}`}
+                        value={form.client_spoc}
+                        onChange={e => set("client_spoc", e.target.value)}
+                    />
                 </Field>
             </div>
 
-            {/* ── OFFBOARDING TRACKER ── */}
-            <SectionHeader title="Offboarding Tracker" />
+            {/* ── OFFBOARDING ── */}
+            <SectionHeader title="Offboarding" />
             <div className="opp-form-grid">
                 <Field label="Offboarding Month">
                     <input className="opp-input" type="month" value={form.offboarding_month} onChange={e => set("offboarding_month", e.target.value)} />
@@ -238,10 +316,11 @@ export default function SelectionEditForm({ initialData, onSave, onCancel }) {
                 <Field label="Reason">
                     <input className="opp-input" value={form.reason} onChange={e => set("reason", e.target.value)} />
                 </Field>
-                <Field label="Revenue Impact">
+                <Field label="Replacement Position Received">
                     <select className="opp-input" value={form.revenue_impact} onChange={e => set("revenue_impact", e.target.value)}>
                         <option value="">Select</option>
-                        {REVENUE_IMPACT_OPTIONS.map(o => <option key={o}>{o}</option>)}
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
                     </select>
                 </Field>
                 <Field label="Roll-Over">
@@ -262,6 +341,11 @@ export default function SelectionEditForm({ initialData, onSave, onCancel }) {
             </div>
 
             {/* ── FOOTER ── */}
+            {error && (
+                <div style={{ color: "#dc2626", fontSize: 13, marginTop: 12, textAlign: "right" }}>
+                    {error}
+                </div>
+            )}
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, marginTop: 28 }}>
                 <button className="btn-cancel" onClick={onCancel}>Cancel</button>
                 <button
@@ -295,13 +379,20 @@ function SectionHeader({ title }) {
     );
 }
 
-function Field({ label, children, fullWidth }) {
+function Field({ label, children, fullWidth, error }) {
+    const [base, star] = label.endsWith(" *")
+        ? [label.slice(0, -2), true]
+        : [label, false];
+
     return (
         <div style={{ gridColumn: fullWidth ? "1 / -1" : undefined, display: "flex", flexDirection: "column", gap: 4 }}>
             <label style={{ fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                {label}
+                {base}{star && <span style={{ color: "#dc2626", marginLeft: 2 }}>*</span>}
             </label>
             {children}
+            {error && (
+                <span style={{ fontSize: 11, color: "#dc2626", marginTop: 2 }}>{error}</span>
+            )}
         </div>
     );
 }

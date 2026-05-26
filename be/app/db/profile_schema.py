@@ -10,4 +10,5 @@ class ProfileSchema(BaseModel):
     projected_experience: str
     profile_status: str
     selection_date: Optional[date] = None
+    remarks: Optional[str] = None
     

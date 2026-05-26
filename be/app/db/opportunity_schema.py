@@ -24,3 +24,4 @@ class OpportunitySchema(BaseModel):
     hiring_manager_name: Optional[str] = None
     hiring_manager_email: Optional[EmailStr] = None
     hiring_location: Optional[str] = None
+    expected_closure_date:str

@@ -2565,3 +2565,7 @@ textarea {
   color: #111827;
   background: #fff;
 }
+
+.opp-label-required {
+    color: #dc2626;
+}

@@ -21,6 +21,7 @@ def create_profile_service(data, user):
         "ss_id": data.get("ss_id"),
         "projected_experience": data.get("projected_experience"),
         "profile_status": data.get("profile_status"),
+        "remarks": data.get("remarks"),
         "selection_date": (
             data.get("selection_date").isoformat()
             if data.get("selection_date")

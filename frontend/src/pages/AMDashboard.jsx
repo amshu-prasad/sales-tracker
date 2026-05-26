@@ -416,12 +416,17 @@ export default function AMDashboard({ user, onToast }) {
                       <thead>
                         <tr>
                           <th>Client</th>
+                          <th>Global/Domestic</th>
                           <th>BU</th>
                           <th>Mode</th>
-                          <th>Team</th>
                           <th>Skill</th>
+                          <th>Experience</th>
+                          <th>Month</th>
+                          <th>Request Date</th>
+                          <th>Expected Start Date</th>
                           <th>Location</th>
                           <th>Priority</th>
+                          <th>Technical POC</th>
                         </tr>
                       </thead>
 
@@ -435,12 +440,17 @@ export default function AMDashboard({ user, onToast }) {
                             }
                           >
                             <td>{opp.client}</td>
+                            <td>{opp.team}</td>
                             <td>{opp.BU}</td>
                             <td>{opp.mode}</td>
-                            <td>{opp.team}</td>
                             <td>{opp.skill}</td>
+                            <td>{opp.experience}</td>
+                            <td>{opp.month}</td>
+                            <td>{opp.reqdate}</td>
+                            <td>{opp.expected_start_date}</td>
                             <td>{opp.location}</td>
                             <td>{opp.priority}</td>
+                            <td>{opp.technical_poc}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -516,6 +526,9 @@ export default function AMDashboard({ user, onToast }) {
                             <th>No. Of Profiles Shared</th><td>{selectedOpportunity.no_of_profiles_shared || "—"}</td>
                             <th>Filled by SS</th><td>{selectedOpportunity.closed_by_ss_count || "—"}</td>
                           </tr>
+                          <tr>
+                            <th>Expected Closure Date</th><td>{selectedOpportunity.expected_closure_date || "—"}</td>
+                          </tr>
                         </tbody>
                       </table>
                     </div>
@@ -539,7 +552,7 @@ export default function AMDashboard({ user, onToast }) {
                                 <th>Engineer Name</th>
                                 <th>SS ID</th>
                                 <th>Source</th>
-                                <th>Exp (yrs)</th>
+                                <th>Experience (yrs)</th>
                                 <th>Status</th>
                                 <th>Selection Date</th>
                                 <th>Action</th>
