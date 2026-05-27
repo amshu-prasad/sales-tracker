@@ -153,3 +153,20 @@ export const ONBOARDING_TYPE_OPTIONS = ["New", "Replacement"];
 export const CURRENCY_OPTIONS = ["INR", "USD", "EUR", "GBP"];
 export const RATE_TYPE_OPTIONS = ["Monthly", "Daily", "Hourly"];
 export const ROLL_OVER_OPTIONS = ["Yes", "No"];
+
+
+
+export const ONBOARDING_REQUIRED_FIELDS = [
+    { key: "onboarding_month", label: "Onboarding Month" },
+    { key: "client_onboarding_date", label: "Client Onboarding Date" },
+    { key: "billing_start_date", label: "Billing Start Date" },
+    { key: "reporting_manager_name", label: "Reporting Manager Name" },
+    { key: "reporting_manager_email", label: "Reporting Manager Email" },
+    { key: "client_onboarding_location", label: "Client Onboarding Location" },
+    { key: "onboarding_type", label: "Onboarding Type" },
+    { key: "revenue_type", label: "Revenue Type" },
+    { key: "currency", label: "Currency" },
+    { key: "rate_at_onboarding", label: "Rate at Onboarding" },
+    { key: "rate_type", label: "Rate Type" },
+    { key: "client_spoc", label: "Client SPOC Contact Person" },
+];

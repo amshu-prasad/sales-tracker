@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { UPDATE_PROFILE, GET_FINAL_SELECTION_PROFILES } from "../api/endpoints";
-import { SOURCES, PROFILE_STATUSES, REVENUE_TYPE_OPTIONS, ONBOARDING_TYPE_OPTIONS, CURRENCY_OPTIONS, RATE_TYPE_OPTIONS, ROLL_OVER_OPTIONS } from "../constants/StringConstants.js";
+import { SOURCES, PROFILE_STATUSES, REVENUE_TYPE_OPTIONS, ONBOARDING_TYPE_OPTIONS, CURRENCY_OPTIONS, RATE_TYPE_OPTIONS, ROLL_OVER_OPTIONS,ONBOARDING_REQUIRED_FIELDS } from "../constants/StringConstants.js";
 import { fetchData, putData } from "../api/clients";
 
 export default function SelectionEditForm({ initialData, onSave, onCancel }) {
@@ -18,20 +18,6 @@ export default function SelectionEditForm({ initialData, onSave, onCancel }) {
             : "Please enter a valid email address.";
     };
 
-    const ONBOARDING_REQUIRED_FIELDS = [
-        { key: "onboarding_month", label: "Onboarding Month" },
-        { key: "client_onboarding_date", label: "Client Onboarding Date" },
-        { key: "billing_start_date", label: "Billing Start Date" },
-        { key: "reporting_manager_name", label: "Reporting Manager Name" },
-        { key: "reporting_manager_email", label: "Reporting Manager Email" },
-        { key: "client_onboarding_location", label: "Client Onboarding Location" },
-        { key: "onboarding_type", label: "Onboarding Type" },
-        { key: "revenue_type", label: "Revenue Type" },
-        { key: "currency", label: "Currency" },
-        { key: "rate_at_onboarding", label: "Rate at Onboarding" },
-        { key: "rate_type", label: "Rate Type" },
-        { key: "client_spoc", label: "Client SPOC Contact Person" },
-    ];
 
     const validate = () => {
         const newErrors = {};
