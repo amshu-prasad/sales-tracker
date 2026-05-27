@@ -35,6 +35,7 @@ export const emptyOpportunity = () => ({
     hiring_manager_name: "",
     hiring_manager_email: "",
     hiring_location: "",
+    hiring_manager_phno: "",
     createdAt: new Date().toISOString(),
 });
 
@@ -312,6 +313,23 @@ export function OppForm({ initial, onSave, onCancel }) {
         try {
             setLoading(true);
 
+            // ── Hiring Manager validation ──────────────────
+            if (!form.hiring_manager_name?.trim()) {
+                alert("Hiring Manager Name is required.");
+                return;
+            }
+            if (!form.hiring_manager_email?.trim()) {
+                alert("Hiring Manager Email ID is required.");
+                return;
+            }
+            if (!form.hiring_manager_phno?.trim()) {
+                alert("Hiring Manager Phone Number is required.");
+                return;
+            }
+            if (!form.hiring_location?.trim()) {
+                alert("Hiring Manager Location is required.");
+                return;
+            }
             let opportunityId;
 
             if (initial?.opportunity_id) {
@@ -535,7 +553,7 @@ export function OppForm({ initial, onSave, onCancel }) {
                         <Field label="Expected Closure Date (Vertical Heads to Commit)">
                             <Input type="date" value={form.expected_closure_date} onChange={set("expected_closure_date")} />
                         </Field>
-                        <Field label="Vertical" required>
+                        <Field label="Vertical">
                             <Select
                                 onChange={set("vertical")}
                                 value={form.vertical}
@@ -581,7 +599,7 @@ export function OppForm({ initial, onSave, onCancel }) {
                         <div className="ops-section-title">Hiring Manager Details</div>
                         <div className="hm-card">
                             <div className="ops-grid-2" style={{ gap: 12 }}>
-                                <Field label="HM Name">
+                                <Field label="Hiring Manager Name" required>
                                     <Input
                                         value={form.hiring_manager_name}
                                         onChange={set("hiring_manager_name")}
@@ -589,7 +607,7 @@ export function OppForm({ initial, onSave, onCancel }) {
                                     />
                                 </Field>
 
-                                <Field label="HM Email ID">
+                                <Field label="Hiring Manager Email ID" required>
                                     <Input
                                         type="email"
                                         value={form.hiring_manager_email}
@@ -598,7 +616,16 @@ export function OppForm({ initial, onSave, onCancel }) {
                                     />
                                 </Field>
 
-                                <Field label="HM Location">
+                                <Field label="Hiring Manager Phone Number" required>
+                                    <Input
+                                        type="tel"
+                                        value={form.hiring_manager_phno}
+                                        onChange={set("hiring_manager_phno")}
+                                        placeholder="+1 (555) 000-0000"
+                                    />
+                                </Field>
+
+                                <Field label="Hiring Manager Location" required>
                                     <Input
                                         value={form.hiring_location}
                                         onChange={set("hiring_location")}
