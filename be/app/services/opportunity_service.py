@@ -79,6 +79,7 @@ def create_opportunity_service(data, user):
         "vertical": data.get("vertical"),
         "created_at": datetime.utcnow(),
         "AM" : user,
+        "open_status": data.get("open_status"), 
         "hiring_manager_name": data.get("hiring_manager_name"),
         "hiring_manager_email": data.get("hiring_manager_email"),
         "hiring_location": data.get("hiring_location"),
