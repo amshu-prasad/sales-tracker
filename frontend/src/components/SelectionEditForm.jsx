@@ -11,6 +11,13 @@ export default function SelectionEditForm({ initialData, onSave, onCancel }) {
 
     const od = initialData?.opportunity_details || {};
 
+    const validateEmail = (val) => {
+        if (!val) return "";
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)
+            ? ""
+            : "Please enter a valid email address.";
+    };
+
     const ONBOARDING_REQUIRED_FIELDS = [
         { key: "onboarding_month", label: "Onboarding Month" },
         { key: "client_onboarding_date", label: "Client Onboarding Date" },
@@ -39,7 +46,12 @@ export default function SelectionEditForm({ initialData, onSave, onCancel }) {
 
     const handleSubmit = async () => {
         if (!validate()) return;
-
+        const reportingEmailErr = validateEmail(form.reporting_manager_email);
+        if (reportingEmailErr) {
+            alert("Please enter a proper email ID before submitting.");
+            setErrors(prev => ({ ...prev, reporting_manager_email: reportingEmailErr }));
+            return;
+        }
         try {
             setLoading(true);
             setError(null);
@@ -237,7 +249,19 @@ export default function SelectionEditForm({ initialData, onSave, onCancel }) {
                         className={`opp-input${errors.reporting_manager_email ? " opp-input-error" : ""}`}
                         type="email"
                         value={form.reporting_manager_email}
-                        onChange={e => set("reporting_manager_email", e.target.value)}
+                        onChange={e => {
+                            set("reporting_manager_email", e.target.value);
+                            setErrors(prev => ({
+                                ...prev,
+                                reporting_manager_email: validateEmail(e.target.value)
+                            }));
+                        }}
+                        onBlur={() =>
+                            setErrors(prev => ({
+                                ...prev,
+                                reporting_manager_email: validateEmail(form.reporting_manager_email)
+                            }))
+                        }
                     />
                 </Field>
                 <Field label="Client Onboarding Location *" error={errors.client_onboarding_location}>
