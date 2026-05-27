@@ -21,7 +21,8 @@ class OpportunitySchema(BaseModel):
     file_id: Optional[str] = None
     vertical: str
     open_status: Optional[list] = None
-    hiring_manager_name: Optional[str] = None
-    hiring_manager_email: Optional[EmailStr] = None
-    hiring_location: Optional[str] = None
+    hiring_manager_name: str
+    hiring_manager_email: EmailStr
+    hiring_location: str
+    hiring_manager_phno: str
     expected_closure_date:str
