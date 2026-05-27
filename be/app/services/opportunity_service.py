@@ -78,7 +78,11 @@ def create_opportunity_service(data, user):
         "file_id": data.get("file_id"),
         "vertical": data.get("vertical"),
         "created_at": datetime.utcnow(),
-        "AM" : user
+        "AM" : user,
+        "hiring_manager_name": data.get("hiring_manager_name"),
+        "hiring_manager_email": data.get("hiring_manager_email"),
+        "hiring_location": data.get("hiring_location"),
+        "hiring_manager_phno": data.get("hiring_manager_phno")
     }
 
     inserted_id = create_one("opportunities", document)
