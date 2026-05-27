@@ -20,12 +20,12 @@ export const emptyOpportunity = () => ({
     month: "",
     reqdate: "",
     location: "",
-    no_of_positions: 0,
+    no_of_positions: "",
     experience: "",
     expected_start_date: "",
     technical_poc: "",
     priority: "",
-    doable_headcount: 0,
+    doable_headcount: "",
     expected_closure_date: "",
     file_id: "",
     jdFileUrl: "",
@@ -244,13 +244,14 @@ function Select({ value, onChange, options, placeholder }) {
     );
 }
 
-function Input({ value, onChange, placeholder, type = "text" }) {
+function Input({ value, onChange, onBlur, placeholder, type = "text" }) {
     return (
         <input
             className="ot-input"
             type={type}
             value={value}
             onChange={e => onChange(e.target.value)}
+            onBlur={onBlur}
             placeholder={placeholder || ""}
         />
     );
@@ -312,7 +313,12 @@ export function OppForm({ initial, onSave, onCancel }) {
     const handleSubmit = async () => {
         try {
             setLoading(true);
-
+            const emailErr = validateEmail(form.hiring_manager_email);
+            if (emailErr) {
+                setEmailError(emailErr);
+                alert("Please enter a proper email ID before submitting.");
+                return;
+            }
             // ── Hiring Manager validation ──────────────────
             if (!form.hiring_manager_name?.trim()) {
                 alert("Hiring Manager Name is required.");
@@ -429,6 +435,14 @@ export function OppForm({ initial, onSave, onCancel }) {
     //         setLoading(false);
     //     }
     // };
+    const [emailError, setEmailError] = useState("");
+
+    const validateEmail = (val) => {
+        if (!val) return "";
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)
+            ? ""
+            : "Please enter a valid email address.";
+    };
 
     const Section = ({ title, icon }) => (
         <div className="ot-section-header">
@@ -611,9 +625,18 @@ export function OppForm({ initial, onSave, onCancel }) {
                                     <Input
                                         type="email"
                                         value={form.hiring_manager_email}
-                                        onChange={set("hiring_manager_email")}
+                                        onChange={(val) => {
+                                            set("hiring_manager_email")(val);
+                                            setEmailError(validateEmail(val));
+                                        }}
+                                        onBlur={() => setEmailError(validateEmail(form.hiring_manager_email))}
                                         placeholder="hm@company.com"
                                     />
+                                    {emailError && (
+                                        <span style={{ fontSize: 12, color: "#dc2626", marginTop: 4, display: "block" }}>
+                                            {emailError}
+                                        </span>
+                                    )}
                                 </Field>
 
                                 <Field label="Hiring Manager Phone Number" required>
