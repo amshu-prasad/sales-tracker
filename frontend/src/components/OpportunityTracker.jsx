@@ -312,14 +312,13 @@ export function OppForm({ initial, onSave, onCancel }) {
     };
     const handleSubmit = async () => {
         try {
-            setLoading(true);
+            // ── Validation first, before setLoading ──────────────
             const emailErr = validateEmail(form.hiring_manager_email);
             if (emailErr) {
                 setEmailError(emailErr);
                 alert("Please enter a proper email ID before submitting.");
                 return;
             }
-            // ── Hiring Manager validation ──────────────────
             if (!form.hiring_manager_name?.trim()) {
                 alert("Hiring Manager Name is required.");
                 return;
@@ -336,25 +335,23 @@ export function OppForm({ initial, onSave, onCancel }) {
                 alert("Hiring Manager Location is required.");
                 return;
             }
+
+            setLoading(true);
+
             let opportunityId;
 
             if (initial?.opportunity_id) {
                 const changedFields = {};
 
                 Object.keys(form).forEach((key) => {
-                    const initialValue = initial[key] ?? "";
-                    const currentValue = form[key] ?? "";
+                    const initialValue = initial[key];
+                    const currentValue = form[key];
 
                     if (initialValue !== currentValue) {
                         if (key === "hiring_manager_email" && !currentValue) return;
                         changedFields[key] = currentValue;
                     }
                 });
-
-                // Always send expected_closure_date if it has a value
-                if (form.expected_closure_date) {
-                    changedFields.expected_closure_date = form.expected_closure_date;
-                }
 
                 await putData(`${UPDATE_OPPORTUNITY}/${initial.opportunity_id}`, changedFields);
                 opportunityId = initial.opportunity_id;
@@ -366,18 +363,19 @@ export function OppForm({ initial, onSave, onCancel }) {
                 if (!payload.expected_closure_date) delete payload.expected_closure_date;
 
                 const createData = await postData(CREATE_OPPORTUNITY, payload);
-                opportunityId = createData.data?.opportunity_id ?? createData.data?.id ?? createData.opportunity_id ?? createData.id;
+                opportunityId =
+                    createData.data?.opportunity_id ??
+                    createData.data?.id ??
+                    createData.opportunity_id ??
+                    createData.id;
             }
-
             if (opportunityId) {
                 const freshData = await fetchData(`${GET_OPPORTUNITY}/${opportunityId}`);
                 const freshOpp = freshData.data ?? freshData;
                 onSave?.(freshOpp);
                 return;
             }
-
             onSave?.(form);
-
         } catch (error) {
             console.error("Error:", error.message);
             alert(error.message);
@@ -386,55 +384,6 @@ export function OppForm({ initial, onSave, onCancel }) {
         }
     };
 
-    // const handleSubmit = async () => {
-    //     try {
-    //         setLoading(true);
-
-    //         let response;
-    //         let opportunityId;
-
-    //         // ─── EDIT EXISTING OPPORTUNITY ─────────────────
-    //         if (initial?.opportunity_id) {
-    //             const changedFields = {};
-
-    //             Object.keys(form).forEach((key) => {
-    //                 const initialValue = initial[key] ?? "";
-    //                 const currentValue = form[key] ?? "";
-
-    //                 if (initialValue !== currentValue) {
-    //                     if (key === "hiring_manager_email" && !currentValue) return;
-    //                     changedFields[key] = currentValue;
-    //                 }
-    //             });
-
-    //             await putData(`${UPDATE_OPPORTUNITY}/${initial.opportunity_id}`, changedFields);
-
-    //             opportunityId = initial.opportunity_id;
-    //         } else {
-    //             const payload = { ...form };
-    //             if (!payload.hiring_manager_email) {
-    //                 delete payload.hiring_manager_email;
-    //             }
-    //             const createData = await postData(CREATE_OPPORTUNITY, payload);
-    //             opportunityId = createData.data?.opportunity_id ?? createData.data?.id ?? createData.opportunity_id ?? createData.id;
-    //         }
-    //         if (opportunityId) {
-    //             const freshData = await fetchData(`${GET_OPPORTUNITY}/${opportunityId}`);
-    //             const freshOpp = freshData.data ?? freshData;
-    //             onSave?.(freshOpp);
-    //             return;
-    //         }
-
-    //         // Fallback: pass local form state if GET fails
-    //         onSave?.(form);
-
-    //     } catch (error) {
-    //         console.error("Error:", error.message);
-    //         alert(error.message);
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // };
     const [emailError, setEmailError] = useState("");
 
     const validateEmail = (val) => {
