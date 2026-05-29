@@ -226,21 +226,15 @@ function JDUploadPopup({ onClose, onUploadComplete }) {
 
 function Field({ label, required, hint, error, children }) {
     return (
-        <div className="ot-field">
+        <div className={`ot-field ${error ? "ot-field-error" : ""}`}>
             <label className="ot-label">
                 {label}{required && <span className="ot-required">*</span>}
                 {hint && <span className="ot-field-hint"> {hint}</span>}
             </label>
             {children}
-            {error && (
-                <span style={{ fontSize: 12, color: "#dc2626", marginTop: 4, display: "block" }}>
-                    {error}
-                </span>
-            )}
         </div>
     );
 }
-
 function Select({ value, onChange, options, placeholder }) {
     return (
         <select className="ot-input" value={value} onChange={e => onChange(e.target.value)}>
@@ -276,14 +270,14 @@ function Textarea({ value, onChange, placeholder, rows = 3 }) {
 }
 
 // ── Multi-Select Chips ─────────────────────────────────────────────────────
-function MultiChips({ options, selected = [], onChange }) {
+function MultiChips({ options, selected = [], onChange, hasError }) {
     const toggle = (opt) => {
         onChange(
             selected.includes(opt) ? selected.filter(s => s !== opt) : [...selected, opt]
         );
     };
     return (
-        <div className="chip-group">
+        <div className={`chip-group ${hasError ? "chip-group-error" : ""}`}>
             {options.map(opt => (
                 <button
                     key={opt}
@@ -332,7 +326,7 @@ export function OppForm({ initial, onSave, onCancel }) {
         setForm((p) => ({ ...p, [key]: val }));
         if (errors[key]) setErrors((e) => ({ ...e, [key]: undefined }));
     };
-    
+
     const handleUploadComplete = ({ fileName, fileId, fileUrl }) => {
         setForm((p) => ({
             ...p,
@@ -556,7 +550,7 @@ export function OppForm({ initial, onSave, onCancel }) {
                                 placeholder="Select vertical…"
                             />
                         </Field>
-                        <Field label="JD Upload (PDF / Word / any format)" required>
+                        <Field label="JD Upload">
                             <div className="ot-file-row">
                                 <button
                                     type="button"
@@ -586,6 +580,7 @@ export function OppForm({ initial, onSave, onCancel }) {
                                 options={OPEN_STATUSES}
                                 selected={form.open_status}
                                 onChange={set("open_status")}
+                                hasError={!!errors.open_status}
                             />
                         </Field>
                     </div>
