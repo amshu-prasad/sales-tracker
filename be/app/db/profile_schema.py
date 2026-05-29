@@ -7,7 +7,7 @@ class ProfileSchema(BaseModel):
     source: str
     engg_name: str
     ss_id: Optional[str] = None
-    projected_experience: str
+    projected_experience: Optional[str] = None
     profile_status: str
     selection_date: Optional[date] = None
     remarks: Optional[str] = None
