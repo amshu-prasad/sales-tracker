@@ -48,6 +48,8 @@ export default function AMDashboard({ user, onToast }) {
   const [editingOnboardProfile, setEditingOnboardProfile] = useState(null);
   const userRole = localStorage.getItem("role");
   const [selectedBU, setSelectedBU] = useState("");
+  const [slideLoading, setSlideLoading] = useState(false);
+
   const fetchOnboardOffboardProfiles = async () => {
     try {
       setLoading(true);
@@ -100,18 +102,35 @@ export default function AMDashboard({ user, onToast }) {
     }
   };
 
+  // const fetchOpportunityById = async (id) => {
+  //   try {
+  //     setLoading(true);
+  //     const url = `${GET_OPPORTUNITY_BY_ID}/${id}`;
+  //     const data = await fetchData(url);
+  //     setSelectedOpportunity(data.data || null);
+  //     setProfiles(data.data?.profiles || []);
+  //     setShowDetailsPage(true);
+  //   } catch (error) {
+  //     console.error("Fetch opportunity detail error:", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const fetchOpportunityById = async (id) => {
+    setSlideLoading(true);
+    setShowDetailsPage(true);        // slide starts immediately
+    setSelectedOpportunity(null);    // clear stale data
+    setProfiles([]);
     try {
-      setLoading(true);
       const url = `${GET_OPPORTUNITY_BY_ID}/${id}`;
       const data = await fetchData(url);
       setSelectedOpportunity(data.data || null);
       setProfiles(data.data?.profiles || []);
-      setShowDetailsPage(true);
     } catch (error) {
       console.error("Fetch opportunity detail error:", error);
     } finally {
-      setLoading(false);
+      setSlideLoading(false);
     }
   };
 
@@ -460,134 +479,142 @@ export default function AMDashboard({ user, onToast }) {
               </div>
 
               {/* DETAILS PAGE */}
+              {/* DETAILS PAGE */}
               <div className={`details-page ${showDetailsPage ? "details-show" : "details-hide"}`}>
-                {selectedOpportunity && (
-                  <div className="details-content">
-
-                    <div className="details-topbar">
-                      <button className="details-back-btn" onClick={() => setShowDetailsPage(false)}>
-                        ← Back
-                      </button>
-                      <h2>Opportunity Details</h2>
-                      <div style={{ display: "flex", gap: 8 }}>
-                        <button
-                          className="btn-edit"
-                          onClick={() => setEditingOpportunity(selectedOpportunity)}
-                          style={{
-                            marginTop: "17px",
-                            height: "36px",
-                            padding: "0 14px",
-                            fontSize: "13px",
-                            display: "inline-flex",
-                            alignItems: "center"
-                          }}
-                        >
-                          ✏️ Edit Opportunity
-                        </button>
-                        <button className="add-profile-btn" onClick={() => setShowProfilePopup(true)}>
-                          <span className="btn-plus">＋</span> Add Profile
-                        </button>
-                      </div>
+                {showDetailsPage && (
+                  slideLoading ? (
+                    <div className="details-slide-loader">
+                      <div className="slide-spinner" />
+                      <p>Loading details…</p>
                     </div>
+                  ) : selectedOpportunity ? (
+                    <div className="details-content">
 
-                    {/* Opportunity info table — unchanged */}
-                    <div className="details-table-wrap">
-                      <table className="details-table">
-                        <tbody>
-                          <tr>
-                            <th>Client</th><td>{selectedOpportunity.client || "—"}</td>
-                            <th>BU</th><td>{selectedOpportunity.BU || "—"}</td>
-                          </tr>
-                          <tr>
-                            <th>Mode</th><td>{selectedOpportunity.mode || "—"}</td>
-                            <th>Team</th><td>{selectedOpportunity.team || "—"}</td>
-                          </tr>
-                          <tr>
-                            <th>Skill</th><td>{selectedOpportunity.skill || "—"}</td>
-                            <th>Month</th><td>{selectedOpportunity.month || "—"}</td>
-                          </tr>
-                          <tr>
-                            <th>Req Date</th><td>{selectedOpportunity.reqdate || "—"}</td>
-                            <th>Expected Start Date</th><td>{selectedOpportunity.expected_start_date || "—"}</td>
-                          </tr>
-                          <tr>
-                            <th>Location</th><td>{selectedOpportunity.location || "—"}</td>
-                            <th>Positions</th><td>{selectedOpportunity.no_of_positions || "—"}</td>
-                          </tr>
-                          <tr>
-                            <th>Experience</th><td>{selectedOpportunity.experience || "—"}</td>
-                            <th>Priority</th><td>{selectedOpportunity.priority || "—"}</td>
-                          </tr>
-                          <tr>
-                            <th>Technical POC</th><td>{selectedOpportunity.technical_poc || "—"}</td>
-                            <th>Headcount</th><td>{selectedOpportunity.doable_headcount || "—"}</td>
-                          </tr>
-                          <tr>
-                            <th>No. Of Profiles Shared</th><td>{selectedOpportunity.no_of_profiles_shared || "—"}</td>
-                            <th>Filled by SS</th><td>{selectedOpportunity.closed_by_ss_count || "—"}</td>
-                          </tr>
-                          <tr>
-                            <th>Expected Closure Date</th><td>{selectedOpportunity.expected_closure_date || "—"}</td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-
-                    {/* ── Profiles Section ── */}
-                    <div className="profiles-section">
-                      <p className="section-title" style={{ marginTop: 24, marginBottom: 10 }}>
-                        Profiles
-                        <span className="profile-count-badge">{profiles.length}</span>
-                      </p>
-
-                      {detailsLoading ? (
-                        <Spinner />
-                      ) : profiles.length === 0 ? (
-                        <Empty message="No profiles added yet" />
-                      ) : (
-                        <div className="table-wrap">
-                          <table className="opp-table">
-                            <thead>
-                              <tr>
-                                <th>Engineer Name</th>
-                                <th>SS ID</th>
-                                <th>Source</th>
-                                <th>Experience (yrs)</th>
-                                <th>Status</th>
-                                <th>Selection Date</th>
-                                <th>Action</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {profiles.map((p) => (
-                                <tr key={p.profile_id}>
-                                  <td><strong>{p.engg_name || "—"}</strong></td>
-                                  <td>{p.ss_id || "—"}</td>
-                                  <td><Badge type={p.source} /></td>
-                                  <td>{p.projected_experience || "—"}</td>
-                                  <td>
-                                    <span className={`status-pill status-${p.profile_status?.toLowerCase().replace(/\s+/g, "-")}`}>
-                                      {p.profile_status || "—"}
-                                    </span>
-                                  </td>
-                                  <td>{p.selection_date ? fmt(p.selection_date) : "—"}</td>
-                                  <td>
-                                    <button
-                                      className="btn-edit"
-                                      onClick={() => setEditingProfile(p)}
-                                    >
-                                      ✏️
-                                    </button>
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
+                      <div className="details-topbar">
+                        <button className="details-back-btn" onClick={() => setShowDetailsPage(false)}>
+                          ← Back
+                        </button>
+                        <h2>Opportunity Details</h2>
+                        <div style={{ display: "flex", gap: 8 }}>
+                          <button
+                            className="btn-edit"
+                            onClick={() => setEditingOpportunity(selectedOpportunity)}
+                            style={{
+                              marginTop: "17px",
+                              height: "36px",
+                              padding: "0 14px",
+                              fontSize: "13px",
+                              display: "inline-flex",
+                              alignItems: "center"
+                            }}
+                          >
+                            ✏️ Edit Opportunity
+                          </button>
+                          <button className="add-profile-btn" onClick={() => setShowProfilePopup(true)}>
+                            <span className="btn-plus">＋</span> Add Profile
+                          </button>
                         </div>
-                      )}
-                    </div>
+                      </div>
 
-                  </div>
+                      {/* Opportunity info table — unchanged */}
+                      <div className="details-table-wrap">
+                        <table className="details-table">
+                          <tbody>
+                            <tr>
+                              <th>Client</th><td>{selectedOpportunity.client || "—"}</td>
+                              <th>BU</th><td>{selectedOpportunity.BU || "—"}</td>
+                            </tr>
+                            <tr>
+                              <th>Mode</th><td>{selectedOpportunity.mode || "—"}</td>
+                              <th>Team</th><td>{selectedOpportunity.team || "—"}</td>
+                            </tr>
+                            <tr>
+                              <th>Skill</th><td>{selectedOpportunity.skill || "—"}</td>
+                              <th>Month</th><td>{selectedOpportunity.month || "—"}</td>
+                            </tr>
+                            <tr>
+                              <th>Req Date</th><td>{selectedOpportunity.reqdate || "—"}</td>
+                              <th>Expected Start Date</th><td>{selectedOpportunity.expected_start_date || "—"}</td>
+                            </tr>
+                            <tr>
+                              <th>Location</th><td>{selectedOpportunity.location || "—"}</td>
+                              <th>Positions</th><td>{selectedOpportunity.no_of_positions || "—"}</td>
+                            </tr>
+                            <tr>
+                              <th>Experience</th><td>{selectedOpportunity.experience || "—"}</td>
+                              <th>Priority</th><td>{selectedOpportunity.priority || "—"}</td>
+                            </tr>
+                            <tr>
+                              <th>Technical POC</th><td>{selectedOpportunity.technical_poc || "—"}</td>
+                              <th>Headcount</th><td>{selectedOpportunity.doable_headcount || "—"}</td>
+                            </tr>
+                            <tr>
+                              <th>No. Of Profiles Shared</th><td>{selectedOpportunity.no_of_profiles_shared || "—"}</td>
+                              <th>Filled by SS</th><td>{selectedOpportunity.closed_by_ss_count || "—"}</td>
+                            </tr>
+                            <tr>
+                              <th>Expected Closure Date</th><td>{selectedOpportunity.expected_closure_date || "—"}</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* ── Profiles Section ── */}
+                      <div className="profiles-section">
+                        <p className="section-title" style={{ marginTop: 24, marginBottom: 10 }}>
+                          Profiles
+                          <span className="profile-count-badge">{profiles.length}</span>
+                        </p>
+
+                        {detailsLoading ? (
+                          <Spinner />
+                        ) : profiles.length === 0 ? (
+                          <Empty message="No profiles added yet" />
+                        ) : (
+                          <div className="table-wrap">
+                            <table className="opp-table">
+                              <thead>
+                                <tr>
+                                  <th>Engineer Name</th>
+                                  <th>SS ID</th>
+                                  <th>Source</th>
+                                  <th>Experience (yrs)</th>
+                                  <th>Status</th>
+                                  <th>Selection Date</th>
+                                  <th>Action</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {profiles.map((p) => (
+                                  <tr key={p.profile_id}>
+                                    <td><strong>{p.engg_name || "—"}</strong></td>
+                                    <td>{p.ss_id || "—"}</td>
+                                    <td><Badge type={p.source} /></td>
+                                    <td>{p.projected_experience || "—"}</td>
+                                    <td>
+                                      <span className={`status-pill status-${p.profile_status?.toLowerCase().replace(/\s+/g, "-")}`}>
+                                        {p.profile_status || "—"}
+                                      </span>
+                                    </td>
+                                    <td>{p.selection_date ? fmt(p.selection_date) : "—"}</td>
+                                    <td>
+                                      <button
+                                        className="btn-edit"
+                                        onClick={() => setEditingProfile(p)}
+                                      >
+                                        ✏️
+                                      </button>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      </div>
+
+                    </div>
+                  ) : null
                 )}
               </div>
             </div>
