@@ -4,9 +4,22 @@ import { CREATE_PROFILE, UPDATE_PROFILE } from "../api/endpoints";
 import { postData, putData } from "../api/clients";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
-function Field({ label, required, children, hint }) {
+// function Field({ label, required, children, hint }) {
+//     return (
+//         <div className="ops-field">
+//             <label className="ops-label">
+//                 {label}
+//                 {required && <span className="ops-req">*</span>}
+//                 {hint && <span className="ops-hint">{hint}</span>}
+//             </label>
+//             {children}
+//         </div>
+//     );
+// }
+
+function Field({ label, required, children, hint, error }) {
     return (
-        <div className="ops-field">
+        <div className={`ops-field ${error ? "ops-field-error" : ""}`}>
             <label className="ops-label">
                 {label}
                 {required && <span className="ops-req">*</span>}
@@ -82,6 +95,7 @@ function profileToForm(p) {
 export default function OpportunityStatusForm({ onSave, onCancel, selectedOpportunity, initialData = null, mode = "create" }) {
     const blank = () => ({ name: "", ssId: "", projectedExp: "" });
     const [loading, setLoading] = useState(false);
+    const [errors, setErrors] = useState({});
 
     const [form, setForm] = useState(() =>
         mode === "edit" && initialData
@@ -97,18 +111,39 @@ export default function OpportunityStatusForm({ onSave, onCancel, selectedOpport
             }
     );
 
-    const set = (key, val) => setForm(f => ({ ...f, [key]: val }));
+    // const set = (key, val) => setForm(f => ({ ...f, [key]: val }));
+    const set = (key, val) => {
+        setForm(f => ({ ...f, [key]: val }));
+        if (errors[key]) setErrors(e => ({ ...e, [key]: undefined }));
+    };
 
     // Engineer helpers
+    // const updateEng = (idx, key, val) => {
+    //     const engs = [...form.engineers];
+    //     engs[idx] = { ...engs[idx], [key]: val };
+    //     set("engineers", engs);
+    // };
+
     const updateEng = (idx, key, val) => {
         const engs = [...form.engineers];
         engs[idx] = { ...engs[idx], [key]: val };
         set("engineers", engs);
+        if (key === "name" && errors.engg_name) setErrors(e => ({ ...e, engg_name: undefined }));
+    };
+
+    const validate = () => {
+        const newErrors = {};
+        if (!form.source) newErrors.source = true;
+        if (!form.engineers?.[0]?.name?.trim()) newErrors.engg_name = true;
+        if (!form.profileStatuses) newErrors.profileStatuses = true;
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
     };
     const addEng = () => set("engineers", [...form.engineers, blank()]);
     const removeEng = (idx) => set("engineers", form.engineers.filter((_, i) => i !== idx));
 
     const handleSubmit = async () => {
+        if (!validate()) return;
         setLoading(true);
         try {
             const engineer = form.engineers?.[0] || {};
@@ -178,7 +213,7 @@ export default function OpportunityStatusForm({ onSave, onCancel, selectedOpport
                 <div className="ops-section">
                     <div className="ops-section-title">Engineer Details</div>
                     <div className="ops-grid-2">
-                        <Field label="Source" required>
+                        <Field label="Source" required error={errors.source}>
                             <Select
                                 value={form.source}
                                 onChange={v => set("source", v)}
@@ -186,7 +221,7 @@ export default function OpportunityStatusForm({ onSave, onCancel, selectedOpport
                                 placeholder="Select source…"
                             />
                         </Field>
-                        <Field label="Engineer Name">
+                        <Field label="Engineer Name" required error={errors.engg_name}>
                             <Input
                                 value={form.engineers?.[0]?.name}
                                 onChange={v => updateEng(0, "name", v)}
@@ -214,7 +249,7 @@ export default function OpportunityStatusForm({ onSave, onCancel, selectedOpport
                 <div className="ops-section">
                     <div className="ops-section-title">Profile Status</div>
 
-                    <Field label="Interview / Profile Stage">
+                    <Field label="Interview / Profile Stage" required error={errors.profileStatuses}>
                         <Select
                             value={form.profileStatuses}
                             onChange={v => set("profileStatuses", v)}

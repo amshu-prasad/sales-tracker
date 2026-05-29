@@ -2613,3 +2613,9 @@ textarea {
     transform: rotate(360deg);
   }
 }
+
+.ops-field-error .ops-select,
+.ops-field-error .ops-input {
+    border: 1.5px solid #dc2626 !important;
+    background-color: #fff5f5;
+}
