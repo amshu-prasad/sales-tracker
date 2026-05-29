@@ -58,6 +58,8 @@ export const VERTICALS = [
     "PD",
     "PSV",
     "RTL",
+    "Embedded",
+    "System Design",
 ];
 
 export const AMS = [
@@ -169,4 +171,31 @@ export const ONBOARDING_REQUIRED_FIELDS = [
     { key: "rate_at_onboarding", label: "Rate at Onboarding" },
     { key: "rate_type", label: "Rate Type" },
     { key: "client_spoc", label: "Client SPOC Contact Person" },
+];
+
+
+// ─── Required fields config ───────────────────────────────────────────────────
+export const REQUIRED_FIELDS = [
+    { key: "client",                 label: "Client" },
+    { key: "BU",                     label: "BU" },
+    { key: "mode",                   label: "Mode" },
+    { key: "team",                   label: "Team" },
+    { key: "skill",                  label: "Skill" },
+    { key: "month",                  label: "Month" },
+    { key: "reqdate",                label: "Req Date" },
+    { key: "location",               label: "Location" },
+    { key: "no_of_positions",        label: "No of Positions" },
+    { key: "experience",             label: "Experience" },
+    { key: "expected_start_date",    label: "Expected Start Date" },
+    { key: "technical_poc",          label: "SS Technical POC" },
+    { key: "priority",               label: "Priority" },
+    { key: "doable_headcount",       label: "Doable Head Count" },
+    { key: "expected_closure_date",  label: "Expected Closure Date" },
+    { key: "vertical",               label: "Vertical" },
+    // { key: "jdFileName",             label: "JD Upload" },
+    { key: "open_status",            label: "Status" },
+    { key: "hiring_manager_name",    label: "Hiring Manager Name" },
+    { key: "hiring_manager_email",   label: "Hiring Manager Email ID" },
+    { key: "hiring_manager_phno",    label: "Hiring Manager Phone Number" },
+    { key: "hiring_location",        label: "Hiring Manager Location" },
 ];

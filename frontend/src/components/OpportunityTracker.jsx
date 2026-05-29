@@ -3,7 +3,7 @@ import { CLIENTS, BUS, MODES, TEAMS, LOCATIONS, START_DATE_OPTIONS, PRIORITIES, 
 import { CREATE_OPPORTUNITY, UPLOAD_JD, GET_OPPORTUNITY, UPDATE_OPPORTUNITY } from "../api/endpoints";
 import { fetchData, postFile, postData, putData } from "../api/clients";
 import { useEffect } from "react";
-import { VERTICALS } from "../constants/StringConstants.js";
+import { VERTICALS, REQUIRED_FIELDS } from "../constants/StringConstants.js";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -224,13 +224,19 @@ function JDUploadPopup({ onClose, onUploadComplete }) {
     );
 }
 
-function Field({ label, required, children }) {
+function Field({ label, required, hint, error, children }) {
     return (
         <div className="ot-field">
             <label className="ot-label">
                 {label}{required && <span className="ot-required">*</span>}
+                {hint && <span className="ot-field-hint"> {hint}</span>}
             </label>
             {children}
+            {error && (
+                <span style={{ fontSize: 12, color: "#dc2626", marginTop: 4, display: "block" }}>
+                    {error}
+                </span>
+            )}
         </div>
     );
 }
@@ -299,9 +305,34 @@ export function OppForm({ initial, onSave, onCancel }) {
     const [showClientDropdown, setShowClientDropdown] = useState(false);
     const [showUploadPopup, setShowUploadPopup] = useState(false);
     const [loading, setLoading] = useState(false);
-    const set = (key) => (val) =>
-        setForm((p) => ({ ...p, [key]: val }));
+    const [errors, setErrors] = useState({});
 
+    const validate = () => {
+        const newErrors = {};
+        REQUIRED_FIELDS.forEach(({ key, label }) => {
+            const val = form[key];
+            const isEmpty =
+                val === undefined ||
+                val === null ||
+                (Array.isArray(val) ? val.length === 0 : String(val).trim() === "");
+            if (isEmpty) {
+                newErrors[key] = `${label} is required`;
+            }
+        });
+        // Email format check
+        if (form.hiring_manager_email) {
+            const emailErr = validateEmail(form.hiring_manager_email);
+            if (emailErr) newErrors.hiring_manager_email = emailErr;
+        }
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const set = (key) => (val) => {
+        setForm((p) => ({ ...p, [key]: val }));
+        if (errors[key]) setErrors((e) => ({ ...e, [key]: undefined }));
+    };
+    
     const handleUploadComplete = ({ fileName, fileId, fileUrl }) => {
         setForm((p) => ({
             ...p,
@@ -312,6 +343,7 @@ export function OppForm({ initial, onSave, onCancel }) {
     };
     const handleSubmit = async () => {
         try {
+            if (!validate()) return;
             // ── Validation first, before setLoading ──────────────
             const emailErr = validateEmail(form.hiring_manager_email);
             if (emailErr) {
@@ -420,7 +452,7 @@ export function OppForm({ initial, onSave, onCancel }) {
                 <div className="ot-form-body">
                     <Section title="Engagement Details" icon="📋" />
                     <div className="ot-grid-2">
-                        <Field label="Client" required>
+                        <Field label="Client" required error={errors.client}>
                             <div className="search-select">
                                 <input
                                     type="text"
@@ -456,23 +488,23 @@ export function OppForm({ initial, onSave, onCancel }) {
                             </div>
                         </Field>
 
-                        <Field label="BU">
+                        <Field label="BU" required error={errors.BU}>
                             <Select value={form.BU} onChange={set("BU")} options={BUS} />
                         </Field>
-                        <Field label="Mode">
+                        <Field label="Mode" required error={errors.mode}>
                             <Select value={form.mode} onChange={set("mode")} options={MODES} />
                         </Field>
-                        <Field label="Team">
+                        <Field label="Team" required error={errors.team}>
                             <Select value={form.team} onChange={set("team")} options={TEAMS} />
                         </Field>
                     </div>
 
                     <Section title="Requisition" icon="🏢" />
                     <div className="ot-grid-2">
-                        <Field label="Skill" required>
+                        <Field label="Skill" required error={errors.skill}>
                             <Input value={form.skill} onChange={set("skill")} placeholder="e.g. RTL Design, DFT…" />
                         </Field>
-                        <Field label="Month">
+                        <Field label="Month" required error={errors.month}>
                             <Select
                                 value={form.month}
                                 onChange={set("month")}
@@ -480,19 +512,19 @@ export function OppForm({ initial, onSave, onCancel }) {
                                 placeholder="Select month"
                             />
                         </Field>
-                        <Field label="Req Date">
+                        <Field label="Req Date" required error={errors.reqdate}>
                             <Input type="date" value={form.reqdate} onChange={set("reqdate")} />
                         </Field>
-                        <Field label="Location">
+                        <Field label="Location" required error={errors.location}>
                             <Select value={form.location} onChange={set("location")} options={LOCATIONS} />
                         </Field>
-                        <Field label="No of Positions">
+                        <Field label="No of Positions" required error={errors.no_of_positions}>
                             <Input type="number" value={form.no_of_positions} onChange={set("no_of_positions")} placeholder="e.g. 5" />
                         </Field>
-                        <Field label="Experience">
+                        <Field label="Experience" required error={errors.experience}>
                             <Input value={form.experience} onChange={set("experience")} placeholder="e.g. 3–5 years" />
                         </Field>
-                        <Field label="Expected Start Date (Days)">
+                        <Field label="Expected Start Date (Days)" required error={errors.expected_start_date}>
                             <Select
                                 value={form.expected_start_date}
                                 onChange={set("expected_start_date")}
@@ -504,19 +536,19 @@ export function OppForm({ initial, onSave, onCancel }) {
                                 ]}
                             />
                         </Field>
-                        <Field label="SS Technical POC">
+                        <Field label="SS Technical POC" required error={errors.technical_poc}>
                             <Input value={form.technical_poc} onChange={set("technical_poc")} placeholder="Name of technical point of contact" />
                         </Field>
-                        <Field label="Priority">
+                        <Field label="Priority" required error={errors.priority}>
                             <Select value={form.priority} onChange={set("priority")} options={PRIORITIES} />
                         </Field>
-                        <Field label="Doable Head Count">
+                        <Field label="Doable Head Count" required error={errors.doable_headcount}>
                             <Input type="number" value={form.doable_headcount} onChange={set("doable_headcount")} placeholder="e.g. 3" />
                         </Field>
-                        <Field label="Expected Closure Date (Vertical Heads to Commit)">
+                        <Field label="Expected Closure Date (Vertical Heads to Commit)" required error={errors.expected_closure_date}>
                             <Input type="date" value={form.expected_closure_date} onChange={set("expected_closure_date")} />
                         </Field>
-                        <Field label="Vertical">
+                        <Field label="Vertical" required error={errors.vertical}>
                             <Select
                                 onChange={set("vertical")}
                                 value={form.vertical}
@@ -524,7 +556,7 @@ export function OppForm({ initial, onSave, onCancel }) {
                                 placeholder="Select vertical…"
                             />
                         </Field>
-                        <Field label="JD Upload (PDF / Word / any format)">
+                        <Field label="JD Upload (PDF / Word / any format)" required>
                             <div className="ot-file-row">
                                 <button
                                     type="button"
@@ -545,10 +577,11 @@ export function OppForm({ initial, onSave, onCancel }) {
                             </div>
                         </Field>
                     </div>
+
                     {/* ── Section 4: Open / Closure Status ── */}
                     <div className="ops-section">
                         <div className="ops-section-title">Open / Closure Status</div>
-                        <Field label="Status" hint="(multiple selections allowed)">
+                        <Field label="Status" required hint="(multiple selections allowed)" error={errors.open_status}>
                             <MultiChips
                                 options={OPEN_STATUSES}
                                 selected={form.open_status}
@@ -562,7 +595,7 @@ export function OppForm({ initial, onSave, onCancel }) {
                         <div className="ops-section-title">Hiring Manager Details</div>
                         <div className="hm-card">
                             <div className="ops-grid-2" style={{ gap: 12 }}>
-                                <Field label="Hiring Manager Name" required>
+                                <Field label="Hiring Manager Name" required error={errors.hiring_manager_name}>
                                     <Input
                                         value={form.hiring_manager_name}
                                         onChange={set("hiring_manager_name")}
@@ -570,7 +603,7 @@ export function OppForm({ initial, onSave, onCancel }) {
                                     />
                                 </Field>
 
-                                <Field label="Hiring Manager Email ID" required>
+                                <Field label="Hiring Manager Email ID" required error={errors.hiring_manager_email}>
                                     <Input
                                         type="email"
                                         value={form.hiring_manager_email}
@@ -588,7 +621,7 @@ export function OppForm({ initial, onSave, onCancel }) {
                                     )}
                                 </Field>
 
-                                <Field label="Hiring Manager Phone Number" required>
+                                <Field label="Hiring Manager Phone Number" required error={errors.hiring_manager_phno}>
                                     <Input
                                         type="tel"
                                         value={form.hiring_manager_phno}
@@ -597,7 +630,7 @@ export function OppForm({ initial, onSave, onCancel }) {
                                     />
                                 </Field>
 
-                                <Field label="Hiring Manager Location" required>
+                                <Field label="Hiring Manager Location" required error={errors.hiring_location}>
                                     <Input
                                         value={form.hiring_location}
                                         onChange={set("hiring_location")}
