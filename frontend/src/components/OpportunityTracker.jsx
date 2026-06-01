@@ -36,6 +36,8 @@ export const emptyOpportunity = () => ({
     hiring_manager_email: "",
     hiring_location: "",
     hiring_manager_phno: "",
+    jd_description: "",
+    comments: "",
     createdAt: new Date().toISOString(),
 });
 
@@ -533,10 +535,10 @@ export function OppForm({ initial, onSave, onCancel }) {
                         <Field label="SS Technical POC" required error={errors.technical_poc}>
                             <Input value={form.technical_poc} onChange={set("technical_poc")} placeholder="Name of technical point of contact" />
                         </Field>
-                        <Field label="Priority" required error={errors.priority}>
+                        <Field label="Priority(to be filled by delivery)" required error={errors.priority}>
                             <Select value={form.priority} onChange={set("priority")} options={PRIORITIES} />
                         </Field>
-                        <Field label="Doable Head Count" required error={errors.doable_headcount}>
+                        <Field label="Doable Head Count(to be filled by delivery)" required error={errors.doable_headcount}>
                             <Input type="number" value={form.doable_headcount} onChange={set("doable_headcount")} placeholder="e.g. 3" />
                         </Field>
                         <Field label="Expected Closure Date (Vertical Heads to Commit)" required error={errors.expected_closure_date}>
@@ -548,6 +550,25 @@ export function OppForm({ initial, onSave, onCancel }) {
                                 value={form.vertical}
                                 options={VERTICALS}
                                 placeholder="Select vertical…"
+                            />
+                        </Field>
+
+                        <Field label="JD Description" error={errors.jd_description}>
+                            <textarea
+                                className="ot-textarea"
+                                value={form.jd_description}
+                                onChange={(e) => set("jd_description")(e.target.value)}
+                                placeholder="Paste or type the job description here…"
+                                rows={5}
+                            />
+                        </Field>
+                        <Field label="Comments" error={errors.comments}>
+                            <textarea
+                                className="ot-textarea"
+                                value={form.comments}
+                                onChange={(e) => set("comments")(e.target.value)}
+                                placeholder="Any additional comments"
+                                rows={5}
                             />
                         </Field>
                         <Field label="JD Upload">

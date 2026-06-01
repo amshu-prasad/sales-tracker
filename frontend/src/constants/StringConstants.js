@@ -109,7 +109,7 @@ export const PROFILE_STATUSES = [
     "Final Rejection",
 ];
 
-export const OPEN_STATUSES = ["Open", "Closed by SS", "Closed by Others", "Client Hold"];
+export const OPEN_STATUSES = ["Open", "Closed by SS", "Closed by Others", "Client Hold","Low Priority by SS", "Low Priority by Client"];
 
 
 export const STATUS_COLORS = {

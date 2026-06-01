@@ -2619,3 +2619,22 @@ textarea {
     border: 1.5px solid #dc2626 !important;
     background-color: #fff5f5;
 }
+
+.ot-textarea {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--ot-border, #d1d5db);
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 100px;
+    color: inherit;
+    background: inherit;
+}
+
+.ot-textarea:focus {
+    outline: none;
+    border-color: var(--ot-primary, #6366f1);
+    box-shadow: 0 0 0 2px var(--ot-primary-light, #e0e7ff);
+}
