@@ -16,13 +16,17 @@ class OpportunitySchema(BaseModel):
     experience: str
     expected_start_date: str
     technical_poc: str
-    priority: str
-    doable_headcount: int
+    priority: Optional[str] = None
+    doable_headcount: Optional[int] = None
     file_id: Optional[str] = None
     vertical: str
     open_status: Optional[list] = None
-    hiring_manager_name: str
-    hiring_manager_email: EmailStr
-    hiring_location: str
-    hiring_manager_phno: str
-    expected_closure_date:str
+    hiring_manager_name: Optional[str] = None
+    hiring_manager_email: Optional[EmailStr] = None
+    hiring_location: Optional[str] = None
+    hiring_manager_phno: Optional[str] = None
+    client_bu: Optional[str] = None
+    expected_closure_date: Optional[str] = None
+    comments: Optional[str] = None
+    job_desc: Optional[str] = None
+    client_details: bool

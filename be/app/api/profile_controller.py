@@ -1,7 +1,7 @@
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from app.db.profile_schema import ProfileSchema
-from app.services.profile_service import create_profile_service, get_client_onboarding_profiles_service, get_final_selected_profiles_service, get_profile_by_id_service, get_profiles_service, update_profile_service
+from app.services.profile_service import create_offboarding_profile_service, create_profile_service, get_client_onboarding_profiles_service, get_final_selected_profiles_service, get_profile_by_id_service, get_profiles_service, update_profile_service
 from app.api.authenticator import get_current_user
 
 profile_router = APIRouter()
@@ -107,3 +107,15 @@ async def get_client_onboarding_profiles(
         "success": True,
         "data": data
     }
+
+@profile_router.post("/create-offboarding-profile")
+async def create_offboarding_profile(payload: ProfileSchema, user = Depends(get_current_user)):
+
+    response = create_offboarding_profile_service(payload.dict(), user)
+
+    return {
+        "success": True,
+        "data": response
+    }
+
+

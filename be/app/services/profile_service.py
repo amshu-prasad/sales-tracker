@@ -221,9 +221,6 @@ def get_client_onboarding_profiles_service(
     user
 ):
 
-    # -----------------------------
-    # FILTER PROFILES
-    # -----------------------------
     query = {
         "client_onboarding_date": {
             "$exists": True,
@@ -244,9 +241,6 @@ def get_client_onboarding_profiles_service(
         sort=[("created_at", -1)]
     )
 
-    # -----------------------------
-    # GET OPPORTUNITY DETAILS
-    # -----------------------------
     for profile in profiles:
 
         opportunity = find_one(
@@ -274,4 +268,50 @@ def get_client_onboarding_profiles_service(
         "total": total,
         "limit": limit,
         "skip": skip
+    }
+
+
+def create_offboarding_profile_service(data, user):
+
+    offboarding_profile_id = str(uuid.uuid4())
+
+    document = {
+        "offboarding_profile_id": offboarding_profile_id,
+
+        "opportunity_id": data["opportunity_id"],
+        "informed_date": (
+            data["informed_date"].isoformat()
+            if data.get("informed_date")
+            else None
+        ),
+        "type": data["type"],
+        "offboarding_month": data["offboarding_month"],
+        "offboarding_date": data["offboarding_date"].isoformat(),
+
+        "emp_id": data["emp_id"],
+        "engg_name": data["engg_name"],
+        "department": data["department"],
+
+        "vertical_head": data["vertical_head"],
+        "acc_manager": data["acc_manager"],
+
+        "client_name": data["client_name"],
+        "client_offboarding_loc": data["client_offboarding_loc"],
+
+        "reason": data["reason"],
+        "revenu_impact_comments": data.get(
+            "revenu_impact_comments"
+        ),
+
+        "created_by": user.get("email"),
+        "created_at": datetime.utcnow()
+    }
+
+    create_one(
+        "offboarding_profiles",
+        document
+    )
+
+    return {
+        "offboarding_profile_id": offboarding_profile_id
     }
