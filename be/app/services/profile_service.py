@@ -303,7 +303,7 @@ def create_offboarding_profile_service(data, user):
             "revenu_impact_comments"
         ),
 
-        "created_by": user.get("email"),
+        "AM": user,
         "created_at": datetime.utcnow()
     }
 

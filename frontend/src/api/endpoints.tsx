@@ -17,5 +17,6 @@ export const CREATE_PROFILE = `${AUTH_API_BASE_URL}/create-profile`;
 export const UPDATE_PROFILE = `${AUTH_API_BASE_URL}/profiles`;
 export const GET_FINAL_SELECTION_PROFILES = `${AUTH_API_BASE_URL}/profiles-final-selection`;
 export const GET_ON_BOARD_OFF_BOARD_PROFILES = `${AUTH_API_BASE_URL}/profiles-client-onboarding`;
+export const CREATE_OFFBOARDING_PROFILE = `${AUTH_API_BASE_URL}/create-offboarding-profile`;
 
 

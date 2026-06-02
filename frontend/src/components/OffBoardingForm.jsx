@@ -1,13 +1,15 @@
 import { useState } from "react";
+import { postData } from "../api/clients";
+import { CREATE_OFFBOARDING_PROFILE } from "../api/endpoints";
 
 const MONTHS = [
-  "January","February","March","April","May","June",
-  "July","August","September","October","November","December",
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
 ];
 
 const REASONS = [
-  "Resignation","End of contract","Client request",
-  "Performance","Redundancy","Retirement","Other",
+  "Resignation", "End of contract", "Client request",
+  "Performance", "Redundancy", "Retirement", "Other",
 ];
 
 const initialState = {
@@ -28,9 +30,9 @@ const initialState = {
 };
 
 const requiredFields = [
-  "offboardingMonth","offboardingDate","empId","name",
-  "department","verticalHead","accountManager",
-  "clientName","clientLocation","reason",
+  "offboardingMonth", "offboardingDate", "empId", "name",
+  "department", "verticalHead", "accountManager",
+  "clientName", "clientLocation", "reason",
 ];
 
 function OpsField({ label, optional, required, error, children, fullWidth }) {
@@ -80,7 +82,7 @@ function SectionHeader({ icon, title }) {
   );
 }
 
-export default function OffBoardingForm({ onSave, onCancel }) {
+export default function OffBoardingForm({ onSave, onCancel,opportunityId }) {
   const [form, setForm] = useState(initialState);
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
@@ -100,14 +102,56 @@ export default function OffBoardingForm({ onSave, onCancel }) {
     return errs;
   };
 
+  console.log(opportunityId);
   const handleSubmit = async () => {
     const errs = validate();
-    if (Object.keys(errs).length) { setErrors(errs); return; }
-    setSaving(true);
-    await new Promise((r) => setTimeout(r, 500));
-    setSaving(false);
-    setSubmitted(true);
-    if (onSave) onSave(form);
+
+    if (Object.keys(errs).length) {
+      setErrors(errs);
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const payload = {
+        opportunity_id: opportunityId,
+
+        informed_date: form.informedDate || null,
+        type: form.type,
+        offboarding_month: form.offboardingMonth,
+        offboarding_date: form.offboardingDate,
+
+        emp_id: form.empId,
+        engg_name: form.name,
+        department: form.department,
+        vertical_head: form.verticalHead,
+
+        acc_manager: form.accountManager,
+        client_name: form.clientName,
+        client_offboarding_loc: form.clientLocation,
+
+        reason: form.reason,
+        revenu_impact_comments: form.revenueImpact || null,
+      };
+
+      const response = await postData(
+        CREATE_OFFBOARDING_PROFILE,
+        payload
+      );
+
+      console.log("Created:", response);
+
+      setSubmitted(true);
+
+      if (onSave) {
+        onSave(response);
+      }
+    } catch (error) {
+      console.error("Failed to create offboarding profile:", error);
+      alert("Failed to submit offboarding profile.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleClear = () => {
@@ -121,7 +165,7 @@ export default function OffBoardingForm({ onSave, onCancel }) {
     return (
       <div className="ot-form-wrap">
         <div className="ot-form-topbar">
-          <h2 className="ot-form-heading">Employee Offboarding</h2>
+          <h2 className="ot-form-heading">Employee Offboarding{opportunityId}</h2>
           {onCancel && (
             <button className="ot-close-btn" onClick={onCancel}>✕</button>
           )}

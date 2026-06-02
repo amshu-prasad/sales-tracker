@@ -1017,7 +1017,7 @@ export default function AMDashboard({ user, onToast }) {
                     ✕
                   </button>
                 </div>
-                <OffboardingForm />
+                <OffboardingForm opportunityId={selectedOpportunity?.opportunity_id} />
               </div>
             </div>
           )}
