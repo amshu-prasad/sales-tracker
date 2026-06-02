@@ -188,14 +188,6 @@ export const REQUIRED_FIELDS = [
     { key: "experience",             label: "Experience" },
     { key: "expected_start_date",    label: "Expected Start Date" },
     { key: "technical_poc",          label: "SS Technical POC" },
-    { key: "priority",               label: "Priority" },
-    { key: "doable_headcount",       label: "Doable Head Count" },
-    { key: "expected_closure_date",  label: "Expected Closure Date" },
     { key: "vertical",               label: "Vertical" },
-    // { key: "jdFileName",             label: "JD Upload" },
-    { key: "open_status",            label: "Status" },
-    { key: "hiring_manager_name",    label: "Hiring Manager Name" },
-    { key: "hiring_manager_email",   label: "Hiring Manager Email ID" },
-    { key: "hiring_manager_phno",    label: "Hiring Manager Phone Number" },
-    { key: "hiring_location",        label: "Hiring Manager Location" },
+    { key: "open_status",            label: "Status" }
 ];

@@ -36,8 +36,10 @@ export const emptyOpportunity = () => ({
     hiring_manager_email: "",
     hiring_location: "",
     hiring_manager_phno: "",
-    jd_description: "",
+    job_desc: "",
     comments: "",
+    client_details: false,
+    client_bu: "",
     createdAt: new Date().toISOString(),
 });
 
@@ -302,27 +304,89 @@ export function OppForm({ initial, onSave, onCancel }) {
     const [showUploadPopup, setShowUploadPopup] = useState(false);
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
+    const [emailError, setEmailError] = useState("");
+    const [knowHMDetails, setKnowHMDetails] = useState(
+        initial?.client_details ?? false
+    );
 
+    const validateEmail = (val) => {
+        if (!val) return "";
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)
+            ? ""
+            : "Please enter a valid email address.";
+    };
+
+    const hmFieldsValid =
+        form.hiring_manager_name?.trim() &&
+        form.hiring_manager_email?.trim() &&
+        !validateEmail(form.hiring_manager_email) &&
+        form.hiring_manager_phno?.trim() &&
+        form.hiring_location?.trim();
     const validate = () => {
         const newErrors = {};
+
         REQUIRED_FIELDS.forEach(({ key, label }) => {
             const val = form[key];
+
             const isEmpty =
                 val === undefined ||
                 val === null ||
-                (Array.isArray(val) ? val.length === 0 : String(val).trim() === "");
+                (Array.isArray(val)
+                    ? val.length === 0
+                    : String(val).trim() === "");
+
             if (isEmpty) {
                 newErrors[key] = `${label} is required`;
             }
         });
-        // Email format check
-        if (form.hiring_manager_email) {
-            const emailErr = validateEmail(form.hiring_manager_email);
-            if (emailErr) newErrors.hiring_manager_email = emailErr;
+
+        // Hiring Manager fields required only when checkbox is checked
+        if (knowHMDetails) {
+            if (!form.hiring_manager_name?.trim()) {
+                newErrors.hiring_manager_name =
+                    "Hiring Manager Name is required";
+            }
+
+            if (!form.hiring_manager_email?.trim()) {
+                newErrors.hiring_manager_email =
+                    "Hiring Manager Email ID is required";
+            }
+
+            if (!form.hiring_manager_phno?.trim()) {
+                newErrors.hiring_manager_phno =
+                    "Hiring Manager Phone Number is required";
+            }
+
+            if (!form.hiring_location?.trim()) {
+                newErrors.hiring_location =
+                    "Hiring Manager Location is required";
+            }
+
+            // Validate email format only if entered
+            if (form.hiring_manager_email?.trim()) {
+                const emailErr = validateEmail(form.hiring_manager_email);
+                if (emailErr) {
+                    newErrors.hiring_manager_email = emailErr;
+                }
+            }
         }
+        console.log(newErrors)
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
+
+    useEffect(() => {
+        if (!knowHMDetails) {
+            setErrors(prev => {
+                const updated = { ...prev };
+                delete updated.hiring_manager_name;
+                delete updated.hiring_manager_email;
+                delete updated.hiring_manager_phno;
+                delete updated.hiring_location;
+                return updated;
+            });
+        }
+    }, [knowHMDetails]);
 
     const set = (key) => (val) => {
         setForm((p) => ({ ...p, [key]: val }));
@@ -340,30 +404,6 @@ export function OppForm({ initial, onSave, onCancel }) {
     const handleSubmit = async () => {
         try {
             if (!validate()) return;
-            // ── Validation first, before setLoading ──────────────
-            const emailErr = validateEmail(form.hiring_manager_email);
-            if (emailErr) {
-                setEmailError(emailErr);
-                alert("Please enter a proper email ID before submitting.");
-                return;
-            }
-            if (!form.hiring_manager_name?.trim()) {
-                alert("Hiring Manager Name is required.");
-                return;
-            }
-            if (!form.hiring_manager_email?.trim()) {
-                alert("Hiring Manager Email ID is required.");
-                return;
-            }
-            if (!form.hiring_manager_phno?.trim()) {
-                alert("Hiring Manager Phone Number is required.");
-                return;
-            }
-            if (!form.hiring_location?.trim()) {
-                alert("Hiring Manager Location is required.");
-                return;
-            }
-
             setLoading(true);
 
             let opportunityId;
@@ -411,16 +451,6 @@ export function OppForm({ initial, onSave, onCancel }) {
             setLoading(false);
         }
     };
-
-    const [emailError, setEmailError] = useState("");
-
-    const validateEmail = (val) => {
-        if (!val) return "";
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)
-            ? ""
-            : "Please enter a valid email address.";
-    };
-
     const Section = ({ title, icon }) => (
         <div className="ot-section-header">
             <span className="ot-section-icon">{icon}</span>
@@ -535,13 +565,13 @@ export function OppForm({ initial, onSave, onCancel }) {
                         <Field label="SS Technical POC" required error={errors.technical_poc}>
                             <Input value={form.technical_poc} onChange={set("technical_poc")} placeholder="Name of technical point of contact" />
                         </Field>
-                        <Field label="Priority(to be filled by delivery)" required error={errors.priority}>
+                        <Field label="Priority(to be filled by delivery)">
                             <Select value={form.priority} onChange={set("priority")} options={PRIORITIES} />
                         </Field>
-                        <Field label="Doable Head Count(to be filled by delivery)" required error={errors.doable_headcount}>
+                        <Field label="Doable Head Count(to be filled by delivery)">
                             <Input type="number" value={form.doable_headcount} onChange={set("doable_headcount")} placeholder="e.g. 3" />
                         </Field>
-                        <Field label="Expected Closure Date (Vertical Heads to Commit)" required error={errors.expected_closure_date}>
+                        <Field label="Expected Closure Date(to be filled by delivery)" >
                             <Input type="date" value={form.expected_closure_date} onChange={set("expected_closure_date")} />
                         </Field>
                         <Field label="Vertical" required error={errors.vertical}>
@@ -608,18 +638,26 @@ export function OppForm({ initial, onSave, onCancel }) {
 
                     {/* ── Section 5: Hiring Manager ── */}
                     <div className="ops-section">
-                        <div className="ops-section-title">Hiring Manager Details</div>
+                        <div className="ops-section-title">Client Details</div>
                         <div className="hm-card">
                             <div className="ops-grid-2" style={{ gap: 12 }}>
-                                <Field label="Hiring Manager Name" required error={errors.hiring_manager_name}>
+                                <Field
+                                    label="Hiring Manager Name"
+                                    required={knowHMDetails}
+                                    error={errors.hiring_manager_name}
+                                >
                                     <Input
+
                                         value={form.hiring_manager_name}
                                         onChange={set("hiring_manager_name")}
                                         placeholder="Hiring Manager name"
                                     />
                                 </Field>
-
-                                <Field label="Hiring Manager Email ID" required error={errors.hiring_manager_email}>
+                                <Field
+                                    label="Hiring Manager Email ID"
+                                    required={knowHMDetails}
+                                    error={errors.hiring_manager_email}
+                                >
                                     <Input
                                         type="email"
                                         value={form.hiring_manager_email}
@@ -627,17 +665,31 @@ export function OppForm({ initial, onSave, onCancel }) {
                                             set("hiring_manager_email")(val);
                                             setEmailError(validateEmail(val));
                                         }}
-                                        onBlur={() => setEmailError(validateEmail(form.hiring_manager_email))}
+                                        onBlur={() =>
+                                            setEmailError(
+                                                validateEmail(form.hiring_manager_email)
+                                            )
+                                        }
                                         placeholder="hm@company.com"
                                     />
                                     {emailError && (
-                                        <span style={{ fontSize: 12, color: "#dc2626", marginTop: 4, display: "block" }}>
+                                        <span
+                                            style={{
+                                                fontSize: 12,
+                                                color: "#dc2626",
+                                                marginTop: 4,
+                                                display: "block",
+                                            }}
+                                        >
                                             {emailError}
                                         </span>
                                     )}
                                 </Field>
-
-                                <Field label="Hiring Manager Phone Number" required error={errors.hiring_manager_phno}>
+                                <Field
+                                    label="Hiring Manager Phone Number"
+                                    required={knowHMDetails}
+                                    error={errors.hiring_manager_phno}
+                                >
                                     <Input
                                         type="tel"
                                         value={form.hiring_manager_phno}
@@ -645,14 +697,76 @@ export function OppForm({ initial, onSave, onCancel }) {
                                         placeholder="+1 (555) 000-0000"
                                     />
                                 </Field>
-
-                                <Field label="Hiring Manager Location" required error={errors.hiring_location}>
+                                <Field
+                                    label="Hiring Manager Location"
+                                    required={knowHMDetails}
+                                    error={errors.hiring_location}
+                                >
                                     <Input
                                         value={form.hiring_location}
                                         onChange={set("hiring_location")}
                                         placeholder="City / Office"
                                     />
                                 </Field>
+                                <Field
+                                    label="Client BU"
+                                    required={false}
+                                    error={errors.client_bu}
+                                >
+                                    <Input
+                                        value={form.client_bu}
+                                        onChange={set("client_bu")}
+                                        placeholder="Enter Client BU"
+                                    />
+                                </Field>
+                            </div>
+                            <div
+                                className="hm-checkbox"
+                                style={{
+                                    display: "flex",
+                                    justifyContent: "flex-end",
+                                    alignItems: "center",
+                                    gap: "8px",
+                                    marginTop: "12px",
+                                    marginBottom: "12px",
+                                    width: "100%",
+                                }}
+                            >
+                                <input
+                                    id="knowHMDetails"
+                                    type="checkbox"
+                                    checked={knowHMDetails}
+                                    onChange={(e) => {
+                                        const checked = e.target.checked;
+                                        setKnowHMDetails(checked);
+                                        setForm((prev) => ({
+                                            ...prev,
+                                            client_details: checked,
+                                        }));
+                                    }}
+                                    style={{ width: "auto", margin: 0 }}
+                                />
+                                {/* <input
+                                    id="knowHMDetails"
+                                    type="checkbox"
+                                    checked={knowHMDetails}
+                                    onChange={(e) => setKnowHMDetails(e.target.checked)}
+                                    style={{ width: "auto", margin: 0 }}
+                                /> */}
+                                <label
+                                    htmlFor="knowHMDetails"
+                                    style={{
+                                        margin: 0,
+                                        cursor: "pointer",
+                                        textTransform: "none",
+                                        letterSpacing: "normal",
+                                        fontSize: "13px",
+                                        fontWeight: 500,
+                                        color: "#475569",
+                                    }}
+                                >
+                                    Do you know Hiring Manager Details?
+                                </label>
                             </div>
                         </div>
                     </div>
@@ -660,9 +774,23 @@ export function OppForm({ initial, onSave, onCancel }) {
 
                 <div className="ot-form-footer">
                     <button className="btn-ghost" onClick={onCancel}>Cancel</button>
-                    <button className="ot-save-btn" onClick={handleSubmit} disabled={loading}>
-                        {loading ? "Saving..." : initial?.client ? "Update Opportunity" : "Save Opportunity"}
+                    <button
+                        className="ot-save-btn"
+                        onClick={handleSubmit}
+                        disabled={
+                            loading ||
+                            (knowHMDetails && !hmFieldsValid)
+                        }
+                    >
+                        {loading
+                            ? "Saving..."
+                            : initial?.client
+                                ? "Update Opportunity"
+                                : "Save Opportunity"}
                     </button>
+                    {/* <button className="ot-save-btn" onClick={handleSubmit} disabled={loading || (knowHMDetails && !hmFieldsValid)}>
+                        {loading ? "Saving..." : initial?.client ? "Update Opportunity" : "Save Opportunity"}
+                    </button> */}
                 </div>
             </div>
         </>

@@ -2638,3 +2638,15 @@ textarea {
     border-color: var(--ot-primary, #6366f1);
     box-shadow: 0 0 0 2px var(--ot-primary-light, #e0e7ff);
 }
+
+.hm-checkbox {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.hm-checkbox label {
+    margin: 0;
+}

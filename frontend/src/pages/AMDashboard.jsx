@@ -10,6 +10,7 @@ import { VERTICALS, HEADERS } from "../constants/StringConstants.js";
 import { GET_OPPORTUNITY, GET_OPPORTUNITY_BY_ID, GET_FINAL_SELECTION_PROFILES, GET_ON_BOARD_OFF_BOARD_PROFILES } from "../api/endpoints";
 import { OppForm, emptyOpportunity } from "../components/OpportunityTracker";
 import { fetchData } from "../api/clients";
+import OffboardingForm from "../components/OffBoardingForm";
 
 function fmt(d) {
   if (!d) return "—";
@@ -49,6 +50,7 @@ export default function AMDashboard({ user, onToast }) {
   const userRole = localStorage.getItem("role");
   const [selectedBU, setSelectedBU] = useState("");
   const [slideLoading, setSlideLoading] = useState(false);
+  const [showOffboardingForm, setShowOffboardingForm] = useState(false);
 
   const fetchOnboardOffboardProfiles = async () => {
     try {
@@ -479,7 +481,6 @@ export default function AMDashboard({ user, onToast }) {
               </div>
 
               {/* DETAILS PAGE */}
-              {/* DETAILS PAGE */}
               <div className={`details-page ${showDetailsPage ? "details-show" : "details-hide"}`}>
                 {showDetailsPage && (
                   slideLoading ? (
@@ -489,6 +490,31 @@ export default function AMDashboard({ user, onToast }) {
                     </div>
                   ) : selectedOpportunity ? (
                     <div className="details-content">
+                      {/* <div className="details-topbar">
+                        <button className="details-back-btn" onClick={() => setShowDetailsPage(false)}>
+                          ← Back
+                        </button>
+                        <h2>Opportunity Details</h2>
+                        <div style={{ display: "flex", gap: 8 }}>
+                          <button
+                            className="btn-edit"
+                            onClick={() => setEditingOpportunity(selectedOpportunity)}
+                            style={{
+                              marginTop: "17px",
+                              height: "36px",
+                              padding: "0 14px",
+                              fontSize: "13px",
+                              display: "inline-flex",
+                              alignItems: "center"
+                            }}
+                          >
+                            ✏️ Edit Opportunity
+                          </button>
+                          <button className="add-profile-btn" onClick={() => setShowProfilePopup(true)}>
+                            <span className="btn-plus">＋</span> Add Profile
+                          </button>
+                        </div>
+                      </div> */}
 
                       <div className="details-topbar">
                         <button className="details-back-btn" onClick={() => setShowDetailsPage(false)}>
@@ -496,6 +522,23 @@ export default function AMDashboard({ user, onToast }) {
                         </button>
                         <h2>Opportunity Details</h2>
                         <div style={{ display: "flex", gap: 8 }}>
+                          <button
+                            className="btn-edit"
+                            onClick={() => setShowOffboardingForm(true)}
+                            style={{
+                              marginTop: "17px",
+                              height: "36px",
+                              padding: "0 14px",
+                              fontSize: "13px",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              background: "#fff7ed",
+                              borderColor: "#fed7aa",
+                              color: "#ea580c",
+                            }}
+                          >
+                            📋 Offboarding
+                          </button>
                           <button
                             className="btn-edit"
                             onClick={() => setEditingOpportunity(selectedOpportunity)}
@@ -939,6 +982,42 @@ export default function AMDashboard({ user, onToast }) {
                   }}
                   onCancel={() => setEditingOnboardProfile(null)}
                 />
+              </div>
+            </div>
+          )}
+
+          {showOffboardingForm && (
+            <div className="modal-overlay" onClick={() => setShowOffboardingForm(false)}>
+              <div
+                className="modal"
+                style={{
+                  maxWidth: 720,
+                  width: "95%",
+                  maxHeight: "92vh",
+                  overflowY: "auto",
+                  padding: 0,
+                  borderRadius: 18,
+                  background: "#f8fafc",
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div style={{ padding: "16px 24px 0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span />
+                  <button
+                    onClick={() => setShowOffboardingForm(false)}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      fontSize: 20,
+                      cursor: "pointer",
+                      color: "#64748b",
+                      lineHeight: 1,
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+                <OffboardingForm />
               </div>
             </div>
           )}
