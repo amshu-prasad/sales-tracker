@@ -17,7 +17,7 @@ class OpportunitySchema(BaseModel):
     expected_start_date: str
     technical_poc: str
     priority: Optional[str] = None
-    doable_headcount: Optional[int] = None
+    doable_headcount: Optional[str] = None
     file_id: Optional[str] = None
     vertical: str
     open_status: Optional[list] = None
