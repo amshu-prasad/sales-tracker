@@ -1227,6 +1227,7 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
                                 <th>BU</th>
                                 <th>Skill</th>
                                 <th>Vertical</th>
+                                <th>Status</th>
                                 <th>SS Tech POC</th>
                                 <th>Experience</th>
                                 <th>Positions</th>
@@ -1251,6 +1252,7 @@ export default function OpportunityTracker({ onToast, setActiveForm }) {
                                     <td>{opp.BU || "—"}</td>
                                     <td>{opp.skill || "—"}</td>
                                     <td>{opp.vertical || "—"}</td>
+                                    <td>{opp.open_status || "—"}</td>
                                     <td>{opp.technical_poc || "—"}</td>
                                     <td>{opp.experience || "—"}</td>
                                     <td>{opp.no_of_positions || "—"}</td>
