@@ -16,11 +16,32 @@ export default function IndividualDetailsDashboard() {
         ["Partner", 1],
     ];
 
+    // const verticalData = [
+    //     ["Vertical", "Count"],
+    //     ["Embedded", 2],
+    //     ["VLSI", 1],
+    // ];
     const verticalData = [
-        ["Vertical", "Count"],
-        ["Embedded", 2],
-        ["VLSI", 1],
+        ["Vertical", "Count", { role: "annotation" }],
+        ["Embedded", 2, "2"],
+        ["VLSI", 1, "1"],
     ];
+
+    // function DynamicChart({ type, data }) {
+    //     return (
+    //         <Chart
+    //             chartType={type}
+    //             width="100%"
+    //             height="180px"
+    //             data={data}
+    //             options={{
+    //                 legend: { position: "top" },
+    //                 chartArea: { width: "80%", height: "70%" },
+    //                 pieHole: type === "PieChart" ? 0.4 : undefined,
+    //             }}
+    //         />
+    //     );
+    // }
 
     function DynamicChart({ type, data }) {
         return (
@@ -30,9 +51,38 @@ export default function IndividualDetailsDashboard() {
                 height="250px"
                 data={data}
                 options={{
-                    legend: { position: "top" },
-                    chartArea: { width: "80%", height: "70%" },
-                    pieHole: type === "PieChart" ? 0.4 : undefined,
+                    legend: "none",
+
+                    chartArea: {
+                        width: "85%",
+                        height: "75%",
+                        top: 20,
+                    },
+
+                    vAxis: {
+                        minValue: 0,
+                        textPosition: "none",
+                        gridlines: {
+                            color: "transparent",
+                        },
+                        baselineColor: "transparent",
+                    },
+
+                    annotations: {
+                        alwaysOutside: false,
+                        stem: {
+                            color: "transparent",
+                        },
+                        textStyle: {
+                            fontSize: 20,
+                            bold: true,
+                            color: "white", // visible inside bar
+                        },
+                    },
+
+                    bar: {
+                        groupWidth: "50%",
+                    },
                 }}
             />
         );
@@ -177,45 +227,6 @@ export default function IndividualDetailsDashboard() {
                     />
                 </div>
             </div>
-
-
-
-            {/* Individual Details */}
-            {/* <div className="dashboard-card">
-                <div className="dashboard-card-title">
-                    Individual Details
-                </div>
-
-                <div className="table-wrap">
-                    <table className="dashboard-table">
-                        <thead>
-                            <tr>
-                                <th>Employee ID</th>
-                                <th>Engineer</th>
-                                <th>Client</th>
-                                <th>Vertical</th>
-                                <th>Source</th>
-                                <th>Status</th>
-                                <th>Date</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            {employees.map((emp) => (
-                                <tr key={emp.emp_id}>
-                                    <td>{emp.emp_id}</td>
-                                    <td>{emp.engineer}</td>
-                                    <td>{emp.client}</td>
-                                    <td>{emp.vertical}</td>
-                                    <td>{emp.source}</td>
-                                    <td>{emp.status}</td>
-                                    <td>{emp.date}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div> */}
         </div>
     );
 }

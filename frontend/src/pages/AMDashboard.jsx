@@ -29,19 +29,51 @@ function getMonth(ds) {
 function DynamicChart({ type, data }) {
   return (
     <Chart
-      chartType={type}
+      chartType="ColumnChart"
       width="100%"
       height="250px"
-      data={data}
+      data={verticalData}
       options={{
-        legend: { position: "top" },
-        chartArea: { width: "80%", height: "70%" },
-        bars: "horizontal",
-        pieHole: type === "PieChart" ? 0.4 : undefined,
+        legend: { position: "none" },
+        annotations: {
+          alwaysOutside: false,
+          textStyle: {
+            fontSize: 20,
+            bold: true,
+            color: "white",
+          },
+        },
+        vAxis: {
+          textPosition: "none",
+          gridlines: { color: "transparent" },
+          baselineColor: "transparent",
+        },
+        chartArea: {
+          width: "85%",
+          height: "75%",
+        },
       }}
     />
   );
 }
+
+const selectionVsSourceData = [
+  ["Source", "Count", { role: "annotation" }],
+  ["Bench", 2, "2"],
+  ["Partner", 1, "1"],
+];
+
+const onboardingVsSourceData = [
+  ["Source", "Count", { role: "annotation" }],
+  ["Bench", 1, "1"],
+  ["Partner", 1, "1"],
+];
+
+const verticalData = [
+  ["Vertical", "Count", { role: "annotation" }],
+  ["Embedded", 2, "2"],
+  ["VLSI", 1, "1"],
+];
 
 
 export default function AMDashboard({ user, onToast }) {
@@ -100,24 +132,6 @@ export default function AMDashboard({ user, onToast }) {
       status: "Offboarded",
       date: "15-Jun-2025",
     },
-  ];
-
-  const selectionVsSourceData = [
-    ["Source", "Count"],
-    ["Bench", 2],
-    ["Partner", 1],
-  ];
-
-  const onboardingVsSourceData = [
-    ["Source", "Count"],
-    ["Bench", 1],
-    ["Partner", 1],
-  ];
-
-  const verticalData = [
-    ["Vertical", "Count"],
-    ["Embedded", 2],
-    ["VLSI", 1],
   ];
 
   const fetchOnboardOffboardProfiles = async () => {
