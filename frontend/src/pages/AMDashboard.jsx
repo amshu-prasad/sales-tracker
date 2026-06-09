@@ -11,6 +11,9 @@ import { GET_OPPORTUNITY, GET_OPPORTUNITY_BY_ID, GET_FINAL_SELECTION_PROFILES, G
 import { OppForm, emptyOpportunity } from "../components/OpportunityTracker";
 import { fetchData } from "../api/clients";
 import OffboardingForm from "../components/OffBoardingForm";
+import IndividualDetailsDashboard from "../components/IndividualDetailsDashboard.jsx";
+import { MONTHS } from "../constants/StringConstants";
+import { Chart } from "react-google-charts";
 
 function fmt(d) {
   if (!d) return "—";
@@ -23,6 +26,23 @@ function getWeek(ds) {
 function getMonth(ds) {
   try { const d = new Date(ds); return d.toLocaleString("en-GB", { month: "short", year: "2-digit" }).replace(" ", "'"); } catch { return ""; }
 }
+function DynamicChart({ type, data }) {
+  return (
+    <Chart
+      chartType={type}
+      width="100%"
+      height="250px"
+      data={data}
+      options={{
+        legend: { position: "top" },
+        chartArea: { width: "80%", height: "70%" },
+        bars: "horizontal",
+        pieHole: type === "PieChart" ? 0.4 : undefined,
+      }}
+    />
+  );
+}
+
 
 export default function AMDashboard({ user, onToast }) {
   const [tab, setTab] = useState("log");
@@ -51,6 +71,54 @@ export default function AMDashboard({ user, onToast }) {
   const [selectedBU, setSelectedBU] = useState("");
   const [slideLoading, setSlideLoading] = useState(false);
   const [showOffboardingForm, setShowOffboardingForm] = useState(false);
+
+  const employees = [
+    {
+      emp_id: "SS001",
+      engineer: "Rahul Sharma",
+      client: "Cisco",
+      vertical: "Embedded",
+      source: "Bench",
+      status: "Onboarded",
+      date: "10-Jun-2025",
+    },
+    {
+      emp_id: "SS002",
+      engineer: "Priya Nair",
+      client: "Qualcomm",
+      vertical: "VLSI",
+      source: "Partner",
+      status: "Selected",
+      date: "12-Jun-2025",
+    },
+    {
+      emp_id: "SS003",
+      engineer: "Arun Kumar",
+      client: "Bosch",
+      vertical: "Embedded",
+      source: "Bench",
+      status: "Offboarded",
+      date: "15-Jun-2025",
+    },
+  ];
+
+  const selectionVsSourceData = [
+    ["Source", "Count"],
+    ["Bench", 2],
+    ["Partner", 1],
+  ];
+
+  const onboardingVsSourceData = [
+    ["Source", "Count"],
+    ["Bench", 1],
+    ["Partner", 1],
+  ];
+
+  const verticalData = [
+    ["Vertical", "Count"],
+    ["Embedded", 2],
+    ["VLSI", 1],
+  ];
 
   const fetchOnboardOffboardProfiles = async () => {
     try {
@@ -103,21 +171,6 @@ export default function AMDashboard({ user, onToast }) {
       setLoading(false);
     }
   };
-
-  // const fetchOpportunityById = async (id) => {
-  //   try {
-  //     setLoading(true);
-  //     const url = `${GET_OPPORTUNITY_BY_ID}/${id}`;
-  //     const data = await fetchData(url);
-  //     setSelectedOpportunity(data.data || null);
-  //     setProfiles(data.data?.profiles || []);
-  //     setShowDetailsPage(true);
-  //   } catch (error) {
-  //     console.error("Fetch opportunity detail error:", error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
   const fetchOpportunityById = async (id) => {
     setSlideLoading(true);
@@ -250,12 +303,15 @@ export default function AMDashboard({ user, onToast }) {
       {userRole !== "Sb_Tracker_Admin" && (
         <div className="tab-bar">
           {[
-            ["log", "Employee Lifecycle Tracker"]
+            ["log", "Employee Lifecycle Tracker"],
+            ["am-tracker", "AM Tracker"],
+            ["bench-partner", "Bench Vs Partner"],
+            ["listing", "Listing"],
           ].map(([id, label]) => (
             <button
               key={id}
               className={`tab ${tab === id ? "active" : ""}`}
-              onClick={() => { setTab(id); if (id !== "log" && id !== "opps") load(); }}
+              onClick={() => setTab(id)}
             >
               {label}
             </button>
@@ -391,7 +447,7 @@ export default function AMDashboard({ user, onToast }) {
                     border: "#bfdbfe",
                     title: "On/Off-Boarding",
                     sub: "Update employee on/off-boarding status",
-                  },
+                  }
                 ].map(({ type, color, bg, border, title, sub }) => (
                   <div
                     key={type}
@@ -490,32 +546,6 @@ export default function AMDashboard({ user, onToast }) {
                     </div>
                   ) : selectedOpportunity ? (
                     <div className="details-content">
-                      {/* <div className="details-topbar">
-                        <button className="details-back-btn" onClick={() => setShowDetailsPage(false)}>
-                          ← Back
-                        </button>
-                        <h2>Opportunity Details</h2>
-                        <div style={{ display: "flex", gap: 8 }}>
-                          <button
-                            className="btn-edit"
-                            onClick={() => setEditingOpportunity(selectedOpportunity)}
-                            style={{
-                              marginTop: "17px",
-                              height: "36px",
-                              padding: "0 14px",
-                              fontSize: "13px",
-                              display: "inline-flex",
-                              alignItems: "center"
-                            }}
-                          >
-                            ✏️ Edit Opportunity
-                          </button>
-                          <button className="add-profile-btn" onClick={() => setShowProfilePopup(true)}>
-                            <span className="btn-plus">＋</span> Add Profile
-                          </button>
-                        </div>
-                      </div> */}
-
                       <div className="details-topbar">
                         <button className="details-back-btn" onClick={() => setShowDetailsPage(false)}>
                           ← Back
@@ -662,8 +692,6 @@ export default function AMDashboard({ user, onToast }) {
               </div>
             </div>
           )}
-
-
           {activeForm && activeForm !== "opportunity-status" && (
             activeForm === "on-off-boarding" ? (
               <div className="ops-container">
@@ -825,6 +853,10 @@ export default function AMDashboard({ user, onToast }) {
                   </div>
                 </div>
               </div>
+            ) : activeForm === "individual-details" ? (
+              <IndividualDetailsDashboard
+                onBack={() => setActiveForm(null)}
+              />
             ) : (
               <OpportunityTracker
                 type={activeForm}
@@ -1022,6 +1054,160 @@ export default function AMDashboard({ user, onToast }) {
             </div>
           )}
         </>
+      )}
+      {tab === "am-tracker" && (
+        <div className="ops-container">
+          <div className="ops-page slide-center">
+            <div className="ops-main-wrap">
+              <IndividualDetailsDashboard
+                onBack={() => setTab("log")}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+      {tab === "bench-partner" && (
+        <div className="ops-container">
+          <div className="ops-page slide-center">
+            <div className="ops-main-wrap">
+
+              {/* Filters */}
+              <div className="dashboard-filter-card">
+                <label>MONTH</label>
+                <select className="chart-select">
+                  <option value="">All Months</option>
+                  {MONTHS.map((month) => (
+                    <option key={month} value={month}>
+                      {month}
+                    </option>
+                  ))}
+                </select>
+
+                <label>WEEK</label>
+                <select className="chart-select">
+                  <option value="">All Weeks</option>
+                  <option value="W1">W1</option>
+                  <option value="W2">W2</option>
+                  <option value="W3">W3</option>
+                  <option value="W4">W4</option>
+                </select>
+
+                <label>FROM</label>
+                <input type="date" />
+
+                <label>TO</label>
+                <input type="date" />
+
+                <button>↻ Refresh</button>
+              </div>
+
+              {/* Charts */}
+              <div className="individual-dashboard-grid">
+                <div className="individual-chart-card">
+                  <div className="chart-header">
+                    <h3>Selections — Bench vs Partner</h3>
+                  </div>
+
+                  <div className="chart-wrapper">
+                    <DynamicChart
+                      type="ColumnChart"
+                      data={selectionVsSourceData}
+                    />
+                  </div>
+                </div>
+
+                <div className="individual-chart-card">
+                  <div className="chart-header">
+                    <h3>Onboardings — Bench vs Partner</h3>
+                  </div>
+
+                  <div className="chart-wrapper">
+                    <DynamicChart
+                      type="ColumnChart"
+                      data={onboardingVsSourceData}
+                    />
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
+
+      {tab === "listing" && (
+        <div className="ops-container">
+          <div className="ops-page slide-center">
+            <div className="ops-main-wrap">
+
+              <div className="dashboard-filter-card">
+                <label>MONTH</label>
+                <select className="chart-select">
+                  <option value="">All Months</option>
+                  {MONTHS.map((month) => (
+                    <option key={month} value={month}>
+                      {month}
+                    </option>
+                  ))}
+                </select>
+
+                <label>WEEK</label>
+                <select className="chart-select">
+                  <option value="">All Weeks</option>
+                  <option value="W1">W1</option>
+                  <option value="W2">W2</option>
+                  <option value="W3">W3</option>
+                  <option value="W4">W4</option>
+                </select>
+
+                <label>FROM</label>
+                <input type="date" />
+
+                <label>TO</label>
+                <input type="date" />
+
+                <button>↻ Refresh</button>
+              </div>
+
+              <div className="dashboard-card">
+                <div className="dashboard-card-title">
+                  Individual Details
+                </div>
+
+                <div className="table-wrap">
+                  <table className="dashboard-table">
+                    <thead>
+                      <tr>
+                        <th>Employee ID</th>
+                        <th>Engineer</th>
+                        <th>Client</th>
+                        <th>Vertical</th>
+                        <th>Source</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {employees.map((emp) => (
+                        <tr key={emp.emp_id}>
+                          <td>{emp.emp_id}</td>
+                          <td>{emp.engineer}</td>
+                          <td>{emp.client}</td>
+                          <td>{emp.vertical}</td>
+                          <td>{emp.source}</td>
+                          <td>{emp.status}</td>
+                          <td>{emp.date}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
