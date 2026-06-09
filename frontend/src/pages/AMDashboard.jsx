@@ -317,8 +317,8 @@ export default function AMDashboard({ user, onToast }) {
       {userRole !== "Sb_Tracker_Admin" && (
         <div className="tab-bar">
           {[
-            ["log", "Employee Lifecycle Tracker"],
-            ["am-tracker", "AM Tracker"],
+            ["log", "Business Opportunity"],
+            ["am-tracker", "Dashboard"],
             ["bench-partner", "Bench Vs Partner"],
             ["listing", "Listing"],
           ].map(([id, label]) => (
