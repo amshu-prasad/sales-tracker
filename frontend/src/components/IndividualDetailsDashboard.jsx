@@ -1,49 +1,8 @@
 import { useState } from "react";
 import { Chart } from "react-google-charts";
-import { MONTHS } from "../constants/StringConstants";
+import { MONTHS, CLIENTS } from "../constants/StringConstants";
 
-export default function IndividualDetailsDashboard() {
-
-    const selectionVsSourceData = [
-        ["Source", "Count"],
-        ["Bench", 2],
-        ["Partner", 1],
-    ];
-
-    const onboardingVsSourceData = [
-        ["Source", "Count"],
-        ["Bench", 1],
-        ["Partner", 1],
-    ];
-
-    // const verticalData = [
-    //     ["Vertical", "Count"],
-    //     ["Embedded", 2],
-    //     ["VLSI", 1],
-    // ];
-    const verticalData = [
-        ["Vertical", "Count", { role: "annotation" }],
-        ["Embedded", 2, "2"],
-        ["VLSI", 1, "1"],
-    ];
-
-    // function DynamicChart({ type, data }) {
-    //     return (
-    //         <Chart
-    //             chartType={type}
-    //             width="100%"
-    //             height="180px"
-    //             data={data}
-    //             options={{
-    //                 legend: { position: "top" },
-    //                 chartArea: { width: "80%", height: "70%" },
-    //                 pieHole: type === "PieChart" ? 0.4 : undefined,
-    //             }}
-    //         />
-    //     );
-    // }
-
-    function DynamicChart({ type, data }) {
+function DynamicChart({ type, data }) {
         return (
             <Chart
                 chartType={type}
@@ -87,6 +46,48 @@ export default function IndividualDetailsDashboard() {
             />
         );
     }
+    
+export default function IndividualDetailsDashboard() {
+
+    const selectionVsSourceData = [
+        ["Source", "Count"],
+        ["Bench", 2],
+        ["Partner", 1],
+    ];
+
+    const onboardingVsSourceData = [
+        ["Source", "Count"],
+        ["Bench", 1],
+        ["Partner", 1],
+    ];
+
+    // const verticalData = [
+    //     ["Vertical", "Count"],
+    //     ["Embedded", 2],
+    //     ["VLSI", 1],
+    // ];
+    const verticalData = [
+        ["Vertical", "Count", { role: "annotation" }],
+        ["Embedded", 2, "2"],
+        ["VLSI", 1, "1"],
+    ];
+
+    // function DynamicChart({ type, data }) {
+    //     return (
+    //         <Chart
+    //             chartType={type}
+    //             width="100%"
+    //             height="180px"
+    //             data={data}
+    //             options={{
+    //                 legend: { position: "top" },
+    //                 chartArea: { width: "80%", height: "70%" },
+    //                 pieHole: type === "PieChart" ? 0.4 : undefined,
+    //             }}
+    //         />
+    //     );
+    // }
+
     const [activeTab, setActiveTab] = useState("Individual Details");
 
     const employees = [
@@ -140,12 +141,59 @@ export default function IndividualDetailsDashboard() {
         (e) => e.status === "Selected"
     ).length;
 
+    const [filters, setFilters] = useState({
+        client: "",
+        month: "",
+        week: "",
+        from: "",
+        to: "",
+    });
+
+    const [appliedFilters, setAppliedFilters] = useState({});
+
+    const handleFilterChange = (key, value) => {
+        setFilters((prev) => ({
+            ...prev,
+            [key]: value,
+        }));
+    };
+
+    const handleSearch = () => {
+        const payload = Object.fromEntries(
+            Object.entries(filters).filter(
+                ([_, value]) => value !== ""
+            )
+        );
+
+        setAppliedFilters(payload);
+
+        console.log(payload);
+    };
+
     return (
         <div className="individual-dashboard">
             {/* Filters */}
             <div className="dashboard-filter-card">
+                <label>CLIENT</label>
+                <select
+                    className="chart-select"
+                    value={filters.client}
+                    onChange={(e) => handleFilterChange("client", e.target.value)}
+                >
+                    <option value="">All Clients</option>
+                    {CLIENTS.map((client) => (
+                        <option key={client} value={client}>
+                            {client}
+                        </option>
+                    ))}
+                </select>
+
                 <label>MONTH</label>
-                <select className="chart-select">
+                <select
+                    className="chart-select"
+                    value={filters.month}
+                    onChange={(e) => handleFilterChange("month", e.target.value)}
+                >
                     <option value="">All Months</option>
                     {MONTHS.map((month) => (
                         <option key={month} value={month}>
@@ -153,19 +201,38 @@ export default function IndividualDetailsDashboard() {
                         </option>
                     ))}
                 </select>
+
                 <label>WEEK</label>
-                <select className="chart-select">
+                <select
+                    className="chart-select"
+                    value={filters.week}
+                    onChange={(e) => handleFilterChange("week", e.target.value)}
+                >
                     <option value="">All Weeks</option>
                     <option value="W1">W1</option>
                     <option value="W2">W2</option>
                     <option value="W3">W3</option>
                     <option value="W4">W4</option>
                 </select>
+
                 <label>FROM</label>
-                <input type="date" />
-                <label>TO</label>
-                <input type="date" />
-                <button>↻ Refresh</button>
+                <input
+                    type="date"
+                    className="chart-select"
+                    value={filters.from}
+                    onChange={(e) => handleFilterChange("from", e.target.value)}
+                />
+
+                <input
+                    type="date"
+                    className="chart-select"
+                    value={filters.to}
+                    onChange={(e) => handleFilterChange("to", e.target.value)}
+                />
+
+                <div className="filter-button-container">
+                    <button onClick={handleSearch} className="search-btn">🔍 Search</button>
+                </div>
             </div>
 
             {/* Metrics */}

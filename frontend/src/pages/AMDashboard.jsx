@@ -1111,8 +1111,10 @@ export default function AMDashboard({ user, onToast }) {
 
                 <label>TO</label>
                 <input type="date" />
-
-                <button>↻ Refresh</button>
+                <div className="filter-button-container">
+                  <button className="search-btn">🔍 Search</button>
+                </div>
+                {/* <button>↻ Refresh</button> */}
               </div>
 
               {/* Charts */}
