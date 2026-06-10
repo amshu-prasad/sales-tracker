@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Chart } from "react-google-charts";
-import { MONTHS, CLIENTS } from "../constants/StringConstants";
+import { MONTHS, CLIENTS, VERTICALS } from "../constants/StringConstants";
 
 function DynamicChart({ type, data }) {
     return (
@@ -187,71 +187,6 @@ export default function IndividualDetailsDashboard() {
 
     return (
         <div className="individual-dashboard">
-            {/* Filters */}
-            <div className="dashboard-filter-card">
-                <label>CLIENT</label>
-                <select
-                    className="chart-select"
-                    value={filters.client}
-                    onChange={(e) => handleFilterChange("client", e.target.value)}
-                >
-                    <option value="">All Clients</option>
-                    {CLIENTS.map((client) => (
-                        <option key={client} value={client}>
-                            {client}
-                        </option>
-                    ))}
-                </select>
-
-                <label>MONTH</label>
-                <select
-                    className="chart-select"
-                    value={filters.month}
-                    onChange={(e) => handleFilterChange("month", e.target.value)}
-                >
-                    <option value="">All Months</option>
-                    {MONTHS.map((month) => (
-                        <option key={month} value={month}>
-                            {month}
-                        </option>
-                    ))}
-                </select>
-
-                <label>WEEK</label>
-                <select
-                    className="chart-select"
-                    value={filters.week}
-                    onChange={(e) => handleFilterChange("week", e.target.value)}
-                >
-                    <option value="">All Weeks</option>
-                    <option value="W1">W1</option>
-                    <option value="W2">W2</option>
-                    <option value="W3">W3</option>
-                    <option value="W4">W4</option>
-                </select>
-
-                <label>FROM</label>
-                <input
-                    type="date"
-                    className="chart-select"
-                    value={filters.from}
-                    onChange={(e) => handleFilterChange("from", e.target.value)}
-                />
-
-                <label>TO</label>
-                <input
-                    type="date"
-                    className="chart-select"
-                    value={filters.to}
-                    onChange={(e) => handleFilterChange("to", e.target.value)}
-                />
-
-                <div className="filter-button-container">
-                    <button onClick={handleSearch} className="search-btn">🔍 Search</button>
-                </div>
-            </div>
-
-            {/* Metrics */}
             <div className="headcount-summary">
                 <div
                     className="summary-item selections"

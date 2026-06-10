@@ -45,8 +45,8 @@ function DynamicChart({ type, data }) {
         },
         vAxis: {
           textPosition: "none",
-          gridlines: { color: "transparent" },
-          baselineColor: "transparent",
+          // gridlines: { color: "transparent" },
+          // baselineColor: "transparent",
         },
         chartArea: {
           width: "70%",
@@ -323,7 +323,7 @@ export default function AMDashboard({ user, onToast }) {
   };
 
   const [tabFilters, setTabFilters] = useState({
-    listing: { ...defaultFilters },
+    records: { ...defaultFilters },
     benchPartner: { ...defaultFilters },
     byClient: { ...defaultFilters },
     byVertical: { ...defaultFilters },
@@ -369,7 +369,7 @@ export default function AMDashboard({ user, onToast }) {
             ["by-am", "By Am"],
             ["by-client", "By Client"],
             ["by-vert", "By Vertical"],
-            ["listing", "Listing"],
+            ["records", "Records"],
           ].map(([id, label]) => (
             <button
               key={id}
@@ -1222,7 +1222,6 @@ export default function AMDashboard({ user, onToast }) {
                   >
                     🔍 Search
                   </button>                </div>
-                {/* <button>↻ Refresh</button> */}
               </div>
 
               {/* Charts */}
@@ -1259,7 +1258,7 @@ export default function AMDashboard({ user, onToast }) {
         </div>
       )}
 
-      {tab === "listing" && (
+      {tab === "records" && (
         <div className="ops-container">
           <div className="ops-page slide-center">
             <div className="ops-main-wrap">
@@ -1267,10 +1266,10 @@ export default function AMDashboard({ user, onToast }) {
                 <label>CLIENT</label>
                 <select
                   className="chart-select"
-                  value={tabFilters.listing.client}
+                  value={tabFilters.records.client}
                   onChange={(e) =>
                     handleFilterChange(
-                      "listing",
+                      "records",
                       "client",
                       e.target.value
                     )
@@ -1285,10 +1284,10 @@ export default function AMDashboard({ user, onToast }) {
                 <label>MONTH</label>
                 <select
                   className="chart-select"
-                  value={tabFilters.listing.month}
+                  value={tabFilters.records.month}
                   onChange={(e) =>
                     handleFilterChange(
-                      "listing",
+                      "records",
                       "month",
                       e.target.value
                     )
@@ -1304,10 +1303,10 @@ export default function AMDashboard({ user, onToast }) {
                 <label>WEEK</label>
                 <select
                   className="chart-select"
-                  value={tabFilters.listing.week}
+                  value={tabFilters.records.week}
                   onChange={(e) =>
                     handleFilterChange(
-                      "listing",
+                      "records",
                       "week",
                       e.target.value
                     )
@@ -1322,10 +1321,10 @@ export default function AMDashboard({ user, onToast }) {
                 <label>FROM</label>
                 <input
                   type="date"
-                  value={tabFilters.listing.from}
+                  value={tabFilters.records.from}
                   onChange={(e) =>
                     handleFilterChange(
-                      "listing",
+                      "records",
                       "from",
                       e.target.value
                     )
@@ -1334,10 +1333,10 @@ export default function AMDashboard({ user, onToast }) {
                 <label>TO</label>
                 <input
                   type="date"
-                  value={tabFilters.listing.to}
+                  value={tabFilters.records.to}
                   onChange={(e) =>
                     handleFilterChange(
-                      "listing",
+                      "records",
                       "to",
                       e.target.value
                     )
