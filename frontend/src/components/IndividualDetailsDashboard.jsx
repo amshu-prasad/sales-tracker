@@ -3,50 +3,58 @@ import { Chart } from "react-google-charts";
 import { MONTHS, CLIENTS } from "../constants/StringConstants";
 
 function DynamicChart({ type, data }) {
-        return (
-            <Chart
-                chartType={type}
-                width="100%"
-                height="250px"
-                data={data}
-                options={{
-                    legend: "none",
+    return (
+        <Chart
+            chartType={type}
+            width="100%"
+            height="320px"
+            data={data}
+            options={{
+                legend: "none",
 
-                    chartArea: {
-                        width: "85%",
-                        height: "75%",
-                        top: 20,
-                    },
+                chartArea: {
+                    width: "90%",
+                    height: "70%",
+                    top: 20,
+                    bottom: 70,
+                },
 
-                    vAxis: {
-                        minValue: 0,
-                        textPosition: "none",
-                        gridlines: {
-                            color: "transparent",
-                        },
-                        baselineColor: "transparent",
+                hAxis: {
+                    slantedText: true,
+                    slantedTextAngle: 35,
+                    textStyle: {
+                        fontSize: 12,
                     },
+                },
 
-                    annotations: {
-                        alwaysOutside: false,
-                        stem: {
-                            color: "transparent",
-                        },
-                        textStyle: {
-                            fontSize: 20,
-                            bold: true,
-                            color: "white", // visible inside bar
-                        },
-                    },
+                vAxis: {
+                    minValue: 0,
+                    textPosition: "none",
+                    // gridlines: {
+                    //     color: "transparent",
+                    // },
+                    // baselineColor: "transparent",
+                },
 
-                    bar: {
-                        groupWidth: "50%",
+                annotations: {
+                    alwaysOutside: true,
+                    stem: {
+                        color: "transparent",
                     },
-                }}
-            />
-        );
-    }
-    
+                    textStyle: {
+                        fontSize: 14,
+                        bold: true,
+                        color: "#000",
+                    },
+                },
+
+                bar: {
+                    groupWidth: "60%",
+                },
+            }}
+        />
+    );
+}
 export default function IndividualDetailsDashboard() {
 
     const selectionVsSourceData = [
@@ -69,7 +77,14 @@ export default function IndividualDetailsDashboard() {
     const verticalData = [
         ["Vertical", "Count", { role: "annotation" }],
         ["Embedded", 2, "2"],
-        ["VLSI", 1, "1"],
+        ["RTL", 2, "2"],
+        ["DFT", 12, "12"],
+        ["VLSI", 10, "10"],
+        ["DV", 6, "6"],
+        ["AD", 5, "5"],
+        ["AL", 16, "16"],
+        ["PSV", 26, "26"],
+        ["Emulation & Verification", 19, "19"],
     ];
 
     // function DynamicChart({ type, data }) {
@@ -223,6 +238,7 @@ export default function IndividualDetailsDashboard() {
                     onChange={(e) => handleFilterChange("from", e.target.value)}
                 />
 
+                <label>TO</label>
                 <input
                     type="date"
                     className="chart-select"

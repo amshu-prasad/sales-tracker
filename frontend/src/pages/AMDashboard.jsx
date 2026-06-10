@@ -6,7 +6,7 @@ import OpportunityTracker from "../components/OpportunityTracker";
 import OpportunityStatusForm from "../components/OpportunityStatusForm";
 import SelectionEditForm from "../components/SelectionEditForm.jsx";
 import { CSVLink } from "react-csv";
-import { VERTICALS, HEADERS } from "../constants/StringConstants.js";
+import { VERTICALS, HEADERS, CLIENTS } from "../constants/StringConstants.js";
 import { GET_OPPORTUNITY, GET_OPPORTUNITY_BY_ID, GET_FINAL_SELECTION_PROFILES, GET_ON_BOARD_OFF_BOARD_PROFILES } from "../api/endpoints";
 import { OppForm, emptyOpportunity } from "../components/OpportunityTracker";
 import { fetchData } from "../api/clients";
@@ -49,7 +49,7 @@ function DynamicChart({ type, data }) {
           baselineColor: "transparent",
         },
         chartArea: {
-          width: "85%",
+          width: "70%",
           height: "75%",
         },
       }}
@@ -72,7 +72,10 @@ const onboardingVsSourceData = [
 const verticalData = [
   ["Vertical", "Count", { role: "annotation" }],
   ["Embedded", 2, "2"],
-  ["VLSI", 1, "1"],
+  ["RTL", 2, "2"],
+  ["DFT", 12, "12"],
+  ["VLSI", 10, "10"],
+  ["DV", 6, "6"],
 ];
 
 
@@ -311,7 +314,49 @@ export default function AMDashboard({ user, onToast }) {
     };
     return map[s] || "";
   }
+  const defaultFilters = {
+    client: "",
+    month: "",
+    week: "",
+    from: "",
+    to: "",
+  };
 
+  const [tabFilters, setTabFilters] = useState({
+    listing: { ...defaultFilters },
+    benchPartner: { ...defaultFilters },
+    byClient: { ...defaultFilters },
+    byVertical: { ...defaultFilters },
+    byAm: { ...defaultFilters },
+    weekYear: { ...defaultFilters },
+  });
+
+  const [appliedFilters, setAppliedFilters] = useState({});
+
+  const handleFilterChange = (tabName, key, value) => {
+    setTabFilters((prev) => ({
+      ...prev,
+      [tabName]: {
+        ...prev[tabName],
+        [key]: value,
+      },
+    }));
+  };
+
+  const handleSearch = (tabName) => {
+    const payload = Object.fromEntries(
+      Object.entries(tabFilters[tabName]).filter(
+        ([_, value]) => value !== ""
+      )
+    );
+
+    setAppliedFilters((prev) => ({
+      ...prev,
+      [tabName]: payload,
+    }));
+
+    console.log(`${tabName} filters`, payload);
+  };
   return (
     <div className="page">
       {userRole !== "Sb_Tracker_Admin" && (
@@ -320,6 +365,10 @@ export default function AMDashboard({ user, onToast }) {
             ["log", "Business Opportunity"],
             ["am-tracker", "Dashboard"],
             ["bench-partner", "Bench Vs Partner"],
+            ["AMrollup", "Week → Year"],
+            ["by-am", "By Am"],
+            ["by-client", "By Client"],
+            ["by-vert", "By Vertical"],
             ["listing", "Listing"],
           ].map(([id, label]) => (
             <button
@@ -1087,9 +1136,36 @@ export default function AMDashboard({ user, onToast }) {
 
               {/* Filters */}
               <div className="dashboard-filter-card">
+                <label>CLIENT</label>
+                <select
+                  className="chart-select"
+                  value={tabFilters.benchPartner.client}
+                  onChange={(e) =>
+                    handleFilterChange(
+                      "benchPartner",
+                      "client",
+                      e.target.value
+                    )
+                  }                >
+                  <option value="">All Clients</option>
+                  {CLIENTS.map((client) => (
+                    <option key={client} value={client}>
+                      {client}
+                    </option>
+                  ))}
+                </select>
                 <label>MONTH</label>
-                <select className="chart-select">
-                  <option value="">All Months</option>
+                <select
+                  className="chart-select"
+                  value={tabFilters.benchPartner.month}
+                  onChange={(e) =>
+                    handleFilterChange(
+                      "benchPartner",
+                      "month",
+                      e.target.value
+                    )
+                  }
+                >                  <option value="">All Months</option>
                   {MONTHS.map((month) => (
                     <option key={month} value={month}>
                       {month}
@@ -1098,7 +1174,17 @@ export default function AMDashboard({ user, onToast }) {
                 </select>
 
                 <label>WEEK</label>
-                <select className="chart-select">
+                <select
+                  className="chart-select"
+                  value={tabFilters.benchPartner.week}
+                  onChange={(e) =>
+                    handleFilterChange(
+                      "benchPartner",
+                      "week",
+                      e.target.value
+                    )
+                  }
+                >
                   <option value="">All Weeks</option>
                   <option value="W1">W1</option>
                   <option value="W2">W2</option>
@@ -1107,13 +1193,35 @@ export default function AMDashboard({ user, onToast }) {
                 </select>
 
                 <label>FROM</label>
-                <input type="date" />
-
+                <input
+                  type="date"
+                  value={tabFilters.benchPartner.from}
+                  onChange={(e) =>
+                    handleFilterChange(
+                      "benchPartner",
+                      "from",
+                      e.target.value
+                    )
+                  }
+                />
                 <label>TO</label>
-                <input type="date" />
-                <div className="filter-button-container">
-                  <button className="search-btn">🔍 Search</button>
-                </div>
+                <input
+                  type="date"
+                  value={tabFilters.benchPartner.to}
+                  onChange={(e) =>
+                    handleFilterChange(
+                      "benchPartner",
+                      "to",
+                      e.target.value
+                    )
+                  }
+                />                <div className="filter-button-container">
+                  <button
+                    className="search-btn"
+                    onClick={() => handleSearch("benchPartner")}
+                  >
+                    🔍 Search
+                  </button>                </div>
                 {/* <button>↻ Refresh</button> */}
               </div>
 
@@ -1155,11 +1263,37 @@ export default function AMDashboard({ user, onToast }) {
         <div className="ops-container">
           <div className="ops-page slide-center">
             <div className="ops-main-wrap">
-
               <div className="dashboard-filter-card">
+                <label>CLIENT</label>
+                <select
+                  className="chart-select"
+                  value={tabFilters.listing.client}
+                  onChange={(e) =>
+                    handleFilterChange(
+                      "listing",
+                      "client",
+                      e.target.value
+                    )
+                  }                >
+                  <option value="">All Clients</option>
+                  {CLIENTS.map((client) => (
+                    <option key={client} value={client}>
+                      {client}
+                    </option>
+                  ))}
+                </select>
                 <label>MONTH</label>
-                <select className="chart-select">
-                  <option value="">All Months</option>
+                <select
+                  className="chart-select"
+                  value={tabFilters.listing.month}
+                  onChange={(e) =>
+                    handleFilterChange(
+                      "listing",
+                      "month",
+                      e.target.value
+                    )
+                  }
+                >                  <option value="">All Months</option>
                   {MONTHS.map((month) => (
                     <option key={month} value={month}>
                       {month}
@@ -1168,8 +1302,17 @@ export default function AMDashboard({ user, onToast }) {
                 </select>
 
                 <label>WEEK</label>
-                <select className="chart-select">
-                  <option value="">All Weeks</option>
+                <select
+                  className="chart-select"
+                  value={tabFilters.listing.week}
+                  onChange={(e) =>
+                    handleFilterChange(
+                      "listing",
+                      "week",
+                      e.target.value
+                    )
+                  }
+                >                  <option value="">All Weeks</option>
                   <option value="W1">W1</option>
                   <option value="W2">W2</option>
                   <option value="W3">W3</option>
@@ -1177,11 +1320,29 @@ export default function AMDashboard({ user, onToast }) {
                 </select>
 
                 <label>FROM</label>
-                <input type="date" />
-
+                <input
+                  type="date"
+                  value={tabFilters.listing.from}
+                  onChange={(e) =>
+                    handleFilterChange(
+                      "listing",
+                      "from",
+                      e.target.value
+                    )
+                  }
+                />
                 <label>TO</label>
-                <input type="date" />
-
+                <input
+                  type="date"
+                  value={tabFilters.listing.to}
+                  onChange={(e) =>
+                    handleFilterChange(
+                      "listing",
+                      "to",
+                      e.target.value
+                    )
+                  }
+                />
                 <button>↻ Refresh</button>
               </div>
 

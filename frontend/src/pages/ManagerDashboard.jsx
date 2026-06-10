@@ -95,7 +95,7 @@ export default function ManagerDashboard({ onToast }) {
   return (
     <div className="page">
       <div className="tab-bar">
-        {[["summary", "Summary"], ["my-records", "All Records"], ["rollup", "Week → Year"], ["by-am", "By AM"], ["by-client", "By Client"], ["by-vert", "By Vertical"]].map(([id, label]) => (
+        {[["summary", "Summary"], ["by-am", "By AM"], ["by-client", "By Client"], ["by-vert", "By Vertical"], ["rollup", "Week → Year"], ["my-records", "All Records"]].map(([id, label]) => (
           <button key={id} className={`tab ${tab === id ? "active" : ""}`} onClick={() => setTab(id)}>{label}</button>
         ))}
       </div>
