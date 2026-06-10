@@ -583,11 +583,11 @@ export function OppForm({ initial, onSave, onCancel }) {
                             />
                         </Field>
 
-                        <Field label="JD Description" error={errors.jd_description}>
+                        <Field label="JD Description" error={errors.job_desc}>
                             <textarea
                                 className="ot-textarea"
-                                value={form.jd_description}
-                                onChange={(e) => set("jd_description")(e.target.value)}
+                                value={form.job_desc}
+                                onChange={(e) => set("job_desc")(e.target.value)}
                                 placeholder="Paste or type the job description here…"
                                 rows={5}
                             />

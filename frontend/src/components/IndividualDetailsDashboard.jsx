@@ -7,18 +7,16 @@ function DynamicChart({ type, data }) {
         <Chart
             chartType={type}
             width="100%"
-            height="320px"
+            height="180px"
             data={data}
             options={{
                 legend: "none",
-
                 chartArea: {
-                    width: "90%",
+                    width: "80%",
                     height: "70%",
                     top: 20,
-                    bottom: 70,
+                    bottom: 80,
                 },
-
                 hAxis: {
                     slantedText: true,
                     slantedTextAngle: 35,
@@ -26,16 +24,10 @@ function DynamicChart({ type, data }) {
                         fontSize: 12,
                     },
                 },
-
                 vAxis: {
                     minValue: 0,
                     textPosition: "none",
-                    // gridlines: {
-                    //     color: "transparent",
-                    // },
-                    // baselineColor: "transparent",
                 },
-
                 annotations: {
                     alwaysOutside: true,
                     stem: {
@@ -47,14 +39,14 @@ function DynamicChart({ type, data }) {
                         color: "#000",
                     },
                 },
-
                 bar: {
-                    groupWidth: "60%",
+                    groupWidth: "15%",
                 },
             }}
         />
     );
 }
+
 export default function IndividualDetailsDashboard() {
 
     const selectionVsSourceData = [
@@ -86,22 +78,6 @@ export default function IndividualDetailsDashboard() {
         ["PSV", 26, "26"],
         ["Emulation & Verification", 19, "19"],
     ];
-
-    // function DynamicChart({ type, data }) {
-    //     return (
-    //         <Chart
-    //             chartType={type}
-    //             width="100%"
-    //             height="180px"
-    //             data={data}
-    //             options={{
-    //                 legend: { position: "top" },
-    //                 chartArea: { width: "80%", height: "70%" },
-    //                 pieHole: type === "PieChart" ? 0.4 : undefined,
-    //             }}
-    //         />
-    //     );
-    // }
 
     const [activeTab, setActiveTab] = useState("Individual Details");
 

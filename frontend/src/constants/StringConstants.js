@@ -107,6 +107,8 @@ export const PROFILE_STATUSES = [
     "Interview Reject",
     "Final Selection",
     "Final Rejection",
+    "Profile Submitted",
+    "Client Feedback Pending"
 ];
 
 export const OPEN_STATUSES = ["Open", "Closed by SS", "Closed by Others", "Client Hold","Low Priority by SS", "Low Priority by Client"];

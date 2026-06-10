@@ -31,26 +31,40 @@ function DynamicChart({ type, data }) {
     <Chart
       chartType="ColumnChart"
       width="100%"
-      height="250px"
+      height="180px"
       data={verticalData}
       options={{
         legend: { position: "none" },
-        annotations: {
-          alwaysOutside: false,
+        chartArea: {
+          width: "80%",
+          height: "70%",
+          top: 20,
+          bottom: 50,
+        },
+        hAxis: {
+          slantedText: true,
+          slantedTextAngle: 35,
           textStyle: {
-            fontSize: 20,
-            bold: true,
-            color: "white",
+            fontSize: 12,
           },
         },
         vAxis: {
+          minValue: 0,
           textPosition: "none",
-          // gridlines: { color: "transparent" },
-          // baselineColor: "transparent",
         },
-        chartArea: {
-          width: "70%",
-          height: "75%",
+        annotations: {
+          alwaysOutside: true,
+          stem: {
+            color: "transparent",
+          },
+          textStyle: {
+            fontSize: 14,
+            bold: true,
+            color: "#000",
+          },
+        },
+        bar: {
+          groupWidth: "15%",
         },
       }}
     />
@@ -364,7 +378,7 @@ export default function AMDashboard({ user, onToast }) {
           {[
             ["log", "Business Opportunity"],
             ["am-tracker", "Dashboard"],
-            ["bench-partner", "Bench Vs Partner"],
+            ["bench-partner", "By Source"],
             ["AMrollup", "Week → Year"],
             ["by-am", "By Am"],
             ["by-client", "By Client"],
@@ -1215,20 +1229,22 @@ export default function AMDashboard({ user, onToast }) {
                       e.target.value
                     )
                   }
-                />                <div className="filter-button-container">
+                />
+                <div className="filter-button-container">
                   <button
                     className="search-btn"
                     onClick={() => handleSearch("benchPartner")}
                   >
                     🔍 Search
-                  </button>                </div>
+                  </button>
+                </div>
               </div>
 
               {/* Charts */}
               <div className="individual-dashboard-grid">
                 <div className="individual-chart-card">
                   <div className="chart-header">
-                    <h3>Selections — Bench vs Partner</h3>
+                    <h3>Selections — By Source</h3>
                   </div>
 
                   <div className="chart-wrapper">
@@ -1241,7 +1257,7 @@ export default function AMDashboard({ user, onToast }) {
 
                 <div className="individual-chart-card">
                   <div className="chart-header">
-                    <h3>Onboardings — Bench vs Partner</h3>
+                    <h3>Onboardings — By Source</h3>
                   </div>
 
                   <div className="chart-wrapper">

@@ -136,7 +136,7 @@ export default function ManagerDashboard({ onToast }) {
             {/* Selections */}
             <div className="card">
               <div className="flex justify-between items-center mb-2">
-                <h3>Selections — Bench vs Partner</h3>
+                <h3>Selections — By Source</h3>
 
                 <select value={selChart} onChange={(e) => setSelChart(e.target.value)}>
                   <option value="ColumnChart">Bar</option>
@@ -158,7 +158,7 @@ export default function ManagerDashboard({ onToast }) {
             {/* Onboardings */}
             <div className="card">
               <div className="flex justify-between items-center mb-2">
-                <h3>Onboardings — Bench vs Partner</h3>
+                <h3>Onboardings — By Source</h3>
 
                 <select value={obChart} onChange={(e) => setObChart(e.target.value)}>
                   <option value="BarChart">Bar</option>
