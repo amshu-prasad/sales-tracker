@@ -85,10 +85,9 @@ const onboardingVsSourceData = [
 
 const verticalData = [
   ["Vertical", "Count", { role: "annotation" }],
-  ["Embedded", 2, "2"],
+  ["EMB", 2, "2"],
   ["RTL", 2, "2"],
   ["DFT", 12, "12"],
-  ["VLSI", 10, "10"],
   ["DV", 6, "6"],
 ];
 
@@ -371,6 +370,19 @@ export default function AMDashboard({ user, onToast }) {
 
     console.log(`${tabName} filters`, payload);
   };
+
+  const onboarded = employees.filter(
+    (e) => e.status === "Onboarded"
+  ).length;
+
+  const offboarded = employees.filter(
+    (e) => e.status === "Offboarded"
+  ).length;
+
+  const selected = employees.filter(
+    (e) => e.status === "Selected"
+  ).length;
+
   return (
     <div className="page">
       {userRole !== "Sb_Tracker_Admin" && (
@@ -378,11 +390,7 @@ export default function AMDashboard({ user, onToast }) {
           {[
             ["log", "Business Opportunity"],
             ["am-tracker", "Dashboard"],
-            ["bench-partner", "By Source"],
-            ["AMrollup", "Week → Year"],
-            ["by-am", "By Am"],
-            ["by-client", "By Client"],
-            ["by-vert", "By Vertical"],
+            ["by-filters", "Filters"],
             ["records", "Records"],
           ].map(([id, label]) => (
             <button
@@ -1323,92 +1331,414 @@ export default function AMDashboard({ user, onToast }) {
           </div>
         </div>
       )}
+      {tab === "by-filters" && (
+        <div className="filters-page">
+          {/* Left Filter Panel */}
+          <div className="filters-sidebar">
+            <h3>Filters</h3>
 
+            <div className="filter-group">
+              <label
+                style={{
+                  fontSize: "11px",
+                  fontWeight: "600",
+                  color: "#64748B",
+                  display: "block",
+                  marginBottom: "-1px",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                CLIENT
+              </label>
+              <select className="chart-select" >
+                <option>Select Client</option>
+                {CLIENTS.map((client) => (
+                  <option key={client}>{client}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="filter-group">
+              <label
+                style={{
+                  fontSize: "11px",
+                  fontWeight: "600",
+                  color: "#64748B",
+                  display: "block",
+                  marginBottom: "-1px",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                VERTICAL
+              </label>
+              <select className="chart-select" >
+                <option>Select Vertical</option>
+                {VERTICALS.map((vertical) => (
+                  <option key={vertical}>{vertical}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="filter-group" >
+              <label
+                style={{
+                  fontSize: "11px",
+                  fontWeight: "600",
+                  color: "#64748B",
+                  display: "block",
+                  marginBottom: "-1px",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                ACCOUNT MANAGER
+              </label>
+              <select className="chart-select">
+                <option>Select AM</option>
+                <option>AM 1</option>
+                <option>AM 2</option>
+              </select>
+            </div>
+
+            <div className="filter-group" >
+              <label
+                style={{
+                  fontSize: "11px",
+                  fontWeight: "600",
+                  color: "#64748B",
+                  display: "block",
+                  marginBottom: "-1px",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                SOURCE
+              </label>
+              <select className="chart-select">
+                <option>Select Source</option>
+                <option>Bench</option>
+                <option>Partner</option>
+              </select>
+            </div>
+
+            <div className="filter-group">
+              <label
+                style={{
+                  fontSize: "11px",
+                  fontWeight: "600",
+                  color: "#64748B",
+                  display: "block",
+                  marginBottom: "-1px",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                FROM DATE
+              </label>
+              <input type="date" className="chart-select" />
+            </div>
+
+            <div className="filter-group" >
+              <label
+                style={{
+                  fontSize: "11px",
+                  fontWeight: "600",
+                  color: "#64748B",
+                  display: "block",
+                  marginBottom: "-1px",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                TO DATE
+              </label>
+              <input type="date" className="chart-select" />
+            </div>
+
+            <button
+              className="search-btn"
+              style={{
+                width: "100%",
+                height: "42px",
+                border: "none",
+                borderRadius: "10px",
+                background: "linear-gradient(135deg, #6366F1, #4F46E5)",
+                color: "#ffffff",
+                fontSize: "14px",
+                fontWeight: "600",
+                cursor: "pointer",
+                boxShadow: "0 4px 12px rgba(99,102,241,0.25)",
+              }}
+            >
+              Search
+            </button>
+          </div>
+
+
+          {/* Right Graph Section */}
+          <div className="filters-content">
+            {/* Summary Row */}
+            <div className="headcount-summary">
+              <div
+                className="summary-item"
+                style={{ backgroundColor: "#EEF2FF" }}
+              >
+                <div className="summary-title">#DEMANDS</div>
+                <div className="summary-value">{selected}</div>
+                <div
+                  className="summary-bar"
+                  style={{ backgroundColor: "#6366F1" }}
+                ></div>
+              </div>
+
+              <div
+                className="summary-item"
+                style={{ backgroundColor: "#ECFDF5" }}
+              >
+                <div className="summary-title">#POSITIONS</div>
+                <div className="summary-value">{selected}</div>
+                <div
+                  className="summary-bar"
+                  style={{ backgroundColor: "#10B981" }}
+                ></div>
+              </div>
+
+              <div
+                className="summary-item"
+                style={{ backgroundColor: "#FFF7ED" }}
+              >
+                <div className="summary-title">#SELECTIONS</div>
+                <div className="summary-value">{selected}</div>
+                <div
+                  className="summary-bar"
+                  style={{ backgroundColor: "#F97316" }}
+                ></div>
+              </div>
+
+              <div
+                className="summary-item"
+                style={{ backgroundColor: "#EFF6FF" }}
+              >
+                <div className="summary-title">#ONBOARDED</div>
+                <div className="summary-value">{onboarded}</div>
+                <div
+                  className="summary-bar"
+                  style={{ backgroundColor: "#3B82F6" }}
+                ></div>
+              </div>
+
+              <div
+                className="summary-item"
+                style={{ backgroundColor: "#FEF2F2" }}
+              >
+                <div className="summary-title">#OFFBOARDED</div>
+                <div className="summary-value">{offboarded}</div>
+                <div
+                  className="summary-bar"
+                  style={{ backgroundColor: "#EF4444" }}
+                ></div>
+              </div>
+
+              <div
+                className="summary-item"
+                style={{ backgroundColor: "#F5F3FF" }}
+              >
+                <div className="summary-title">#NET ADDS</div>
+                <div className="summary-value">{onboarded - offboarded}</div>
+                <div
+                  className="summary-bar"
+                  style={{ backgroundColor: "#8B5CF6" }}
+                ></div>
+              </div>
+            </div>
+
+            {/* Charts Row */}
+            <div className="individual-dashboard-grid">
+              <div className="individual-chart-card">
+                <div className="chart-header">
+                  <h3>Selections — By Source</h3>
+                </div>
+
+                <div className="chart-wrapper">
+                  <DynamicChart
+                    type="ColumnChart"
+                    data={selectionVsSourceData}
+                  />
+                </div>
+              </div>
+
+              <div className="individual-chart-card">
+                <div className="chart-header">
+                  <h3>Onboardings — By Source</h3>
+                </div>
+
+                <div className="chart-wrapper">
+                  <DynamicChart
+                    type="ColumnChart"
+                    data={onboardingVsSourceData}
+                  />
+                </div>
+              </div>
+
+              <div className="individual-chart-card">
+                <div className="chart-header">
+                  <h3>Bench vs Partner</h3>
+                </div>
+
+                <div className="chart-wrapper">
+                  <DynamicChart
+                    type="PieChart"
+                    data={selectionVsSourceData}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {tab === "records" && (
         <div className="ops-container">
           <div className="ops-page slide-center">
             <div className="ops-main-wrap">
-              <div className="dashboard-filter-card">
-                <label>CLIENT</label>
-                <select
-                  className="chart-select"
-                  value={tabFilters.records.client}
-                  onChange={(e) =>
-                    handleFilterChange(
-                      "records",
-                      "client",
-                      e.target.value
-                    )
-                  }                >
-                  <option value="">All Clients</option>
-                  {CLIENTS.map((client) => (
-                    <option key={client} value={client}>
-                      {client}
-                    </option>
-                  ))}
-                </select>
-                <label>MONTH</label>
-                <select
-                  className="chart-select"
-                  value={tabFilters.records.month}
-                  onChange={(e) =>
-                    handleFilterChange(
-                      "records",
-                      "month",
-                      e.target.value
-                    )
-                  }
-                >                  <option value="">All Months</option>
-                  {MONTHS.map((month) => (
-                    <option key={month} value={month}>
-                      {month}
-                    </option>
-                  ))}
-                </select>
+              <div className="ops-main-wrap">
+                {/* Filters */}
+                <div
+                  className="dashboard-filter-card"
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(3, 1fr)",
+                    gap: "16px",
+                    width: "100%",
+                  }}
+                >
+                  <div>
+                    <label>CLIENT</label>
+                    <select
+                      className="chart-select"
+                      value={tabFilters.benchPartner.client}
+                      onChange={(e) =>
+                        handleFilterChange(
+                          "benchPartner",
+                          "client",
+                          e.target.value
+                        )
+                      }
+                    >
+                      <option value="">All Clients</option>
+                      {CLIENTS.map((client) => (
+                        <option key={client} value={client}>
+                          {client}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label>VERTICAL</label>
+                    <select
+                      className="chart-select"
+                      value={tabFilters.benchPartner.vertical}
+                      onChange={(e) =>
+                        handleFilterChange(
+                          "benchPartner",
+                          "vertical",
+                          e.target.value
+                        )
+                      }
+                    >
+                      <option value="">All Verticals</option>
+                      {VERTICALS.map((vertical) => (
+                        <option key={vertical} value={vertical}>
+                          {vertical}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label>MONTH</label>
+                    <select
+                      className="chart-select"
+                      value={tabFilters.benchPartner.month}
+                      onChange={(e) =>
+                        handleFilterChange(
+                          "benchPartner",
+                          "month",
+                          e.target.value
+                        )
+                      }
+                    >
+                      <option value="">All Months</option>
+                      {MONTHS.map((month) => (
+                        <option key={month} value={month}>
+                          {month}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-                <label>WEEK</label>
-                <select
-                  className="chart-select"
-                  value={tabFilters.records.week}
-                  onChange={(e) =>
-                    handleFilterChange(
-                      "records",
-                      "week",
-                      e.target.value
-                    )
-                  }
-                >                  <option value="">All Weeks</option>
-                  <option value="W1">W1</option>
-                  <option value="W2">W2</option>
-                  <option value="W3">W3</option>
-                  <option value="W4">W4</option>
-                </select>
+                  <div>
+                    <label>WEEK</label>
+                    <select
+                      className="chart-select"
+                      value={tabFilters.benchPartner.week}
+                      onChange={(e) =>
+                        handleFilterChange(
+                          "benchPartner",
+                          "week",
+                          e.target.value
+                        )
+                      }
+                    >
+                      <option value="">All Weeks</option>
+                      <option value="W1">W1</option>
+                      <option value="W2">W2</option>
+                      <option value="W3">W3</option>
+                      <option value="W4">W4</option>
+                    </select>
+                  </div>
 
-                <label>FROM</label>
-                <input
-                  type="date"
-                  value={tabFilters.records.from}
-                  onChange={(e) =>
-                    handleFilterChange(
-                      "records",
-                      "from",
-                      e.target.value
-                    )
-                  }
-                />
-                <label>TO</label>
-                <input
-                  type="date"
-                  value={tabFilters.records.to}
-                  onChange={(e) =>
-                    handleFilterChange(
-                      "records",
-                      "to",
-                      e.target.value
-                    )
-                  }
-                />
-                <button>↻ Refresh</button>
+                  <div>
+                    <label>FROM</label>
+                    <input
+                      type="date"
+                      className="chart-select"
+                      value={tabFilters.benchPartner.from}
+                      onChange={(e) =>
+                        handleFilterChange(
+                          "benchPartner",
+                          "from",
+                          e.target.value
+                        )
+                      }
+                    />
+                  </div>
+
+                  <div>
+                    <label>TO</label>
+                    <input
+                      type="date"
+                      className="chart-select"
+                      value={tabFilters.benchPartner.to}
+                      onChange={(e) =>
+                        handleFilterChange(
+                          "benchPartner",
+                          "to",
+                          e.target.value
+                        )
+                      }
+                    />
+                  </div>
+
+                  <div
+                    style={{
+                      gridColumn: "1 / -1",
+                      display: "flex",
+                      justifyContent: "center",
+                      marginTop: "10px",
+                    }} >
+                    <button
+                      className="search-btn"
+                      onClick={() => handleSearch("benchPartner")}
+                    >
+                      🔍 Search
+                    </button>
+                  </div>
+                </div>
               </div>
 
               <div className="dashboard-card">

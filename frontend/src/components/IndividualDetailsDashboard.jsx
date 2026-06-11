@@ -165,39 +165,57 @@ export default function IndividualDetailsDashboard() {
         <div className="individual-dashboard">
             <div className="headcount-summary">
                 <div
-                    className="summary-item selections"
-                    style={{ backgroundColor: "#ecfdf5" }}
+                    className="summary-item"
+                    style={{ backgroundColor: "#EEF2FF" }} // Indigo
                 >
-                    <div className="summary-title">TOTAL SELECTIONS</div>
+                    <div className="summary-title">#DEMANDS</div>
                     <div className="summary-value">{selected}</div>
-                    <div className="summary-bar green"></div>
+                    <div className="summary-bar" style={{ backgroundColor: "#6366F1" }}></div>
                 </div>
 
                 <div
-                    className="summary-item onboarded"
-                    style={{ backgroundColor: "#eff6ff" }}
+                    className="summary-item"
+                    style={{ backgroundColor: "#ECFDF5" }} // Emerald
                 >
-                    <div className="summary-title">TOTAL ONBOARDED</div>
+                    <div className="summary-title">#POSITIONS</div>
+                    <div className="summary-value">{selected}</div>
+                    <div className="summary-bar" style={{ backgroundColor: "#10B981" }}></div>
+                </div>
+
+                <div
+                    className="summary-item"
+                    style={{ backgroundColor: "#FFF7ED" }} // Orange
+                >
+                    <div className="summary-title">#SELECTIONS</div>
+                    <div className="summary-value">{selected}</div>
+                    <div className="summary-bar" style={{ backgroundColor: "#F97316" }}></div>
+                </div>
+
+                <div
+                    className="summary-item"
+                    style={{ backgroundColor: "#EFF6FF" }} // Blue
+                >
+                    <div className="summary-title">#ONBOARDED</div>
                     <div className="summary-value">{onboarded}</div>
-                    <div className="summary-bar blue"></div>
+                    <div className="summary-bar" style={{ backgroundColor: "#3B82F6" }}></div>
                 </div>
 
                 <div
-                    className="summary-item offboarded"
-                    style={{ backgroundColor: "#fef2f2" }}
+                    className="summary-item"
+                    style={{ backgroundColor: "#FEF2F2" }} // Red
                 >
-                    <div className="summary-title">TOTAL OFFBOARDED</div>
+                    <div className="summary-title">#OFFBOARDED</div>
                     <div className="summary-value">{offboarded}</div>
-                    <div className="summary-bar red"></div>
+                    <div className="summary-bar" style={{ backgroundColor: "#EF4444" }}></div>
                 </div>
 
                 <div
-                    className="summary-item net"
-                    style={{ backgroundColor: "#f0fdf4" }}
+                    className="summary-item"
+                    style={{ backgroundColor: "#F5F3FF" }} // Purple
                 >
-                    <div className="summary-title">NET ADDS</div>
+                    <div className="summary-title">#NET ADDS</div>
                     <div className="summary-value">{onboarded - offboarded}</div>
-                    <div className="summary-bar green"></div>
+                    <div className="summary-bar" style={{ backgroundColor: "#8B5CF6" }}></div>
                 </div>
             </div>
 
