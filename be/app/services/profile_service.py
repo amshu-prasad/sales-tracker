@@ -311,6 +311,14 @@ def create_offboarding_profile_service(data, user):
         "offboarding_profiles",
         document
     )
+    append_to_list(
+        collection_name="opportunities",
+        query={
+            "opportunity_id": data.get("opportunity_id")
+        },
+        field_name="offboarding_profile_ids",
+        value=offboarding_profile_id
+    )
 
     return {
         "offboarding_profile_id": offboarding_profile_id

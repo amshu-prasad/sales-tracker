@@ -166,9 +166,6 @@ def get_opportunities_service(
             {"file_id": regex},
         ]
 
-    # -------------------------
-    # GET OPPORTUNITIES
-    # -------------------------
     data = find_many(
         "opportunities",
         query=query,
@@ -177,19 +174,18 @@ def get_opportunities_service(
         sort=[("_id", -1)]
     )
 
-    # -------------------------
-    # PROFILE COUNTS
-    # -------------------------
     for opp in data:
 
         profile_ids = opp.get("profile_ids", [])
 
+        offboarding_profile_ids =opp.get("offboarding_profile_ids",[])
+
         # total shared profiles
         opp["no_of_profiles_shared"] = len(profile_ids)
 
-        # -------------------------
-        # FINAL SELECTION COUNT
-        # -------------------------
+        if offboarding_profile_ids:
+            opp["no_of_profiles_shared"] += len(offboarding_profile_ids)
+
         closed_by_ss_count = 0
 
         for profile_id in profile_ids:
@@ -208,10 +204,9 @@ def get_opportunities_service(
                 closed_by_ss_count += 1
 
         opp["closed_by_ss_count"] = closed_by_ss_count
+        if offboarding_profile_ids:
+            opp["closed_by_ss_count"] += len(offboarding_profile_ids)
 
-    # -------------------------
-    # TOTAL COUNT
-    # -------------------------
     total = count_documents(
         "opportunities",
         query
@@ -241,8 +236,10 @@ def get_opportunity_by_id_service(opportunity_id: str, user):
         return None
 
     profile_ids = opportunity.get("profile_ids", [])
+    offboarding_profile_ids =opportunity.get("offboarding_profile_ids",[])
 
     profiles = []
+    offboarding_profiles = []
 
     if profile_ids:
 
@@ -278,8 +275,24 @@ def get_opportunity_by_id_service(opportunity_id: str, user):
 
         opportunity["closed_by_ss_count"] = closed_by_ss_count
 
+    if offboarding_profile_ids:
+
+        offboarding_profiles = find_many_profile(
+            "offboarding_profiles",
+            query={
+                "offboarding_profile_id": {
+                    "$in": offboarding_profile_ids
+                }
+            },
+            projection={
+                "_id": 0
+            },
+            limit=1000
+        )
+
     opportunity["profiles"] = profiles
-    opportunity["no_of_profiles_shared"] = len(profile_ids)
+    opportunity["offboarding_profiles"] = offboarding_profiles
+    opportunity["no_of_profiles_shared"] = len(profile_ids) + len(offboarding_profile_ids)
 
     # optional remove profile_ids
     opportunity.pop("_id", None)
