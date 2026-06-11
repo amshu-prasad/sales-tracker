@@ -330,6 +330,7 @@ export default function AMDashboard({ user, onToast }) {
   }
   const defaultFilters = {
     client: "",
+    vertical: "",
     month: "",
     week: "",
     from: "",
@@ -344,7 +345,6 @@ export default function AMDashboard({ user, onToast }) {
     byAm: { ...defaultFilters },
     weekYear: { ...defaultFilters },
   });
-
   const [appliedFilters, setAppliedFilters] = useState({});
 
   const handleFilterChange = (tabName, key, value) => {
@@ -1147,90 +1147,140 @@ export default function AMDashboard({ user, onToast }) {
         <div className="ops-container">
           <div className="ops-page slide-center">
             <div className="ops-main-wrap">
-
               {/* Filters */}
-              <div className="dashboard-filter-card">
-                <label>CLIENT</label>
-                <select
-                  className="chart-select"
-                  value={tabFilters.benchPartner.client}
-                  onChange={(e) =>
-                    handleFilterChange(
-                      "benchPartner",
-                      "client",
-                      e.target.value
-                    )
-                  }                >
-                  <option value="">All Clients</option>
-                  {CLIENTS.map((client) => (
-                    <option key={client} value={client}>
-                      {client}
-                    </option>
-                  ))}
-                </select>
-                <label>MONTH</label>
-                <select
-                  className="chart-select"
-                  value={tabFilters.benchPartner.month}
-                  onChange={(e) =>
-                    handleFilterChange(
-                      "benchPartner",
-                      "month",
-                      e.target.value
-                    )
-                  }
-                >                  <option value="">All Months</option>
-                  {MONTHS.map((month) => (
-                    <option key={month} value={month}>
-                      {month}
-                    </option>
-                  ))}
-                </select>
+              <div
+                className="dashboard-filter-card"
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(3, 1fr)",
+                  gap: "16px",
+                  width: "100%",
+                }}
+              >
+                <div>
+                  <label>CLIENT</label>
+                  <select
+                    className="chart-select"
+                    value={tabFilters.benchPartner.client}
+                    onChange={(e) =>
+                      handleFilterChange(
+                        "benchPartner",
+                        "client",
+                        e.target.value
+                      )
+                    }
+                  >
+                    <option value="">All Clients</option>
+                    {CLIENTS.map((client) => (
+                      <option key={client} value={client}>
+                        {client}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label>VERTICAL</label>
+                  <select
+                    className="chart-select"
+                    value={tabFilters.benchPartner.vertical}
+                    onChange={(e) =>
+                      handleFilterChange(
+                        "benchPartner",
+                        "vertical",
+                        e.target.value
+                      )
+                    }
+                  >
+                    <option value="">All Verticals</option>
+                    {VERTICALS.map((vertical) => (
+                      <option key={vertical} value={vertical}>
+                        {vertical}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label>MONTH</label>
+                  <select
+                    className="chart-select"
+                    value={tabFilters.benchPartner.month}
+                    onChange={(e) =>
+                      handleFilterChange(
+                        "benchPartner",
+                        "month",
+                        e.target.value
+                      )
+                    }
+                  >
+                    <option value="">All Months</option>
+                    {MONTHS.map((month) => (
+                      <option key={month} value={month}>
+                        {month}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-                <label>WEEK</label>
-                <select
-                  className="chart-select"
-                  value={tabFilters.benchPartner.week}
-                  onChange={(e) =>
-                    handleFilterChange(
-                      "benchPartner",
-                      "week",
-                      e.target.value
-                    )
-                  }
-                >
-                  <option value="">All Weeks</option>
-                  <option value="W1">W1</option>
-                  <option value="W2">W2</option>
-                  <option value="W3">W3</option>
-                  <option value="W4">W4</option>
-                </select>
+                <div>
+                  <label>WEEK</label>
+                  <select
+                    className="chart-select"
+                    value={tabFilters.benchPartner.week}
+                    onChange={(e) =>
+                      handleFilterChange(
+                        "benchPartner",
+                        "week",
+                        e.target.value
+                      )
+                    }
+                  >
+                    <option value="">All Weeks</option>
+                    <option value="W1">W1</option>
+                    <option value="W2">W2</option>
+                    <option value="W3">W3</option>
+                    <option value="W4">W4</option>
+                  </select>
+                </div>
 
-                <label>FROM</label>
-                <input
-                  type="date"
-                  value={tabFilters.benchPartner.from}
-                  onChange={(e) =>
-                    handleFilterChange(
-                      "benchPartner",
-                      "from",
-                      e.target.value
-                    )
-                  }
-                />
-                <label>TO</label>
-                <input
-                  type="date"
-                  value={tabFilters.benchPartner.to}
-                  onChange={(e) =>
-                    handleFilterChange(
-                      "benchPartner",
-                      "to",
-                      e.target.value
-                    )
-                  }
-                />
-                <div className="filter-button-container">
+                <div>
+                  <label>FROM</label>
+                  <input
+                    type="date"
+                    className="chart-select"
+                    value={tabFilters.benchPartner.from}
+                    onChange={(e) =>
+                      handleFilterChange(
+                        "benchPartner",
+                        "from",
+                        e.target.value
+                      )
+                    }
+                  />
+                </div>
+
+                <div>
+                  <label>TO</label>
+                  <input
+                    type="date"
+                    className="chart-select"
+                    value={tabFilters.benchPartner.to}
+                    onChange={(e) =>
+                      handleFilterChange(
+                        "benchPartner",
+                        "to",
+                        e.target.value
+                      )
+                    }
+                  />
+                </div>
+
+                <div
+                  style={{
+                    gridColumn: "1 / -1",
+                    display: "flex",
+                    justifyContent: "center",
+                    marginTop: "10px",
+                  }} >
                   <button
                     className="search-btn"
                     onClick={() => handleSearch("benchPartner")}
