@@ -1451,23 +1451,49 @@ export default function AMDashboard({ user, onToast }) {
               <input type="date" className="chart-select" />
             </div>
 
-            <button
-              className="search-btn"
+            <div
               style={{
-                width: "100%",
-                height: "42px",
-                border: "none",
-                borderRadius: "10px",
-                background: "linear-gradient(135deg, #6366F1, #4F46E5)",
-                color: "#ffffff",
-                fontSize: "14px",
-                fontWeight: "600",
-                cursor: "pointer",
-                boxShadow: "0 4px 12px rgba(99,102,241,0.25)",
+                display: "flex",
+                gap: "12px",
+                marginTop: "12px",
               }}
             >
-              Search
-            </button>
+              <button
+                className="search-btn"
+                style={{
+                  flex: 1,
+                  height: "42px",
+                  border: "none",
+                  borderRadius: "10px",
+                  background: "linear-gradient(135deg, #6366F1, #4F46E5)",
+                  color: "#ffffff",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  boxShadow: "0 4px 12px rgba(99,102,241,0.25)",
+                }}
+              >
+                Search
+              </button>
+
+              <button
+                className="search-btn"
+                style={{
+                  flex: 1,
+                  height: "42px",
+                  border: "none",
+                  borderRadius: "10px",
+                  background: "linear-gradient(135deg, #f00d0d, #f00d0d)",
+                  color: "#ffffff",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  boxShadow: "0 4px 12px rgba(99,102,241,0.25)",
+                }}
+              >
+                Reset
+              </button>
+            </div>
           </div>
 
 
