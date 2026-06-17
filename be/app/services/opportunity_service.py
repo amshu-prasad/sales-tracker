@@ -219,6 +219,174 @@ def get_opportunities_service(
         "skip": skip
     }
 
+# New opportunities code - Shivanand Magadum
+############################################
+
+
+def get_opportunities_by_filter_service(
+    client=None,
+    vertical=None,
+    am=None,
+    source=None,
+    from_date=None,
+    to_date=None
+):
+
+    # ---------------------------------------------------
+    # OPPORTUNITY FILTER
+    # ---------------------------------------------------
+
+    opportunity_query = {}
+
+    if client:
+        opportunity_query["client"] = client
+
+    if vertical:
+        opportunity_query["vertical"] = vertical
+
+    if am:
+        opportunity_query["AM"] = am
+
+    if from_date or to_date:
+
+        opportunity_query["reqdate"] = {}
+
+        if from_date:
+            opportunity_query["reqdate"]["$gte"] = from_date
+
+        if to_date:
+            opportunity_query["reqdate"]["$lte"] = to_date
+
+    opportunities = find_many(
+        "opportunities",
+        query=opportunity_query,
+        limit=100000,
+        skip=0
+    )
+
+    # ---------------------------------------------------
+    # DEMANDS
+    # ---------------------------------------------------
+
+    demands = len(opportunities)
+
+    # ---------------------------------------------------
+    # POSITIONS
+    # ---------------------------------------------------
+
+    positions = sum(
+        int(opp.get("no_of_positions", 0))
+        for opp in opportunities
+    )
+
+    # ---------------------------------------------------
+    # GET OPPORTUNITY IDS
+    # ---------------------------------------------------
+
+    opportunity_ids = [
+        opp["opportunity_id"]
+        for opp in opportunities
+    ]
+
+    if not opportunity_ids:
+
+        return {
+            "demands": 0,
+            "positions": 0,
+            "selections": 0,
+            "onboardings": 0,
+            "offboardings": 0,
+            "net_adds": 0
+        }
+
+    # ---------------------------------------------------
+    # PROFILE FILTER
+    # ---------------------------------------------------
+
+    profile_query = {
+        "opportunity_id": {
+            "$in": opportunity_ids
+        }
+    }
+
+    if am:
+        profile_query["AM"] = am
+
+    if source:
+        profile_query["source"] = source
+
+    profiles = find_many(
+        "profiles",
+        query=profile_query,
+        limit=100000,
+        skip=0
+    )
+
+    # ---------------------------------------------------
+    # SELECTIONS
+    # ---------------------------------------------------
+
+    selections = len([
+        profile
+        for profile in profiles
+        if profile.get("profile_status") == "Final Selection"
+    ])
+
+    # ---------------------------------------------------
+    # ONBOARDINGS
+    # ---------------------------------------------------
+
+    onboardings = len([
+        profile
+        for profile in profiles
+        if profile.get("profile_status") == "Onboarded"
+    ])
+
+    # ---------------------------------------------------
+    # OFFBOARDINGS
+    # ---------------------------------------------------
+
+    offboarding_query = {}
+
+    if am:
+        offboarding_query["AM"] = am
+
+    if client:
+        offboarding_query["client_name"] = client
+
+    if from_date or to_date:
+
+        offboarding_query["offboarding_date"] = {}
+
+        if from_date:
+            offboarding_query["offboarding_date"]["$gte"] = from_date
+
+        if to_date:
+            offboarding_query["offboarding_date"]["$lte"] = to_date
+
+    offboardings = count_documents(
+        "offboarding_profiles",
+        offboarding_query
+    )
+
+    # ---------------------------------------------------
+    # NET ADDS
+    # ---------------------------------------------------
+
+    net_adds = onboardings - offboardings
+
+    return {
+        "demands": demands,
+        "positions": positions,
+        "selections": selections,
+        "onboardings": onboardings,
+        "offboardings": offboardings,
+        "net_adds": net_adds
+    }
+
+# End of new opportunities code - Shivanand Magadum
+############################################
+
 def get_opportunity_by_id_service(opportunity_id: str, user):
 
     opportunity = find_one(
