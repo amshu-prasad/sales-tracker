@@ -14,6 +14,8 @@ import OffboardingForm from "../components/OffBoardingForm";
 import IndividualDetailsDashboard from "../components/IndividualDetailsDashboard.jsx";
 import { MONTHS } from "../constants/StringConstants";
 import { Chart } from "react-google-charts";
+import { DASHBOARD } from "../api/endpoints";
+
 
 function fmt(d) {
   if (!d) return "—";
@@ -119,7 +121,35 @@ export default function AMDashboard({ user, onToast }) {
   const [selectedBU, setSelectedBU] = useState("");
   const [slideLoading, setSlideLoading] = useState(false);
   const [showOffboardingForm, setShowOffboardingForm] = useState(false);
+  const [dashboardData, setDashboardData] = useState({
+    demands: 0,
+    positions: 0,
+    selections: 0,
+    onboardings: 0,
+    offboardings: 0,
+    net_adds: 0,
+  });
 
+  const fetchDashboardData = async () => {
+    try {
+      const data = await fetchData(DASHBOARD);
+
+      setDashboardData({
+        demands: data.demands || 0,
+        positions: data.positions || 0,
+        selections: data.selections || 0,
+        onboardings: data.onboardings || 0,
+        offboardings: data.offboardings || 0,
+        net_adds: data.net_adds || 0,
+      });
+    } catch (error) {
+      console.error("Dashboard API Error:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
   const employees = [
     {
       emp_id: "SS001",
@@ -371,17 +401,6 @@ export default function AMDashboard({ user, onToast }) {
     console.log(`${tabName} filters`, payload);
   };
 
-  const onboarded = employees.filter(
-    (e) => e.status === "Onboarded"
-  ).length;
-
-  const offboarded = employees.filter(
-    (e) => e.status === "Offboarded"
-  ).length;
-
-  const selected = employees.filter(
-    (e) => e.status === "Selected"
-  ).length;
 
   return (
     <div className="page">
@@ -1506,7 +1525,7 @@ export default function AMDashboard({ user, onToast }) {
                 style={{ backgroundColor: "#EEF2FF" }}
               >
                 <div className="summary-title">#DEMANDS</div>
-                <div className="summary-value">{selected}</div>
+                <div className="summary-value">{dashboardData.demands}</div>
                 <div
                   className="summary-bar"
                   style={{ backgroundColor: "#6366F1" }}
@@ -1518,7 +1537,7 @@ export default function AMDashboard({ user, onToast }) {
                 style={{ backgroundColor: "#ECFDF5" }}
               >
                 <div className="summary-title">#POSITIONS</div>
-                <div className="summary-value">{selected}</div>
+                <div className="summary-value">{dashboardData.positions}</div>
                 <div
                   className="summary-bar"
                   style={{ backgroundColor: "#10B981" }}
@@ -1530,7 +1549,7 @@ export default function AMDashboard({ user, onToast }) {
                 style={{ backgroundColor: "#FFF7ED" }}
               >
                 <div className="summary-title">#SELECTIONS</div>
-                <div className="summary-value">{selected}</div>
+                <div className="summary-value">{dashboardData.selections}</div>
                 <div
                   className="summary-bar"
                   style={{ backgroundColor: "#F97316" }}
@@ -1542,7 +1561,7 @@ export default function AMDashboard({ user, onToast }) {
                 style={{ backgroundColor: "#EFF6FF" }}
               >
                 <div className="summary-title">#ONBOARDED</div>
-                <div className="summary-value">{onboarded}</div>
+                <div className="summary-value">{dashboardData.onboardings}</div>
                 <div
                   className="summary-bar"
                   style={{ backgroundColor: "#3B82F6" }}
@@ -1554,7 +1573,7 @@ export default function AMDashboard({ user, onToast }) {
                 style={{ backgroundColor: "#FEF2F2" }}
               >
                 <div className="summary-title">#OFFBOARDED</div>
-                <div className="summary-value">{offboarded}</div>
+                <div className="summary-value">{dashboardData.offboardings}</div>
                 <div
                   className="summary-bar"
                   style={{ backgroundColor: "#EF4444" }}
@@ -1566,7 +1585,7 @@ export default function AMDashboard({ user, onToast }) {
                 style={{ backgroundColor: "#F5F3FF" }}
               >
                 <div className="summary-title">#NET ADDS</div>
-                <div className="summary-value">{onboarded - offboarded}</div>
+                <div className="summary-value">{dashboardData.net_adds}</div>
                 <div
                   className="summary-bar"
                   style={{ backgroundColor: "#8B5CF6" }}

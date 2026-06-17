@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Chart } from "react-google-charts";
 import { MONTHS, CLIENTS, VERTICALS } from "../constants/StringConstants";
+import { fetchData } from "../api/clients";
+import { DASHBOARD } from "../api/endpoints";
 
 function DynamicChart({ type, data }) {
     return (
@@ -48,24 +50,28 @@ function DynamicChart({ type, data }) {
 }
 
 export default function IndividualDetailsDashboard() {
+    const [dashboardData, setDashboardData] = useState({
+        demands: 0,
+        positions: 0,
+        selections: 0,
+        onboardings: 0,
+        offboardings: 0,
+        net_adds: 0,
+    });
 
-    const selectionVsSourceData = [
-        ["Source", "Count"],
-        ["Bench", 2],
-        ["Partner", 1],
-    ];
+    useEffect(() => {
+        getDashboardData();
+    }, []);
 
-    const onboardingVsSourceData = [
-        ["Source", "Count"],
-        ["Bench", 1],
-        ["Partner", 1],
-    ];
+    const getDashboardData = async () => {
+        try {
+            const data = await fetchData(DASHBOARD);
+            setDashboardData(data);
+        } catch (error) {
+            console.error("Failed to fetch dashboard data:", error);
+        }
+    };
 
-    // const verticalData = [
-    //     ["Vertical", "Count"],
-    //     ["Embedded", 2],
-    //     ["VLSI", 1],
-    // ];
     const verticalData = [
         ["Vertical", "Count", { role: "annotation" }],
         ["Embedded", 2, "2"],
@@ -78,59 +84,6 @@ export default function IndividualDetailsDashboard() {
         ["PSV", 26, "26"],
         ["Emulation & Verification", 19, "19"],
     ];
-
-    const [activeTab, setActiveTab] = useState("Individual Details");
-
-    const employees = [
-        {
-            emp_id: "SS001",
-            engineer: "Rahul Sharma",
-            client: "Cisco",
-            vertical: "Embedded",
-            source: "Bench",
-            status: "Onboarded",
-            date: "10-Jun-2025",
-        },
-        {
-            emp_id: "SS001",
-            engineer: "Rahul Sharma",
-            client: "Cisco",
-            vertical: "Embedded",
-            source: "Bench",
-            status: "Onboarded",
-            date: "10-Jun-2025",
-        },
-        {
-            emp_id: "SS002",
-            engineer: "Priya Nair",
-            client: "Qualcomm",
-            vertical: "VLSI",
-            source: "Partner",
-            status: "Selected",
-            date: "12-Jun-2025",
-        },
-        {
-            emp_id: "SS003",
-            engineer: "Arun Kumar",
-            client: "Bosch",
-            vertical: "Embedded",
-            source: "Bench",
-            status: "Offboarded",
-            date: "15-Jun-2025",
-        },
-    ];
-
-    const onboarded = employees.filter(
-        (e) => e.status === "Onboarded"
-    ).length;
-
-    const offboarded = employees.filter(
-        (e) => e.status === "Offboarded"
-    ).length;
-
-    const selected = employees.filter(
-        (e) => e.status === "Selected"
-    ).length;
 
     const [filters, setFilters] = useState({
         client: "",
@@ -166,56 +119,86 @@ export default function IndividualDetailsDashboard() {
             <div className="headcount-summary">
                 <div
                     className="summary-item"
-                    style={{ backgroundColor: "#EEF2FF" }} // Indigo
+                    style={{ backgroundColor: "#EEF2FF" }}
                 >
                     <div className="summary-title">#DEMANDS</div>
-                    <div className="summary-value">{selected}</div>
-                    <div className="summary-bar" style={{ backgroundColor: "#6366F1" }}></div>
+                    <div className="summary-value">
+                        {dashboardData.demands}
+                    </div>
+                    <div
+                        className="summary-bar"
+                        style={{ backgroundColor: "#6366F1" }}
+                    ></div>
                 </div>
 
                 <div
                     className="summary-item"
-                    style={{ backgroundColor: "#ECFDF5" }} // Emerald
+                    style={{ backgroundColor: "#ECFDF5" }}
                 >
                     <div className="summary-title">#POSITIONS</div>
-                    <div className="summary-value">{selected}</div>
-                    <div className="summary-bar" style={{ backgroundColor: "#10B981" }}></div>
+                    <div className="summary-value">
+                        {dashboardData.positions}
+                    </div>
+                    <div
+                        className="summary-bar"
+                        style={{ backgroundColor: "#10B981" }}
+                    ></div>
                 </div>
 
                 <div
                     className="summary-item"
-                    style={{ backgroundColor: "#FFF7ED" }} // Orange
+                    style={{ backgroundColor: "#FFF7ED" }}
                 >
                     <div className="summary-title">#SELECTIONS</div>
-                    <div className="summary-value">{selected}</div>
-                    <div className="summary-bar" style={{ backgroundColor: "#F97316" }}></div>
+                    <div className="summary-value">
+                        {dashboardData.selections}
+                    </div>
+                    <div
+                        className="summary-bar"
+                        style={{ backgroundColor: "#F97316" }}
+                    ></div>
                 </div>
 
                 <div
                     className="summary-item"
-                    style={{ backgroundColor: "#EFF6FF" }} // Blue
+                    style={{ backgroundColor: "#EFF6FF" }}
                 >
                     <div className="summary-title">#ONBOARDED</div>
-                    <div className="summary-value">{onboarded}</div>
-                    <div className="summary-bar" style={{ backgroundColor: "#3B82F6" }}></div>
+                    <div className="summary-value">
+                        {dashboardData.onboardings}
+                    </div>
+                    <div
+                        className="summary-bar"
+                        style={{ backgroundColor: "#3B82F6" }}
+                    ></div>
                 </div>
 
                 <div
                     className="summary-item"
-                    style={{ backgroundColor: "#FEF2F2" }} // Red
+                    style={{ backgroundColor: "#FEF2F2" }}
                 >
                     <div className="summary-title">#OFFBOARDED</div>
-                    <div className="summary-value">{offboarded}</div>
-                    <div className="summary-bar" style={{ backgroundColor: "#EF4444" }}></div>
+                    <div className="summary-value">
+                        {dashboardData.offboardings}
+                    </div>
+                    <div
+                        className="summary-bar"
+                        style={{ backgroundColor: "#EF4444" }}
+                    ></div>
                 </div>
 
                 <div
                     className="summary-item"
-                    style={{ backgroundColor: "#F5F3FF" }} // Purple
+                    style={{ backgroundColor: "#F5F3FF" }}
                 >
                     <div className="summary-title">#NET ADDS</div>
-                    <div className="summary-value">{onboarded - offboarded}</div>
-                    <div className="summary-bar" style={{ backgroundColor: "#8B5CF6" }}></div>
+                    <div className="summary-value">
+                        {dashboardData.net_adds}
+                    </div>
+                    <div
+                        className="summary-bar"
+                        style={{ backgroundColor: "#8B5CF6" }}
+                    ></div>
                 </div>
             </div>
 
@@ -229,6 +212,7 @@ export default function IndividualDetailsDashboard() {
                         data={verticalData}
                     />
                 </div>
+
                 <div className="individual-chart-card full-width">
                     <div className="chart-header">
                         <h3>Onboarding by Vertical</h3>
