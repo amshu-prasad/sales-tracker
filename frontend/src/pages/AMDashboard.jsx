@@ -150,6 +150,12 @@ export default function AMDashboard({ user, onToast }) {
   useEffect(() => {
     fetchDashboardData();
   }, []);
+
+  useEffect(() => {
+    if (tab === "am-tracker" || tab === "by-filters") {
+      fetchDashboardData();
+    }
+  }, [tab]);
   const employees = [
     {
       emp_id: "SS001",
@@ -360,6 +366,8 @@ export default function AMDashboard({ user, onToast }) {
   const defaultFilters = {
     client: "",
     vertical: "",
+    // account_manager: "",
+    source: "",
     month: "",
     week: "",
     from: "",
@@ -369,6 +377,7 @@ export default function AMDashboard({ user, onToast }) {
   const [tabFilters, setTabFilters] = useState({
     records: { ...defaultFilters },
     benchPartner: { ...defaultFilters },
+    byFilters: { ...defaultFilters },
     byClient: { ...defaultFilters },
     byVertical: { ...defaultFilters },
     byAm: { ...defaultFilters },
@@ -386,19 +395,59 @@ export default function AMDashboard({ user, onToast }) {
     }));
   };
 
-  const handleSearch = (tabName) => {
-    const payload = Object.fromEntries(
-      Object.entries(tabFilters[tabName]).filter(
-        ([_, value]) => value !== ""
-      )
-    );
+  const handleSearch = async (tabKey = "byFilters") => {
+    try {
+      const currentFilters = tabFilters[tabKey] || {};
 
-    setAppliedFilters((prev) => ({
+      const params = new URLSearchParams();
+
+      if (currentFilters.client)
+        params.append("client", currentFilters.client);
+
+      if (currentFilters.vertical)
+        params.append("vertical", currentFilters.vertical);
+
+      // if (currentFilters.account_manager)
+      //   params.append("account_manager", currentFilters.account_manager);
+
+      if (currentFilters.source)
+        params.append("source", currentFilters.source);
+
+      if (currentFilters.month)
+        params.append("month", currentFilters.month);
+
+      if (currentFilters.week)
+        params.append("week", currentFilters.week);
+
+      if (currentFilters.from)
+        params.append("from_date", currentFilters.from);
+
+      if (currentFilters.to)
+        params.append("to_date", currentFilters.to);
+
+      const url = `${DASHBOARD}?${params.toString()}`;
+
+      const data = await fetchData(url);
+
+      setDashboardData({
+        demands: data.demands || 0,
+        positions: data.positions || 0,
+        selections: data.selections || 0,
+        onboardings: data.onboardings || 0,
+        offboardings: data.offboardings || 0,
+        net_adds: data.net_adds || 0,
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleReset = (tabKey = "byFilters") => {
+    setTabFilters((prev) => ({
       ...prev,
-      [tabName]: payload,
+      [tabKey]: { ...defaultFilters },
     }));
-
-    console.log(`${tabName} filters`, payload);
+    fetchDashboardData();
   };
 
 
@@ -1369,8 +1418,11 @@ export default function AMDashboard({ user, onToast }) {
               >
                 CLIENT
               </label>
-              <select className="chart-select" >
-                <option>Select Client</option>
+              <select className="chart-select"
+                value={tabFilters.byFilters.client}
+                onChange={(e) => handleFilterChange("byFilters", "client", e.target.value)}
+              >
+                <option value="">Select Client</option>
                 {CLIENTS.map((client) => (
                   <option key={client}>{client}</option>
                 ))}
@@ -1390,15 +1442,18 @@ export default function AMDashboard({ user, onToast }) {
               >
                 VERTICAL
               </label>
-              <select className="chart-select" >
-                <option>Select Vertical</option>
+              <select className="chart-select"
+                value={tabFilters.byFilters.vertical}
+                onChange={(e) => handleFilterChange("byFilters", "vertical", e.target.value)}
+              >
+                <option value="">Select Vertical</option>
                 {VERTICALS.map((vertical) => (
                   <option key={vertical}>{vertical}</option>
                 ))}
               </select>
             </div>
 
-            <div className="filter-group" >
+            {/* <div className="filter-group" >
               <label
                 style={{
                   fontSize: "11px",
@@ -1411,12 +1466,15 @@ export default function AMDashboard({ user, onToast }) {
               >
                 ACCOUNT MANAGER
               </label>
-              <select className="chart-select">
-                <option>Select AM</option>
+              <select className="chart-select"
+                value={tabFilters.byFilters.account_manager}
+                onChange={(e) => handleFilterChange("byFilters", "account_manager", e.target.value)}
+              >
+                <option value="">Select AM</option>
                 <option>AM 1</option>
                 <option>AM 2</option>
               </select>
-            </div>
+            </div> */}
 
             <div className="filter-group" >
               <label
@@ -1431,8 +1489,11 @@ export default function AMDashboard({ user, onToast }) {
               >
                 SOURCE
               </label>
-              <select className="chart-select">
-                <option>Select Source</option>
+              <select className="chart-select"
+                value={tabFilters.byFilters.source}
+                onChange={(e) => handleFilterChange("byFilters", "source", e.target.value)}
+              >
+                <option value="">Select Source</option>
                 <option>Bench</option>
                 <option>Partner</option>
               </select>
@@ -1451,7 +1512,10 @@ export default function AMDashboard({ user, onToast }) {
               >
                 FROM DATE
               </label>
-              <input type="date" className="chart-select" />
+              <input type="date" className="chart-select"
+                value={tabFilters.byFilters.from}
+                onChange={(e) => handleFilterChange("byFilters", "from", e.target.value)}
+              />
             </div>
 
             <div className="filter-group" >
@@ -1467,7 +1531,10 @@ export default function AMDashboard({ user, onToast }) {
               >
                 TO DATE
               </label>
-              <input type="date" className="chart-select" />
+              <input type="date" className="chart-select"
+                value={tabFilters.byFilters.to}
+                onChange={(e) => handleFilterChange("byFilters", "to", e.target.value)}
+              />
             </div>
 
             <div
@@ -1489,8 +1556,8 @@ export default function AMDashboard({ user, onToast }) {
                   fontSize: "14px",
                   fontWeight: "600",
                   cursor: "pointer",
-                  boxShadow: "0 4px 12px rgba(99,102,241,0.25)",
                 }}
+                onClick={() => handleSearch("byFilters")}
               >
                 Search
               </button>
@@ -1509,6 +1576,7 @@ export default function AMDashboard({ user, onToast }) {
                   cursor: "pointer",
                   boxShadow: "0 4px 12px rgba(99,102,241,0.25)",
                 }}
+                onClick={() => handleReset("byFilters")}
               >
                 Reset
               </button>
