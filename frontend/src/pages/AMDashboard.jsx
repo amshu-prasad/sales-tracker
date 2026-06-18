@@ -1434,7 +1434,7 @@ export default function AMDashboard({ user, onToast }) {
             <div className="page-loader">
               <div className="loader-content">
                 <div className="spinner"></div>
-                <p>Loading dashboard...</p>
+                <p>Loading...</p>
               </div>
             </div>
           )}
