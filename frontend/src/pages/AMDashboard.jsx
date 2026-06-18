@@ -401,6 +401,7 @@ export default function AMDashboard({ user, onToast }) {
 
   const handleSearch = async (tabKey = "byFilters") => {
     try {
+      setLoading(true);
       const currentFilters = tabFilters[tabKey] || {};
 
       const params = new URLSearchParams();
@@ -448,15 +449,34 @@ export default function AMDashboard({ user, onToast }) {
       });
     } catch (error) {
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleReset = (tabKey = "byFilters") => {
-    setTabFilters((prev) => ({
-      ...prev,
-      [tabKey]: { ...defaultFilters },
-    }));
-    fetchDashboardData();
+  // const handleReset = (tabKey = "byFilters") => {
+  //   setTabFilters((prev) => ({
+  //     ...prev,
+  //     [tabKey]: { ...defaultFilters },
+  //   }));
+  //   fetchDashboardData();
+  // };
+
+  const handleReset = async (tabKey = "byFilters") => {
+    try {
+      setLoading(true);
+
+      setTabFilters((prev) => ({
+        ...prev,
+        [tabKey]: { ...defaultFilters },
+      }));
+
+      await fetchDashboardData();
+    } catch (error) {
+      console.error("Reset Error:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
 
@@ -1410,6 +1430,14 @@ export default function AMDashboard({ user, onToast }) {
       )}
       {tab === "by-filters" && (
         <div className="filters-page">
+          {loading && (
+            <div className="page-loader">
+              <div className="loader-content">
+                <div className="spinner"></div>
+                <p>Loading dashboard...</p>
+              </div>
+            </div>
+          )}
           {/* Left Filter Panel */}
           <div className="filters-sidebar">
             <h3>Filters</h3>
@@ -1565,6 +1593,9 @@ export default function AMDashboard({ user, onToast }) {
                   fontSize: "14px",
                   fontWeight: "600",
                   cursor: "pointer",
+                  pointerEvents: loading ? "none" : "auto",
+                  opacity: loading ? 0.7 : 1,
+
                 }}
                 onClick={() => handleSearch("byFilters")}
               >
@@ -1584,6 +1615,7 @@ export default function AMDashboard({ user, onToast }) {
                   fontWeight: "600",
                   cursor: "pointer",
                   boxShadow: "0 4px 12px rgba(99,102,241,0.25)",
+                  cursor: loading ? "not-allowed" : "pointer",
                 }}
                 onClick={() => handleReset("byFilters")}
               >
