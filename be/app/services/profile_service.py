@@ -41,7 +41,8 @@ def create_profile_service(data, user):
     append_to_list(
         collection_name="opportunities",
         query={
-            "opportunity_id": data.get("opportunity_id")
+            "opportunity_id": data.get("opportunity_id"),
+            "AM": user
         },
         field_name="profile_ids",
         value=profile_id
@@ -314,7 +315,8 @@ def create_offboarding_profile_service(data, user):
     append_to_list(
         collection_name="opportunities",
         query={
-            "opportunity_id": data.get("opportunity_id")
+            "opportunity_id": data.get("opportunity_id"),
+            "AM": user
         },
         field_name="offboarding_profile_ids",
         value=offboarding_profile_id

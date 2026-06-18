@@ -30,7 +30,7 @@ async def create_opportunity(payload: OpportunitySchema, user = Depends(get_curr
 @opportunity_router.put("/update-opportunity/{opportunity_id}")
 async def update_opportunity(opportunity_id: str, payload: dict, user = Depends(get_current_user)):
 
-    response = update_opportunity_service(opportunity_id, payload)
+    response = update_opportunity_service(opportunity_id, payload, user)
 
     if not response:
         raise HTTPException(status_code=404, detail="Opportunity not found")
@@ -67,7 +67,10 @@ async def get_opportunities_by_filter(
     source: str = Query(None),
 
     from_date: str = Query(None),
-    to_date: str = Query(None)
+    to_date: str = Query(None),
+
+    #user = Depends(get_current_user)
+    user = "shiva"
 ):
 
     return get_opportunities_by_filter_service(
@@ -76,7 +79,8 @@ async def get_opportunities_by_filter(
         am=am,
         source=source,
         from_date=from_date,
-        to_date=to_date
+        to_date=to_date,
+        user=user
     )
 
 # End of new opportunities code - Shivanand Magadum

@@ -5,6 +5,7 @@ from fastapi import HTTPException
 from app.helper.aws_helper import aws_s3_access_class
 from app.config.EnvConfig import bucket_name
 from app.db.models import count_documents, create_one, find_many, find_many_profile, find_one, update_one
+from collections import defaultdict
 
 aws_helper = aws_s3_access_class()
 
@@ -97,7 +98,7 @@ def create_opportunity_service(data, user):
     return document
 
 
-def update_opportunity_service(opportunity_id: str, data: dict):
+def update_opportunity_service(opportunity_id: str, data: dict, user):
 
     update_data = data.copy()
 
@@ -109,7 +110,7 @@ def update_opportunity_service(opportunity_id: str, data: dict):
 
     update_data["updated_at"] = datetime.utcnow()
 
-    query = {"opportunity_id": opportunity_id}
+    query = {"opportunity_id": opportunity_id, "AM": user}
 
     result = update_one("opportunities", query, update_data)
 
@@ -229,14 +230,15 @@ def get_opportunities_by_filter_service(
     am=None,
     source=None,
     from_date=None,
-    to_date=None
+    to_date=None,
+    user=None
 ):
 
     # ---------------------------------------------------
     # OPPORTUNITY FILTER
     # ---------------------------------------------------
 
-    opportunity_query = {}
+    opportunity_query = { "AM": user}
 
     if client:
         opportunity_query["client"] = client
@@ -288,6 +290,12 @@ def get_opportunities_by_filter_service(
         for opp in opportunities
     ]
 
+    # Opportunity lookup for vertical charts
+    opportunity_map = {
+        opp["opportunity_id"]: opp
+        for opp in opportunities
+    }
+
     if not opportunity_ids:
 
         return {
@@ -296,7 +304,13 @@ def get_opportunities_by_filter_service(
             "selections": 0,
             "onboardings": 0,
             "offboardings": 0,
-            "net_adds": 0
+            "net_adds": 0,
+            "charts": {
+                "selections_by_source": [],
+                "onboardings_by_source": [],
+                "selections_by_vertical": [],
+                "onboardings_by_vertical": []
+            }
         }
 
     # ---------------------------------------------------
@@ -306,7 +320,8 @@ def get_opportunities_by_filter_service(
     profile_query = {
         "opportunity_id": {
             "$in": opportunity_ids
-        }
+        },
+        "AM": user
     }
 
     if am:
@@ -326,27 +341,89 @@ def get_opportunities_by_filter_service(
     # SELECTIONS
     # ---------------------------------------------------
 
-    selections = len([
+    selection_profiles = [
         profile
         for profile in profiles
         if profile.get("profile_status") == "Final Selection"
-    ])
+    ]
+
+    selections = len(selection_profiles)
 
     # ---------------------------------------------------
     # ONBOARDINGS
     # ---------------------------------------------------
 
-    onboardings = len([
+    onboarding_profiles = [
         profile
         for profile in profiles
         if profile.get("profile_status") == "Onboarded"
-    ])
+    ]
+
+    onboardings = len(onboarding_profiles)
+
+    # ---------------------------------------------------
+    # SELECTIONS BY SOURCE
+    # ---------------------------------------------------
+
+    selections_by_source = defaultdict(int)
+
+    for profile in selection_profiles:
+        source_name = profile.get("source", "Unknown")
+        selections_by_source[source_name] += 1
+
+    # ---------------------------------------------------
+    # ONBOARDINGS BY SOURCE
+    # ---------------------------------------------------
+
+    onboardings_by_source = defaultdict(int)
+
+    for profile in onboarding_profiles:
+        source_name = profile.get("source", "Unknown")
+        onboardings_by_source[source_name] += 1
+
+    # ---------------------------------------------------
+    # SELECTIONS BY VERTICAL
+    # ---------------------------------------------------
+
+    selections_by_vertical = defaultdict(int)
+
+    for profile in selection_profiles:
+
+        opp = opportunity_map.get(
+            profile.get("opportunity_id")
+        )
+
+        vertical_name = (
+            opp.get("vertical", "Unknown")
+            if opp else "Unknown"
+        )
+
+        selections_by_vertical[vertical_name] += 1
+
+    # ---------------------------------------------------
+    # ONBOARDINGS BY VERTICAL
+    # ---------------------------------------------------
+
+    onboardings_by_vertical = defaultdict(int)
+
+    for profile in onboarding_profiles:
+
+        opp = opportunity_map.get(
+            profile.get("opportunity_id")
+        )
+
+        vertical_name = (
+            opp.get("vertical", "Unknown")
+            if opp else "Unknown"
+        )
+
+        onboardings_by_vertical[vertical_name] += 1
 
     # ---------------------------------------------------
     # OFFBOARDINGS
     # ---------------------------------------------------
 
-    offboarding_query = {}
+    offboarding_query = {"AM": user}
 
     if am:
         offboarding_query["AM"] = am
@@ -381,7 +458,42 @@ def get_opportunities_by_filter_service(
         "selections": selections,
         "onboardings": onboardings,
         "offboardings": offboardings,
-        "net_adds": net_adds
+        "net_adds": net_adds,
+
+        "charts": {
+
+            "selections_by_source": [
+                {
+                    "name": k,
+                    "count": v
+                }
+                for k, v in selections_by_source.items()
+            ],
+
+            "onboardings_by_source": [
+                {
+                    "name": k,
+                    "count": v
+                }
+                for k, v in onboardings_by_source.items()
+            ],
+
+            "selections_by_vertical": [
+                {
+                    "name": k,
+                    "count": v
+                }
+                for k, v in selections_by_vertical.items()
+            ],
+
+            "onboardings_by_vertical": [
+                {
+                    "name": k,
+                    "count": v
+                }
+                for k, v in onboardings_by_vertical.items()
+            ]
+        }
     }
 
 # End of new opportunities code - Shivanand Magadum
@@ -416,7 +528,8 @@ def get_opportunity_by_id_service(opportunity_id: str, user):
             query={
                 "profile_id": {
                     "$in": profile_ids
-                }
+                },
+                "AM": user
             },
             projection={
                 "_id": 0
@@ -450,7 +563,8 @@ def get_opportunity_by_id_service(opportunity_id: str, user):
             query={
                 "offboarding_profile_id": {
                     "$in": offboarding_profile_ids
-                }
+                },
+                "AM": user
             },
             projection={
                 "_id": 0
