@@ -28,13 +28,27 @@ function getWeek(ds) {
 function getMonth(ds) {
   try { const d = new Date(ds); return d.toLocaleString("en-GB", { month: "short", year: "2-digit" }).replace(" ", "'"); } catch { return ""; }
 }
+// Converts [{name: "Partner", count: 33}, ...] → Google Charts table rows
+function toChartData(label, apiArray) {
+  if (!apiArray || apiArray.length === 0) return null;
+  const rows = apiArray.map((item) => [item.name, item.count, String(item.count)]);
+  return [[label, "Count", { role: "annotation" }], ...rows];
+}
+
 function DynamicChart({ type, data }) {
+  if (!data || data.length <= 1) {
+    return (
+      <div style={{ textAlign: "center", color: "#94a3b8", padding: "40px 0", fontSize: 13 }}>
+        No data
+      </div>
+    );
+  }
   return (
     <Chart
       chartType="ColumnChart"
       width="100%"
       height="180px"
-      data={verticalData}
+      data={data}
       options={{
         legend: { position: "none" },
         chartArea: {
@@ -73,26 +87,6 @@ function DynamicChart({ type, data }) {
   );
 }
 
-const selectionVsSourceData = [
-  ["Source", "Count", { role: "annotation" }],
-  ["Bench", 2, "2"],
-  ["Partner", 1, "1"],
-];
-
-const onboardingVsSourceData = [
-  ["Source", "Count", { role: "annotation" }],
-  ["Bench", 1, "1"],
-  ["Partner", 1, "1"],
-];
-
-const verticalData = [
-  ["Vertical", "Count", { role: "annotation" }],
-  ["EMB", 2, "2"],
-  ["RTL", 2, "2"],
-  ["DFT", 12, "12"],
-  ["DV", 6, "6"],
-];
-
 
 export default function AMDashboard({ user, onToast }) {
   const [tab, setTab] = useState("log");
@@ -128,6 +122,11 @@ export default function AMDashboard({ user, onToast }) {
     onboardings: 0,
     offboardings: 0,
     net_adds: 0,
+    charts: {
+      selections_by_source: [],
+      onboardings_by_source: [],
+      selections_by_vertical: [],
+    },
   });
 
   const fetchDashboardData = async () => {
@@ -141,6 +140,11 @@ export default function AMDashboard({ user, onToast }) {
         onboardings: data.onboardings || 0,
         offboardings: data.offboardings || 0,
         net_adds: data.net_adds || 0,
+        charts: {
+          selections_by_source: data.charts?.selections_by_source || [],
+          onboardings_by_source: data.charts?.onboardings_by_source || [],
+          selections_by_vertical: data.charts?.selections_by_vertical || [],
+        },
       });
     } catch (error) {
       console.error("Dashboard API Error:", error);
@@ -436,6 +440,11 @@ export default function AMDashboard({ user, onToast }) {
         onboardings: data.onboardings || 0,
         offboardings: data.offboardings || 0,
         net_adds: data.net_adds || 0,
+        charts: {
+          selections_by_source: data.charts?.selections_by_source || [],
+          onboardings_by_source: data.charts?.onboardings_by_source || [],
+          selections_by_vertical: data.charts?.selections_by_vertical || [],
+        },
       });
     } catch (error) {
       console.error(error);
@@ -1376,7 +1385,7 @@ export default function AMDashboard({ user, onToast }) {
                   <div className="chart-wrapper">
                     <DynamicChart
                       type="ColumnChart"
-                      data={selectionVsSourceData}
+                      data={toChartData("Source", dashboardData.charts.selections_by_source)}
                     />
                   </div>
                 </div>
@@ -1389,7 +1398,7 @@ export default function AMDashboard({ user, onToast }) {
                   <div className="chart-wrapper">
                     <DynamicChart
                       type="ColumnChart"
-                      data={onboardingVsSourceData}
+                      data={toChartData("Source", dashboardData.charts.onboardings_by_source)}
                     />
                   </div>
                 </div>
@@ -1671,7 +1680,7 @@ export default function AMDashboard({ user, onToast }) {
                 <div className="chart-wrapper">
                   <DynamicChart
                     type="ColumnChart"
-                    data={selectionVsSourceData}
+                    data={toChartData("Source", dashboardData.charts.selections_by_source)}
                   />
                 </div>
               </div>
@@ -1684,7 +1693,7 @@ export default function AMDashboard({ user, onToast }) {
                 <div className="chart-wrapper">
                   <DynamicChart
                     type="ColumnChart"
-                    data={onboardingVsSourceData}
+                    data={toChartData("Source", dashboardData.charts.onboardings_by_source)}
                   />
                 </div>
               </div>
@@ -1697,7 +1706,7 @@ export default function AMDashboard({ user, onToast }) {
                 <div className="chart-wrapper">
                   <DynamicChart
                     type="PieChart"
-                    data={selectionVsSourceData}
+                    data={toChartData("Source", dashboardData.charts.selections_by_source)}
                   />
                 </div>
               </div>

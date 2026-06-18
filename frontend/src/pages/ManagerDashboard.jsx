@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { api } from "../utils/api";
 import { MetricCard, Bar, Badge, Empty, Spinner, FilterBar } from "../components/UI";
 import { Chart } from "react-google-charts";
+import { CLIENTS, VERTICALS } from "../constants/StringConstants";
 
 function DynamicChart({ type, data }) {
   return (
@@ -40,6 +41,32 @@ export default function ManagerDashboard({ onToast }) {
   const [obChart, setObChart] = useState("ColumnChart");
   const [vertChart, setVertChart] = useState("ColumnChart");
 
+  // ── Summary tab filter sidebar state ──
+  const [summaryFilters, setSummaryFilters] = useState({
+    client: "",
+    vertical: "",
+    am: "",
+    source: "",
+    from: "",
+    to: "",
+  });
+
+  const handleSummaryFilterChange = (key, value) => {
+    setSummaryFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const resetSummaryFilters = () => {
+    setSummaryFilters({ client: "", vertical: "", am: "", source: "", from: "", to: "" });
+  };
+
+  const handleSummarySearch = () => {
+    const payload = Object.fromEntries(
+      Object.entries(summaryFilters).filter(([_, v]) => v !== "")
+    );
+    console.log("summary filters", payload);
+    // hook into load() with extra params here if needed
+  };
+
   // fetch meta once on mount
   useEffect(() => {
     api.meta().then(m => setMeta(m)).catch(() => { });
@@ -66,22 +93,11 @@ export default function ManagerDashboard({ onToast }) {
 
       if (showToast) onToast("Data refreshed ✓");
     } catch (err) {
-      console.error("LOAD ERROR:", err);   // ✅ add this
+      console.error("LOAD ERROR:", err);
       if (showToast) onToast("Error loading data");
     }
     setLoading(false);
   }, [month, week, fromDate, toDate]);
-
-  // const load = useCallback(async (showToast = false) => {
-  //   setLoading(true);
-  //   try {
-  //     const [e, m] = await Promise.all([api.getEntries({ month, week }), api.months()]);
-  //     setEntries(e);
-  //     setMonths(m);
-  //     if (showToast) onToast("Data refreshed ✓");
-  //   } catch { if (showToast) onToast("Error loading data"); }
-  //   setLoading(false);
-  // }, [month, week]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -99,8 +115,7 @@ export default function ManagerDashboard({ onToast }) {
           <button key={id} className={`tab ${tab === id ? "active" : ""}`} onClick={() => setTab(id)}>{label}</button>
         ))}
       </div>
-
-      {/* <FilterBar month={month} week={week} months={months} onMonth={setMonth} onWeek={setWeek} onRefresh={() => load(true)} loading={loading} /> */}
+{/* 
       <FilterBar
         month={month}
         week={week}
@@ -113,94 +128,337 @@ export default function ManagerDashboard({ onToast }) {
         toDate={toDate}
         onFromDateChange={setFromDate}
         onToDateChange={setToDate}
-      />
+      /> */}
       {loading && <div style={{ marginBottom: 12 }}><Spinner /></div>}
 
       {/* ── SUMMARY ── */}
       {tab === "summary" && (
-        <>
-          {/* Metrics */}
-          <div className="metric-grid">
-            <MetricCard label="Selections" value={sel.length} color="blue" />
-            <MetricCard label="Onboardings" value={ob.length} color="green" />
-            <MetricCard label="Offboardings" value={off.length} color="red" />
-            <MetricCard
-              label="Net Active"
-              value={(net > 0 ? "+" : "") + net}
-              color="purple"
-            />
-          </div>
+        <div className="filters-page">
+          {/* Left Filter Panel */}
+          <div className="filters-sidebar">
+            <h3>Filters</h3>
 
-          <div className="grid-2">
-
-            {/* Selections */}
-            <div className="card">
-              <div className="flex justify-between items-center mb-2">
-                <h3>Selections — By Source</h3>
-
-                <select value={selChart} onChange={(e) => setSelChart(e.target.value)}>
-                  <option value="ColumnChart">Bar</option>
-                  <option value="LineChart">Line</option>
-                  <option value="PieChart">Pie</option>
-                </select>
-              </div>
-
-              <DynamicChart
-                type={selChart}
-                data={[
-                  ["Source", "Count"],
-                  ["Bench", sel.filter(r => r.source === "Bench").length],
-                  ["Partner", sel.filter(r => r.source === "Partner").length],
-                ]}
-              />
-            </div>
-
-            {/* Onboardings */}
-            <div className="card">
-              <div className="flex justify-between items-center mb-2">
-                <h3>Onboardings — By Source</h3>
-
-                <select value={obChart} onChange={(e) => setObChart(e.target.value)}>
-                  <option value="BarChart">Bar</option>
-                  <option value="LineChart">Line</option>
-                  <option value="PieChart">Pie</option>
-                </select>
-              </div>
-
-              <DynamicChart
-                type={obChart}
-                data={[
-                  ["Source", "Count"],
-                  ["Bench", ob.filter(r => r.source === "Bench").length],
-                  ["Partner", ob.filter(r => r.source === "Partner").length],
-                ]}
-              />
-            </div>
-          </div>
-
-          {/* Vertical */}
-          <div className="card">
-            <div className="flex justify-between items-center mb-2">
-              <h3>Selections by Vertical</h3>
-
-              <select value={vertChart} onChange={(e) => setVertChart(e.target.value)}>
-                <option value="BarChart">Bar</option>
-                <option value="LineChart">Line</option>
-                <option value="PieChart">Pie</option>
+            <div className="filter-group">
+              <label
+                style={{
+                  fontSize: "11px",
+                  fontWeight: "600",
+                  color: "#64748B",
+                  display: "block",
+                  marginBottom: "-1px",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                CLIENT
+              </label>
+              <select
+                className="chart-select"
+                value={summaryFilters.client}
+                onChange={(e) => handleSummaryFilterChange("client", e.target.value)}
+              >
+                <option value="">Select Client</option>
+                {CLIENTS.map((client) => (
+                  <option key={client} value={client}>{client}</option>
+                ))}
               </select>
             </div>
 
-            <DynamicChart
-              type={vertChart}
-              data={[
-                ["Vertical", "Selections"],
-                ...meta.verticals
-                  .map(v => [v, sel.filter(r => r.vertical === v).length])
-                  .filter(([, val]) => val > 0),
-              ]}
-            />
+            <div className="filter-group">
+              <label
+                style={{
+                  fontSize: "11px",
+                  fontWeight: "600",
+                  color: "#64748B",
+                  display: "block",
+                  marginBottom: "-1px",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                VERTICAL
+              </label>
+              <select
+                className="chart-select"
+                value={summaryFilters.vertical}
+                onChange={(e) => handleSummaryFilterChange("vertical", e.target.value)}
+              >
+                <option value="">Select Vertical</option>
+                {VERTICALS.map((vertical) => (
+                  <option key={vertical} value={vertical}>{vertical}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="filter-group">
+              <label
+                style={{
+                  fontSize: "11px",
+                  fontWeight: "600",
+                  color: "#64748B",
+                  display: "block",
+                  marginBottom: "-1px",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                ACCOUNT MANAGER
+              </label>
+              <select
+                className="chart-select"
+                value={summaryFilters.am}
+                onChange={(e) => handleSummaryFilterChange("am", e.target.value)}
+              >
+                <option value="">Select AM</option>
+                {meta.ams.map((am) => (
+                  <option key={am} value={am}>{am}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="filter-group">
+              <label
+                style={{
+                  fontSize: "11px",
+                  fontWeight: "600",
+                  color: "#64748B",
+                  display: "block",
+                  marginBottom: "-1px",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                SOURCE
+              </label>
+              <select
+                className="chart-select"
+                value={summaryFilters.source}
+                onChange={(e) => handleSummaryFilterChange("source", e.target.value)}
+              >
+                <option value="">Select Source</option>
+                <option value="Bench">Bench</option>
+                <option value="Partner">Partner</option>
+              </select>
+            </div>
+
+            <div className="filter-group">
+              <label
+                style={{
+                  fontSize: "11px",
+                  fontWeight: "600",
+                  color: "#64748B",
+                  display: "block",
+                  marginBottom: "-1px",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                FROM DATE
+              </label>
+              <input
+                type="date"
+                className="chart-select"
+                value={summaryFilters.from}
+                onChange={(e) => handleSummaryFilterChange("from", e.target.value)}
+              />
+            </div>
+
+            <div className="filter-group">
+              <label
+                style={{
+                  fontSize: "11px",
+                  fontWeight: "600",
+                  color: "#64748B",
+                  display: "block",
+                  marginBottom: "-1px",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                TO DATE
+              </label>
+              <input
+                type="date"
+                className="chart-select"
+                value={summaryFilters.to}
+                onChange={(e) => handleSummaryFilterChange("to", e.target.value)}
+              />
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                gap: "12px",
+                marginTop: "12px",
+              }}
+            >
+              <button
+                className="search-btn"
+                style={{
+                  flex: 1,
+                  height: "42px",
+                  border: "none",
+                  borderRadius: "10px",
+                  background: "linear-gradient(135deg, #6366F1, #4F46E5)",
+                  color: "#ffffff",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  boxShadow: "0 4px 12px rgba(99,102,241,0.25)",
+                }}
+                onClick={handleSummarySearch}
+              >
+                Search
+              </button>
+
+              <button
+                className="search-btn"
+                style={{
+                  flex: 1,
+                  height: "42px",
+                  border: "none",
+                  borderRadius: "10px",
+                  background: "linear-gradient(135deg, #f00d0d, #f00d0d)",
+                  color: "#ffffff",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  boxShadow: "0 4px 12px rgba(99,102,241,0.25)",
+                }}
+                onClick={resetSummaryFilters}
+              >
+                Reset
+              </button>
+            </div>
           </div>
-        </>
+
+          {/* Right Graph Section */}
+          <div className="filters-content">
+            {/* Summary Row */}
+            <div className="headcount-summary">
+              <div
+                className="summary-item"
+                style={{ backgroundColor: "#EEF2FF" }}
+              >
+                <div className="summary-title">#SELECTIONS</div>
+                <div className="summary-value">{sel.length}</div>
+                <div
+                  className="summary-bar"
+                  style={{ backgroundColor: "#6366F1" }}
+                ></div>
+              </div>
+
+              <div
+                className="summary-item"
+                style={{ backgroundColor: "#ECFDF5" }}
+              >
+                <div className="summary-title">#ONBOARDED</div>
+                <div className="summary-value">{ob.length}</div>
+                <div
+                  className="summary-bar"
+                  style={{ backgroundColor: "#10B981" }}
+                ></div>
+              </div>
+
+              <div
+                className="summary-item"
+                style={{ backgroundColor: "#FEF2F2" }}
+              >
+                <div className="summary-title">#OFFBOARDED</div>
+                <div className="summary-value">{off.length}</div>
+                <div
+                  className="summary-bar"
+                  style={{ backgroundColor: "#EF4444" }}
+                ></div>
+              </div>
+
+              <div
+                className="summary-item"
+                style={{ backgroundColor: "#F5F3FF" }}
+              >
+                <div className="summary-title">#NET ACTIVE</div>
+                <div className="summary-value">{(net > 0 ? "+" : "") + net}</div>
+                <div
+                  className="summary-bar"
+                  style={{ backgroundColor: "#8B5CF6" }}
+                ></div>
+              </div>
+
+              <div
+                className="summary-item"
+                style={{ backgroundColor: "#EFF6FF" }}
+              >
+                <div className="summary-title">#BENCH SEL</div>
+                <div className="summary-value">{sel.filter(r => r.source === "Bench").length}</div>
+                <div
+                  className="summary-bar"
+                  style={{ backgroundColor: "#3B82F6" }}
+                ></div>
+              </div>
+
+              <div
+                className="summary-item"
+                style={{ backgroundColor: "#FFF7ED" }}
+              >
+                <div className="summary-title">#PARTNER SEL</div>
+                <div className="summary-value">{sel.filter(r => r.source === "Partner").length}</div>
+                <div
+                  className="summary-bar"
+                  style={{ backgroundColor: "#F97316" }}
+                ></div>
+              </div>
+            </div>
+
+            {/* Charts Row */}
+            <div className="individual-dashboard-grid">
+              <div className="individual-chart-card">
+                <div className="chart-header">
+                  <h3>Selections — By Source</h3>
+                </div>
+
+                <div className="chart-wrapper">
+                  <DynamicChart
+                    type={selChart}
+                    data={[
+                      ["Source", "Count"],
+                      ["Bench", sel.filter(r => r.source === "Bench").length],
+                      ["Partner", sel.filter(r => r.source === "Partner").length],
+                    ]}
+                  />
+                </div>
+              </div>
+
+              <div className="individual-chart-card">
+                <div className="chart-header">
+                  <h3>Onboardings — By Source</h3>
+                </div>
+
+                <div className="chart-wrapper">
+                  <DynamicChart
+                    type={obChart}
+                    data={[
+                      ["Source", "Count"],
+                      ["Bench", ob.filter(r => r.source === "Bench").length],
+                      ["Partner", ob.filter(r => r.source === "Partner").length],
+                    ]}
+                  />
+                </div>
+              </div>
+
+              <div className="individual-chart-card">
+                <div className="chart-header">
+                  <h3>Selections by Vertical</h3>
+                </div>
+
+                <div className="chart-wrapper">
+                  <DynamicChart
+                    type={vertChart}
+                    data={[
+                      ["Vertical", "Selections"],
+                      ...meta.verticals
+                        .map(v => [v, sel.filter(r => r.vertical === v).length])
+                        .filter(([, val]) => val > 0),
+                    ]}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* ── AM RECORDS ── */}
