@@ -137,7 +137,8 @@ export default function IndividualDetailsDashboard() {
             });
 
             const url = `${DASHBOARD}?${params.toString()}`;
-            const data = await fetchData(url);
+            const res = await fetchData(url);
+            const data = res.data || res;
 
             setDashboardData({
                 demands: data.demands || 0,
