@@ -227,7 +227,6 @@ def get_opportunities_service(
 def get_opportunities_by_filter_service(
     client=None,
     vertical=None,
-    am=None,
     source=None,
     from_date=None,
     to_date=None,
@@ -245,9 +244,6 @@ def get_opportunities_by_filter_service(
 
     if vertical:
         opportunity_query["vertical"] = vertical
-
-    if am:
-        opportunity_query["AM"] = am
 
     if from_date or to_date:
 
@@ -323,9 +319,6 @@ def get_opportunities_by_filter_service(
         },
         "AM": user
     }
-
-    if am:
-        profile_query["AM"] = am
 
     if source:
         profile_query["source"] = source
@@ -425,8 +418,6 @@ def get_opportunities_by_filter_service(
 
     offboarding_query = {"AM": user}
 
-    if am:
-        offboarding_query["AM"] = am
 
     if client:
         offboarding_query["client_name"] = client
