@@ -1,8 +1,9 @@
-from typing import Optional
+from typing import Annotated, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
 from app.services.opportunity_service import create_opportunity_service, get_opportunities_service, get_opportunity_by_id_service, update_opportunity_service, upload_document, get_opportunities_by_filter_service
 from app.db.opportunity_schema import OpportunitySchema
 from app.api.authenticator import get_current_user
+
 
 opportunity_router = APIRouter()
 
@@ -64,13 +65,20 @@ async def get_opportunities_by_filter(
     client: str = Query(None),
     vertical: str = Query(None),
     source: str = Query(None),
-
     from_date: str = Query(None),
     to_date: str = Query(None),
-    user = Depends(get_current_user)  
+    user = Depends(get_current_user)
+    #user = "Shantaveeresh.hiremath"
 ):
 
-    return get_opportunities_by_filter_service(client,vertical,source,from_date,to_date,user)
+    return { "data" : get_opportunities_by_filter_service(
+        client,
+        vertical,
+        source,
+        from_date,
+        to_date,
+        user
+    ) }
 
 # End of new opportunities code - Shivanand Magadum
 ############################################

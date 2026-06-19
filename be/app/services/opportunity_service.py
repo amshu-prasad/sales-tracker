@@ -7,6 +7,7 @@ from app.config.EnvConfig import bucket_name
 from app.db.models import count_documents, create_one, find_many, find_many_profile, find_one, update_one
 from collections import defaultdict
 
+
 aws_helper = aws_s3_access_class()
 
 ALLOWED_TYPES = [
@@ -16,6 +17,11 @@ ALLOWED_TYPES = [
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 ]
 
+def convert_ui_date(date_str):
+    return datetime.strptime(
+        date_str,
+        "%d-%m-%Y"
+    ).strftime("%Y-%m-%d")
 
 async def upload_document(file, user):
 
@@ -232,11 +238,13 @@ def get_opportunities_by_filter_service(
     to_date,
     user
 ):
+
     # ---------------------------------------------------
     # OPPORTUNITY FILTER
     # ---------------------------------------------------
-
-    opportunity_query = { "AM": user}
+    
+    opportunity_query = {}
+    opportunity_query["AM"] = user
 
     if client:
         opportunity_query["client"] = client
@@ -249,10 +257,10 @@ def get_opportunities_by_filter_service(
         opportunity_query["reqdate"] = {}
 
         if from_date:
-            opportunity_query["reqdate"]["$gte"] = from_date
+            opportunity_query["reqdate"]["$gte"] = convert_ui_date(from_date)
 
         if to_date:
-            opportunity_query["reqdate"]["$lte"] = to_date
+            opportunity_query["reqdate"]["$lte"] = convert_ui_date(to_date)
 
     opportunities = find_many(
         "opportunities",
@@ -345,13 +353,39 @@ def get_opportunities_by_filter_service(
     # ONBOARDINGS
     # ---------------------------------------------------
 
-    onboarding_profiles = [
-        profile
-        for profile in profiles
-        if profile.get("profile_status") == "Onboarded"
-    ]
+    # onboarding_profiles = [
+    #     profile
+    #     for profile in profiles
+    #     if profile.get("profile_status") == "Onboarded"
+    # ]
 
+    onboarding_profiles = [
+    profile
+    for profile in profiles
+    if (
+        profile.get("client_onboarding_date")
+        and str(profile.get("client_onboarding_date")).strip() != ""
+    )
+    ]
+    
     onboardings = len(onboarding_profiles)
+
+    print("Profiles:", len(profiles))
+    print("Onboarded Profiles:", len(onboarding_profiles))
+    print("Profiles Found:", len(profiles))
+
+    for p in profiles:
+        if p.get("client_onboarding_date"):
+         print(
+            p.get("engg_name"),
+            p.get("client_onboarding_date"),
+            p.get("source")
+        )
+
+    print("Onboarded Profiles:", len(onboarding_profiles))
+
+    
+
 
     # ---------------------------------------------------
     # SELECTIONS BY SOURCE
