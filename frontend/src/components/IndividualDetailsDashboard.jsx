@@ -64,6 +64,8 @@ function DynamicChart({ type, data }) {
 }
 
 export default function IndividualDetailsDashboard() {
+    const [loading, setLoading] = useState(false);
+
     const [dashboardData, setDashboardData] = useState({
         demands: 0,
         positions: 0,
@@ -95,6 +97,7 @@ export default function IndividualDetailsDashboard() {
 
     const getDashboardData = async () => {
         try {
+            setLoading(true);
             const data = await fetchData(DASHBOARD);
             setDashboardData({
                 demands: data.demands || 0,
@@ -112,6 +115,8 @@ export default function IndividualDetailsDashboard() {
             });
         } catch (error) {
             console.error("Failed to fetch dashboard data:", error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -161,6 +166,14 @@ export default function IndividualDetailsDashboard() {
 
     return (
         <div className="individual-dashboard">
+            {loading && (
+                <div className="page-loader">
+                    <div className="loader-content">
+                        <div className="spinner"></div>
+                        <p>Loading...</p>
+                    </div>
+                </div>
+            )}
             <div className="headcount-summary">
                 <div className="summary-item" style={{ backgroundColor: "#EEF2FF" }}>
                     <div className="summary-title">#DEMANDS</div>

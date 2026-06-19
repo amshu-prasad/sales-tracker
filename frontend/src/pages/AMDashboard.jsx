@@ -131,6 +131,7 @@ export default function AMDashboard({ user, onToast }) {
 
   const fetchDashboardData = async () => {
     try {
+      setLoading(true)
       const data = await fetchData(DASHBOARD);
 
       setDashboardData({
@@ -148,6 +149,8 @@ export default function AMDashboard({ user, onToast }) {
       });
     } catch (error) {
       console.error("Dashboard API Error:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
