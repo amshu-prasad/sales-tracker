@@ -67,8 +67,8 @@ async def get_opportunities_by_filter(
     source: str = Query(None),
     from_date: str = Query(None),
     to_date: str = Query(None),
-    #user = Depends(get_current_user)
-    user = "Shantaveeresh.hiremath"
+    user = Depends(get_current_user)
+    #user = "Shantaveeresh.hiremath"
 ):
 
     return { "data" : get_opportunities_by_filter_service(
