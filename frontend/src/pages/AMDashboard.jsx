@@ -132,7 +132,8 @@ export default function AMDashboard({ user, onToast }) {
   const fetchDashboardData = async () => {
     try {
       setLoading(true)
-      const data = await fetchData(DASHBOARD);
+      const res = await fetchData(DASHBOARD);
+      const data = res.data || res
 
       setDashboardData({
         demands: data.demands || 0,
@@ -431,7 +432,8 @@ export default function AMDashboard({ user, onToast }) {
 
       const url = `${DASHBOARD}?${params.toString()}`;
 
-      const data = await fetchData(url);
+      const res = await fetchData(url);
+      const data = res.data || res; 
 
       setDashboardData({
         demands: data.demands || 0,

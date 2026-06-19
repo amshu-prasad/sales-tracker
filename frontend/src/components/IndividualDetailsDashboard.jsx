@@ -98,7 +98,9 @@ export default function IndividualDetailsDashboard() {
     const getDashboardData = async () => {
         try {
             setLoading(true);
-            const data = await fetchData(DASHBOARD);
+            const res = await fetchData(DASHBOARD);
+            const data = res.data || res;
+
             setDashboardData({
                 demands: data.demands || 0,
                 positions: data.positions || 0,
