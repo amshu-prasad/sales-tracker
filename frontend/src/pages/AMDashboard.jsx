@@ -373,7 +373,6 @@ export default function AMDashboard({ user, onToast }) {
   const defaultFilters = {
     client: "",
     vertical: "",
-    // account_manager: "",
     source: "",
     month: "",
     week: "",
@@ -410,25 +409,25 @@ export default function AMDashboard({ user, onToast }) {
       const params = new URLSearchParams();
 
       if (currentFilters.client)
-        params.append("client", encodeURIComponent(currentFilters.client));
+        params.append("client", currentFilters.client);
 
       if (currentFilters.vertical)
-        params.append("vertical", encodeURIComponent(currentFilters.vertical));
+        params.append("vertical", currentFilters.vertical);
 
       if (currentFilters.source)
-        params.append("source", encodeURIComponent(currentFilters.source));
+        params.append("source", currentFilters.source);
 
       if (currentFilters.month)
-        params.append("month", encodeURIComponent(currentFilters.month));
+        params.append("month", currentFilters.month);
 
       if (currentFilters.week)
-        params.append("week", encodeURIComponent(currentFilters.week));
+        params.append("week", currentFilters.week);
 
       if (currentFilters.from)
-        params.append("from_date", encodeURIComponent(currentFilters.from));
+        params.append("from_date", currentFilters.from);
 
       if (currentFilters.to)
-        params.append("to_date", encodeURIComponent(currentFilters.to));
+        params.append("to_date", currentFilters.to);
 
       const url = `${DASHBOARD}?${params.toString()}`;
 

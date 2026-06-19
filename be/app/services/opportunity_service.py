@@ -225,14 +225,13 @@ def get_opportunities_service(
 
 
 def get_opportunities_by_filter_service(
-    client=None,
-    vertical=None,
-    source=None,
-    from_date=None,
-    to_date=None,
-    user=None
+    client,
+    vertical,
+    source,
+    from_date,
+    to_date,
+    user
 ):
-
     # ---------------------------------------------------
     # OPPORTUNITY FILTER
     # ---------------------------------------------------

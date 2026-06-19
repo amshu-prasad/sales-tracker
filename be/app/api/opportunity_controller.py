@@ -67,18 +67,10 @@ async def get_opportunities_by_filter(
 
     from_date: str = Query(None),
     to_date: str = Query(None),
-
     user = Depends(get_current_user)  
 ):
 
-    return get_opportunities_by_filter_service(
-        client=client,
-        vertical=vertical,
-        source=source,
-        from_date=from_date,
-        to_date=to_date,
-        user=user
-    )
+    return get_opportunities_by_filter_service(client,vertical,source,from_date,to_date,user)
 
 # End of new opportunities code - Shivanand Magadum
 ############################################
