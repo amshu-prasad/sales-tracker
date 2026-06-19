@@ -63,20 +63,18 @@ async def get_opportunities_by_filter(
 
     client: str = Query(None),
     vertical: str = Query(None),
-    am: str = Query(None),
     source: str = Query(None),
 
     from_date: str = Query(None),
     to_date: str = Query(None),
 
-    #user = Depends(get_current_user)
-    user = "shiva"
+    user = Depends(get_current_user)
+    
 ):
 
     return get_opportunities_by_filter_service(
         client=client,
         vertical=vertical,
-        am=am,
         source=source,
         from_date=from_date,
         to_date=to_date,
