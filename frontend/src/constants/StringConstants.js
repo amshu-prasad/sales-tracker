@@ -35,6 +35,7 @@ export const CLIENTS = [
     "Tenstorrent",
     "TI",
     "Xilinx",
+    "Scaleflux"
 ];
 
 export const LOCATIONS = [
