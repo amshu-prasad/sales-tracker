@@ -14,6 +14,16 @@ function DynamicChart({ type, data }) {
       </div>
     );
   }
+
+  const barCount = data.length - 1;
+  const annotationFontSize = barCount > 6 ? 9 : barCount > 4 ? 10 : 12;
+
+  // Give headroom above the tallest bar so its annotation has room to sit
+  // "outside" the bar instead of getting clipped inside it.
+  const values = data.slice(1).map(row => row[1]);
+  const maxValue = Math.max(...values, 0);
+  const axisMax = maxValue > 0 ? Math.ceil(maxValue * 1.25) : 1;
+
   return (
     <Chart
       chartType="ColumnChart"
@@ -23,7 +33,7 @@ function DynamicChart({ type, data }) {
       options={{
         legend: { position: "none" },
         chartArea: {
-          width: "80%",
+          width: "85%",
           height: "70%",
           top: 20,
           bottom: 50,
@@ -32,11 +42,12 @@ function DynamicChart({ type, data }) {
           slantedText: true,
           slantedTextAngle: 35,
           textStyle: {
-            fontSize: 12,
+            fontSize: 11,
           },
         },
         vAxis: {
           minValue: 0,
+          viewWindow: { min: 0, max: axisMax },
           textPosition: "none",
         },
         annotations: {
@@ -45,7 +56,7 @@ function DynamicChart({ type, data }) {
             color: "transparent",
           },
           textStyle: {
-            fontSize: 14,
+            fontSize: annotationFontSize,
             bold: true,
             color: "#000",
           },
@@ -58,10 +69,20 @@ function DynamicChart({ type, data }) {
   );
 }
 
+const CHART_LABEL_ABBREVIATIONS = {
+  "Embedded": "Emb",
+  "Emulation & Validation": "Emu",
+};
+
+
 function toChartRows(arr, { sortDesc = true } = {}) {
   const rows = (arr || [])
     .filter(({ count }) => count > 0)
-    .map(({ name, count }) => [name, count, count]);
+    .map(({ name, count }) => [
+      CHART_LABEL_ABBREVIATIONS[name] || name,
+      count,
+      count,
+    ]);
   if (sortDesc) rows.sort((a, b) => b[1] - a[1]);
   return rows;
 }
@@ -225,41 +246,41 @@ export default function ManagerDashboard({ onToast }) {
     [amData]
   );
 
-  const load = useCallback(async (showToast = false) => {
-    setLoading(true);
-    try {
-      let params = {};
+  // const load = useCallback(async (showToast = false) => {
+  //   setLoading(true);
+  //   try {
+  //     let params = {};
 
-      if (fromDate && toDate) {
-        params = { from_date: fromDate, to_date: toDate };
-      } else {
-        params = { month, week };
-      }
+  //     if (fromDate && toDate) {
+  //       params = { from_date: fromDate, to_date: toDate };
+  //     } else {
+  //       params = { month, week };
+  //     }
 
-      const [e, m] = await Promise.all([
-        api.getEntries(params),
-        api.months()
-      ]);
+  //     const [e, m] = await Promise.all([
+  //       api.getEntries(params),
+  //       api.months()
+  //     ]);
 
-      setEntries(e);
-      setMonths(m);
+  //     setEntries(e);
+  //     setMonths(m);
 
-      if (showToast) onToast("Data refreshed ✓");
-    } catch (err) {
-      console.error("LOAD ERROR:", err);
-      if (showToast) onToast("Error loading data");
-    }
-    setLoading(false);
-  }, [month, week, fromDate, toDate]);
+  //     if (showToast) onToast("Data refreshed ✓");
+  //   } catch (err) {
+  //     console.error("LOAD ERROR:", err);
+  //     if (showToast) onToast("Error loading data");
+  //   }
+  //   setLoading(false);
+  // }, [month, week, fromDate, toDate]);
 
-  useEffect(() => { load(); }, [load]);
+  // useEffect(() => { load(); }, [load]);
 
-  const sel = entries.filter(r => r.type === "selection");
-  const ob = entries.filter(r => r.type === "onboarding");
-  const off = entries.filter(r => r.type === "offboarding");
-  const net = ob.length - off.length;
+  // const sel = entries.filter(r => r.type === "selection");
+  // const ob = entries.filter(r => r.type === "onboarding");
+  // const off = entries.filter(r => r.type === "offboarding");
+  // const net = ob.length - off.length;
 
-  const MONTHS_ORDER = ["Jan'25", "Feb'25", "Mar'25", "Apr'25", "May'25", "Jun'25", "Jul'25", "Aug'25", "Sep'25", "Oct'25", "Nov'25", "Dec'25", "Jan'26", "Feb'26", "Mar'26", "Apr'26", "May'26", "Jun'26", "Jul'26", "Aug'26", "Sep'26", "Oct'26", "Nov'26", "Dec'26"];
+  // const MONTHS_ORDER = ["Jan'25", "Feb'25", "Mar'25", "Apr'25", "May'25", "Jun'25", "Jul'25", "Aug'25", "Sep'25", "Oct'25", "Nov'25", "Dec'25", "Jan'26", "Feb'26", "Mar'26", "Apr'26", "May'26", "Jun'26", "Jul'26", "Aug'26", "Sep'26", "Oct'26", "Nov'26", "Dec'26"];
 
   return (
     <div className="page">
@@ -503,7 +524,14 @@ export default function ManagerDashboard({ onToast }) {
               </div>
             </div>
 
-            <div className="individual-dashboard-grid">
+            <div
+              className="individual-dashboard-grid"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(2, 1fr)",
+                gap: "20px",
+              }}
+            >
               <div className="individual-chart-card">
                 <div className="chart-header">
                   <h3>Selections — By Source</h3>
@@ -534,7 +562,6 @@ export default function ManagerDashboard({ onToast }) {
                 </div>
               </div>
 
-              {/* Selections by Vertical */}
               <div className="individual-chart-card">
                 <div className="chart-header">
                   <h3>Selections by Vertical</h3>
@@ -571,7 +598,7 @@ export default function ManagerDashboard({ onToast }) {
 
       {/* ── AM RECORDS ── */}
       {tab === "my-records" && (
-        <AMRecordsSection entries={entries} meta={meta} />
+        <AMRecordsSection entries={entries} amOptions={amOptions} />
       )}
 
       {/* ── ROLLUP ── */}
@@ -639,7 +666,7 @@ function RollupSection({ entries, allMonths }) {
   );
 }
 
-function AMRecordsSection({ entries: initialEntries, meta }) {
+function AMRecordsSection({ entries: initialEntries, amOptions }) {
   const [selectedAM, setSelectedAM] = useState("");
   const [entries, setEntries] = useState(initialEntries);
   const [editingId, setEditingId] = useState(null);
@@ -647,10 +674,50 @@ function AMRecordsSection({ entries: initialEntries, meta }) {
   const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
-    if (meta.ams.length && !selectedAM) setSelectedAM(meta.ams[0]);
-  }, [meta.ams]);
+    if (amOptions.length && !selectedAM) setSelectedAM(amOptions[0]);
+  }, [amOptions]);
 
+  const [amStats, setAmStats] = useState({
+    selections: 0,
+    onboardings: 0,
+    benchSelections: 0,
+    partnerSelections: 0,
+  });
+  const [amStatsLoading, setAmStatsLoading] = useState(false);
   useEffect(() => { setEntries(initialEntries); }, [initialEntries]);
+
+  useEffect(() => {
+    if (!selectedAM) return;
+    let cancelled = false;
+
+    (async () => {
+      setAmStatsLoading(true);
+      try {
+        const params = new URLSearchParams({ am: selectedAM });
+        const res = await fetchData(`${ADMIN_DASHBOARD}?${params.toString()}`);
+        const rows = Array.isArray(res?.data) ? res.data : [res?.data ?? res];
+        const row = rows.find(r => r.AM === selectedAM) || rows[0] || {};
+
+        if (!cancelled) {
+          setAmStats({
+            selections: row.selections || 0,
+            onboardings: row.onboardings || 0,
+            benchSelections: getCount(row.charts?.selections_by_source || [], "Bench"),
+            partnerSelections: getCount(row.charts?.selections_by_source || [], "Partner"),
+          });
+        }
+      } catch (error) {
+        console.error("AM stats fetch error:", error);
+        if (!cancelled) {
+          setAmStats({ selections: 0, onboardings: 0, benchSelections: 0, partnerSelections: 0 });
+        }
+      } finally {
+        if (!cancelled) setAmStatsLoading(false);
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [selectedAM]);
 
   const amEntries = entries.filter(r => r.am === selectedAM);
 
@@ -730,17 +797,23 @@ function AMRecordsSection({ entries: initialEntries, meta }) {
         <div className="filter-group">
           <label>Account Manager</label>
           <select value={selectedAM} onChange={e => { setSelectedAM(e.target.value); cancelEdit(); }}>
-            {meta.ams.map(am => <option key={am}>{am}</option>)}
+            {amOptions.map(am => <option key={am} value={am}>{am}</option>)}
           </select>
         </div>
       </div>
 
       <div className="metric-grid">
+        <MetricCard label="Total selections" value={amStatsLoading ? "…" : amStats.selections} color="blue" />
+        <MetricCard label="Total onboardings" value={amStatsLoading ? "…" : amStats.onboardings} color="green" />
+        <MetricCard label="Bench selections" value={amStatsLoading ? "…" : amStats.benchSelections} color="neutral" />
+        <MetricCard label="Partner selections" value={amStatsLoading ? "…" : amStats.partnerSelections} color="amber" />
+      </div>
+      {/* <div className="metric-grid">
         <MetricCard label="Total selections" value={amEntries.filter(r => r.type === "selection").length} color="blue" />
         <MetricCard label="Total onboardings" value={amEntries.filter(r => r.type === "onboarding").length} color="green" />
         <MetricCard label="Bench selections" value={amEntries.filter(r => r.type === "selection" && r.source === "Bench").length} color="neutral" />
         <MetricCard label="Partner selections" value={amEntries.filter(r => r.type === "selection" && r.source === "Partner").length} color="amber" />
-      </div>
+      </div> */}
 
       {["selection", "onboarding", "offboarding"].map(type => (
         <div key={type}>
