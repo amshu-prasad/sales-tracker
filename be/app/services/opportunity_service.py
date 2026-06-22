@@ -649,22 +649,44 @@ def get_admin_dashboard_service(
     # AM WISE DASHBOARD
     # ---------------------------------------------------
 
+    # dashboard = defaultdict(
+    #     lambda: {
+    #         "AM": "",
+    #         "demands": 0,
+    #         "positions": 0,
+    #         "selections": 0,
+    #         "onboardings": 0,
+    #         "offboardings": 0,
+    #         "net_adds": 0,
+    #         "charts": {
+    #             "selections_by_source": defaultdict(int),
+    #             "onboardings_by_source": defaultdict(int),
+    #             "selections_by_vertical": defaultdict(int),
+    #             "onboardings_by_vertical": defaultdict(int)
+    #         }
+    #     }
+    # )
     dashboard = defaultdict(
-        lambda: {
-            "AM": "",
-            "demands": 0,
-            "positions": 0,
-            "selections": 0,
-            "onboardings": 0,
-            "offboardings": 0,
-            "net_adds": 0,
-            "charts": {
-                "selections_by_source": defaultdict(int),
-                "onboardings_by_source": defaultdict(int),
-                "selections_by_vertical": defaultdict(int),
-                "onboardings_by_vertical": defaultdict(int)
-            }
+    lambda: {
+        "AM": "",
+        "demands": 0,
+        "positions": 0,
+        "selections": 0,
+        "onboardings": 0,
+        "offboardings": 0,
+        "net_adds": 0,
+
+        "selection_details": [],
+        "onboarding_details": [],
+        "offboarding_details": [],
+
+        "charts": {
+            "selections_by_source": defaultdict(int),
+            "onboardings_by_source": defaultdict(int),
+            "selections_by_vertical": defaultdict(int),
+            "onboardings_by_vertical": defaultdict(int)
         }
+    }
     )
 
     # ---------------------------------------------------
@@ -709,6 +731,14 @@ def get_admin_dashboard_service(
         if profile.get("profile_status") == "Final Selection":
 
             dashboard[am]["selections"] += 1
+            dashboard[am]["selection_details"].append({
+                "date": profile.get("selection_date"),
+                "client": profile.get("client_name"),
+                "vertical": vertical_name,
+                "source": source_name,
+                "candidate": profile.get("engg_name"),
+                "remarks": profile.get("remarks")
+            })
 
             dashboard[am]["charts"][
                 "selections_by_source"
@@ -731,6 +761,15 @@ def get_admin_dashboard_service(
 
             dashboard[am]["onboardings"] += 1
 
+            dashboard[am]["onboarding_details"].append({
+                "date": profile.get("client_onboarding_date"),
+                "client": profile.get("client_name"),
+                "vertical": vertical_name,
+                "source": source_name,
+                "candidate": profile.get("engg_name"),
+                "remarks": profile.get("remarks")
+            })
+
             dashboard[am]["charts"][
                 "onboardings_by_source"
             ][source_name] += 1
@@ -749,6 +788,15 @@ def get_admin_dashboard_service(
 
         dashboard[am]["AM"] = am
         dashboard[am]["offboardings"] += 1
+
+        dashboard[am]["offboarding_details"].append({
+            "date": offboarding.get("offboarding_date"),
+            "client": offboarding.get("client_name"),
+            "vertical": offboarding.get("vertical"),
+            "source": offboarding.get("source"),
+            "candidate": offboarding.get("engg_name"),
+            "remarks": offboarding.get("remarks")
+        })
 
     # ---------------------------------------------------
     # NET ADDS

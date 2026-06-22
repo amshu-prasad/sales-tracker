@@ -598,7 +598,7 @@ export default function ManagerDashboard({ onToast }) {
 
       {/* ── AM RECORDS ── */}
       {tab === "my-records" && (
-        <AMRecordsSection entries={entries} amOptions={amOptions} />
+        <AMRecordsSection entries={entries} />
       )}
 
       {/* ── ROLLUP ── */}
@@ -666,39 +666,263 @@ function RollupSection({ entries, allMonths }) {
   );
 }
 
-function AMRecordsSection({ entries: initialEntries, amOptions }) {
+// function AMRecordsSection({ entries: initialEntries, amOptions }) {
+//   const [selectedAM, setSelectedAM] = useState("");
+//   const [entries, setEntries] = useState(initialEntries);
+//   const [editingId, setEditingId] = useState(null);
+//   const [editData, setEditData] = useState({});
+//   const [deletingId, setDeletingId] = useState(null);
+
+//   useEffect(() => {
+//     if (amOptions.length && !selectedAM) setSelectedAM(amOptions[0]);
+//   }, [amOptions]);
+
+//   const [amStats, setAmStats] = useState({
+//     selections: 0,
+//     onboardings: 0,
+//     benchSelections: 0,
+//     partnerSelections: 0,
+//   });
+//   const [amStatsLoading, setAmStatsLoading] = useState(false);
+//   useEffect(() => { setEntries(initialEntries); }, [initialEntries]);
+
+//   useEffect(() => {
+//     if (!selectedAM) return;
+//     let cancelled = false;
+
+//     (async () => {
+//       setAmStatsLoading(true);
+//       try {
+//         const params = new URLSearchParams({ am: selectedAM });
+//         const res = await fetchData(`${ADMIN_DASHBOARD}?${params.toString()}`);
+//         const rows = Array.isArray(res?.data) ? res.data : [res?.data ?? res];
+//         const row = rows.find(r => r.AM === selectedAM) || rows[0] || {};
+
+//         if (!cancelled) {
+//           setAmStats({
+//             selections: row.selections || 0,
+//             onboardings: row.onboardings || 0,
+//             benchSelections: getCount(row.charts?.selections_by_source || [], "Bench"),
+//             partnerSelections: getCount(row.charts?.selections_by_source || [], "Partner"),
+//           });
+//         }
+//       } catch (error) {
+//         console.error("AM stats fetch error:", error);
+//         if (!cancelled) {
+//           setAmStats({ selections: 0, onboardings: 0, benchSelections: 0, partnerSelections: 0 });
+//         }
+//       } finally {
+//         if (!cancelled) setAmStatsLoading(false);
+//       }
+//     })();
+
+//     return () => { cancelled = true; };
+//   }, [selectedAM]);
+
+//   const amEntries = entries.filter(r => r.am === selectedAM);
+
+//   const startEdit = (r) => {
+//     setEditingId(r.id);
+//     setEditData({
+//       date: r.date ?? "",
+//       client: r.client ?? "",
+//       vertical: r.vertical ?? "",
+//       source: r.source ?? "",
+//       empType: r.empType ?? "",
+//       candidateName: r.candidateName ?? "",
+//       remarks: r.remarks ?? "",
+//     });
+//   };
+
+//   const cancelEdit = () => { setEditingId(null); setEditData({}); };
+
+//   const saveEdit = async (id) => {
+//     try {
+//       const payload = {
+//         date: editData.date,
+//         client: editData.client,
+//         vertical: editData.vertical,
+//         source: editData.source,
+//         empType: editData.empType,
+//         candidateName: editData.candidateName,
+//         remarks: editData.remarks,
+//       };
+//       const updated = await api.updateEntry(id, payload);
+//       setEntries(prev => prev.map(r => r.id === id ? { ...r, ...updated } : r));
+//       setEditingId(null);
+//     } catch { alert("Failed to save."); }
+//   };
+
+//   const confirmDelete = (id) => setDeletingId(id);
+//   const cancelDelete = () => setDeletingId(null);
+
+//   const doDelete = async (id) => {
+//     try {
+//       await api.deleteEntry(id);
+//       setEntries(prev => prev.filter(r => r.id !== id));
+//       setDeletingId(null);
+//     } catch { alert("Failed to delete."); }
+//   };
+
+//   const field = (key, opts) => opts
+//     ? <select
+//       value={editData[key] ?? ""}
+//       onChange={e => setEditData(p => ({ ...p, [key]: e.target.value }))}
+//       className="edit-select"
+//     >
+//       {opts.map(o => <option key={o}>{o}</option>)}
+//     </select>
+//     : <input
+//       value={editData[key] ?? ""}
+//       onChange={e => setEditData(p => ({ ...p, [key]: e.target.value }))}
+//       className="edit-input"
+//     />;
+
+//   return (
+//     <>
+//       {deletingId && (
+//         <div className="modal-overlay">
+//           <div className="modal">
+//             <p style={{ fontWeight: 600, marginBottom: 8 }}>Delete this entry?</p>
+//             <p className="muted" style={{ marginBottom: 16 }}>This action cannot be undone.</p>
+//             <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+//               <button className="btn-ghost" onClick={cancelDelete}>Cancel</button>
+//               <button className="btn-danger" onClick={() => doDelete(deletingId)}>Delete</button>
+//             </div>
+//           </div>
+//         </div>
+//       )}
+
+//       <div className="filter-bar">
+//         <div className="filter-group">
+//           <label>Account Manager</label>
+//           <select value={selectedAM} onChange={e => { setSelectedAM(e.target.value); cancelEdit(); }}>
+//             {amOptions.map(am => <option key={am} value={am}>{am}</option>)}
+//           </select>
+//         </div>
+//       </div>
+
+//       <div className="metric-grid">
+//         <MetricCard label="Total selections" value={amStatsLoading ? "…" : amStats.selections} color="blue" />
+//         <MetricCard label="Total onboardings" value={amStatsLoading ? "…" : amStats.onboardings} color="green" />
+//         <MetricCard label="Bench selections" value={amStatsLoading ? "…" : amStats.benchSelections} color="neutral" />
+//         <MetricCard label="Partner selections" value={amStatsLoading ? "…" : amStats.partnerSelections} color="amber" />
+//       </div>
+//       {/* <div className="metric-grid">
+//         <MetricCard label="Total selections" value={amEntries.filter(r => r.type === "selection").length} color="blue" />
+//         <MetricCard label="Total onboardings" value={amEntries.filter(r => r.type === "onboarding").length} color="green" />
+//         <MetricCard label="Bench selections" value={amEntries.filter(r => r.type === "selection" && r.source === "Bench").length} color="neutral" />
+//         <MetricCard label="Partner selections" value={amEntries.filter(r => r.type === "selection" && r.source === "Partner").length} color="amber" />
+//       </div> */}
+
+//       {["selection", "onboarding", "offboarding"].map(type => (
+//         <div key={type}>
+//           <p className="section-title" style={{ marginTop: 14 }}>
+//             {type.charAt(0).toUpperCase() + type.slice(1)}s
+//           </p>
+//           <div className="table-wrap">
+//             <table>
+//               <thead>
+//                 <tr>
+//                   <th>Date</th><th>Client</th><th>Vertical</th>
+//                   <th>Source</th><th>Emp Type</th><th>Candidate</th><th>Remarks</th><th>Actions</th>
+//                 </tr>
+//               </thead>
+//               <tbody>
+//                 {amEntries.filter(r => r.type === type).length === 0
+//                   ? <tr><td colSpan="8" className="empty-cell">No entries</td></tr>
+//                   : amEntries.filter(r => r.type === type).map(r => (
+//                     <tr key={r.id} style={{ background: editingId === r.id ? "#f8faff" : undefined }}>
+//                       {editingId === r.id ? (
+//                         <>
+//                           <td>{field("date")}</td>
+//                           <td>{field("client", meta.clients)}</td>
+//                           <td>{field("vertical", meta.verticals)}</td>
+//                           <td>{field("source", ["Bench", "Partner"])}</td>
+//                           <td>{field("empType", ["T&M", "ODC"])}</td>
+//                           <td>{field("candidateName")}</td>
+//                           <td>{field("remarks")}</td>
+//                           <td>
+//                             <div style={{ display: "flex", gap: 4 }}>
+//                               <button className="btn-save" onClick={() => saveEdit(r.id)}>✓</button>
+//                               <button className="btn-ghost" onClick={cancelEdit}>✕</button>
+//                             </div>
+//                           </td>
+//                         </>
+//                       ) : (
+//                         <>
+//                           <td>{fmt(r.date)}</td>
+//                           <td><strong>{r.client}</strong></td>
+//                           <td>{r.vertical}</td>
+//                           <td><Badge type={r.source} /></td>
+//                           <td>{r.empType || "—"}</td>
+//                           <td>{r.candidateName || "—"}</td>
+//                           <td className="muted">{r.remarks || "—"}</td>
+//                           <td>
+//                             <div style={{ display: "flex", gap: 4 }}>
+//                               <button className="btn-edit" onClick={() => startEdit(r)}>✏️</button>
+//                               <button className="btn-danger" onClick={() => confirmDelete(r.id)}>🗑️</button>
+//                             </div>
+//                           </td>
+//                         </>
+//                       )}
+//                     </tr>
+//                   ))
+//                 }
+//               </tbody>
+//             </table>
+//           </div>
+//         </div>
+//       ))}
+//     </>
+//   );
+// }
+
+
+// function AMRecordsSection({ amOptions }) {
+function AMRecordsSection() {
   const [selectedAM, setSelectedAM] = useState("");
-  const [entries, setEntries] = useState(initialEntries);
-  const [editingId, setEditingId] = useState(null);
-  const [editData, setEditData] = useState({});
-  const [deletingId, setDeletingId] = useState(null);
-
-  useEffect(() => {
-    if (amOptions.length && !selectedAM) setSelectedAM(amOptions[0]);
-  }, [amOptions]);
-
+  const [amOptions, setAmOptions] = useState([]);
+  const [amRow, setAmRow] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [amStats, setAmStats] = useState({
     selections: 0,
     onboardings: 0,
     benchSelections: 0,
     partnerSelections: 0,
   });
-  const [amStatsLoading, setAmStatsLoading] = useState(false);
-  useEffect(() => { setEntries(initialEntries); }, [initialEntries]);
 
+  // Step 1: On mount, fetch all AMs to populate dropdown
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetchData(ADMIN_DASHBOARD);
+        const rows = Array.isArray(res?.data) ? res.data : [];
+        const options = [...new Set(rows.map((r) => r.AM).filter(Boolean))].sort();
+        setAmOptions(options);
+        if (options.length) setSelectedAM(options[0]); // auto-select first AM
+      } catch (err) {
+        console.error("Failed to load AM list:", err);
+      }
+    })();
+  }, []); // runs once on tab mount
+
+  // Step 2: When selectedAM changes, fetch that AM's details
   useEffect(() => {
     if (!selectedAM) return;
     let cancelled = false;
 
     (async () => {
-      setAmStatsLoading(true);
+      setLoading(true);
+      setAmRow(null);
       try {
         const params = new URLSearchParams({ am: selectedAM });
         const res = await fetchData(`${ADMIN_DASHBOARD}?${params.toString()}`);
         const rows = Array.isArray(res?.data) ? res.data : [res?.data ?? res];
-        const row = rows.find(r => r.AM === selectedAM) || rows[0] || {};
+        const row = rows.find((r) => r.AM === selectedAM) || rows[0] || {};
 
         if (!cancelled) {
+          setAmRow(row);
           setAmStats({
             selections: row.selections || 0,
             onboardings: row.onboardings || 0,
@@ -706,174 +930,96 @@ function AMRecordsSection({ entries: initialEntries, amOptions }) {
             partnerSelections: getCount(row.charts?.selections_by_source || [], "Partner"),
           });
         }
-      } catch (error) {
-        console.error("AM stats fetch error:", error);
-        if (!cancelled) {
-          setAmStats({ selections: 0, onboardings: 0, benchSelections: 0, partnerSelections: 0 });
-        }
+      } catch (err) {
+        console.error("AM records fetch error:", err);
       } finally {
-        if (!cancelled) setAmStatsLoading(false);
+        if (!cancelled) setLoading(false);
       }
     })();
 
     return () => { cancelled = true; };
   }, [selectedAM]);
 
-  const amEntries = entries.filter(r => r.am === selectedAM);
+  const selectionDetails   = amRow?.selection_details   || [];
+  const onboardingDetails  = amRow?.onboarding_details  || [];
+  const offboardingDetails = amRow?.offboarding_details || [];
 
-  const startEdit = (r) => {
-    setEditingId(r.id);
-    setEditData({
-      date: r.date ?? "",
-      client: r.client ?? "",
-      vertical: r.vertical ?? "",
-      source: r.source ?? "",
-      empType: r.empType ?? "",
-      candidateName: r.candidateName ?? "",
-      remarks: r.remarks ?? "",
-    });
-  };
-
-  const cancelEdit = () => { setEditingId(null); setEditData({}); };
-
-  const saveEdit = async (id) => {
-    try {
-      const payload = {
-        date: editData.date,
-        client: editData.client,
-        vertical: editData.vertical,
-        source: editData.source,
-        empType: editData.empType,
-        candidateName: editData.candidateName,
-        remarks: editData.remarks,
-      };
-      const updated = await api.updateEntry(id, payload);
-      setEntries(prev => prev.map(r => r.id === id ? { ...r, ...updated } : r));
-      setEditingId(null);
-    } catch { alert("Failed to save."); }
-  };
-
-  const confirmDelete = (id) => setDeletingId(id);
-  const cancelDelete = () => setDeletingId(null);
-
-  const doDelete = async (id) => {
-    try {
-      await api.deleteEntry(id);
-      setEntries(prev => prev.filter(r => r.id !== id));
-      setDeletingId(null);
-    } catch { alert("Failed to delete."); }
-  };
-
-  const field = (key, opts) => opts
-    ? <select
-      value={editData[key] ?? ""}
-      onChange={e => setEditData(p => ({ ...p, [key]: e.target.value }))}
-      className="edit-select"
-    >
-      {opts.map(o => <option key={o}>{o}</option>)}
-    </select>
-    : <input
-      value={editData[key] ?? ""}
-      onChange={e => setEditData(p => ({ ...p, [key]: e.target.value }))}
-      className="edit-input"
-    />;
+  const RecordsTable = ({ rows }) => (
+    <div className="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Client</th>
+            <th>Vertical</th>
+            <th>Source</th>
+            <th>Candidate</th>
+            {/* <th>Remarks</th> */}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.length === 0 ? (
+            <tr>
+              <td colSpan="6" className="empty-cell">No entries</td>
+            </tr>
+          ) : (
+            rows.map((r, i) => (
+              <tr key={i}>
+                <td>{fmt(r.date)}</td>
+                <td><strong>{r.client}</strong></td>
+                <td>{r.vertical}</td>
+                <td><Badge type={r.source} /></td>
+                <td>{r.candidate || "—"}</td>
+                {/* <td className="muted">{r.remarks || "—"}</td> */}
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
 
   return (
     <>
-      {deletingId && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <p style={{ fontWeight: 600, marginBottom: 8 }}>Delete this entry?</p>
-            <p className="muted" style={{ marginBottom: 16 }}>This action cannot be undone.</p>
-            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-              <button className="btn-ghost" onClick={cancelDelete}>Cancel</button>
-              <button className="btn-danger" onClick={() => doDelete(deletingId)}>Delete</button>
-            </div>
-          </div>
-        </div>
-      )}
-
       <div className="filter-bar">
         <div className="filter-group">
           <label>Account Manager</label>
-          <select value={selectedAM} onChange={e => { setSelectedAM(e.target.value); cancelEdit(); }}>
-            {amOptions.map(am => <option key={am} value={am}>{am}</option>)}
+          <select
+            value={selectedAM}
+            onChange={(e) => setSelectedAM(e.target.value)}
+            disabled={!amOptions.length}
+          >
+            {amOptions.length === 0 && <option>Loading…</option>}
+            {amOptions.map((am) => (
+              <option key={am} value={am}>{am}</option>
+            ))}
           </select>
         </div>
       </div>
 
       <div className="metric-grid">
-        <MetricCard label="Total selections" value={amStatsLoading ? "…" : amStats.selections} color="blue" />
-        <MetricCard label="Total onboardings" value={amStatsLoading ? "…" : amStats.onboardings} color="green" />
-        <MetricCard label="Bench selections" value={amStatsLoading ? "…" : amStats.benchSelections} color="neutral" />
-        <MetricCard label="Partner selections" value={amStatsLoading ? "…" : amStats.partnerSelections} color="amber" />
+        <MetricCard label="Total selections"   value={loading ? "…" : amStats.selections}        color="blue"    />
+        <MetricCard label="Total onboardings"  value={loading ? "…" : amStats.onboardings}       color="green"   />
+        <MetricCard label="Bench selections"   value={loading ? "…" : amStats.benchSelections}   color="neutral" />
+        <MetricCard label="Partner selections" value={loading ? "…" : amStats.partnerSelections} color="amber"   />
       </div>
-      {/* <div className="metric-grid">
-        <MetricCard label="Total selections" value={amEntries.filter(r => r.type === "selection").length} color="blue" />
-        <MetricCard label="Total onboardings" value={amEntries.filter(r => r.type === "onboarding").length} color="green" />
-        <MetricCard label="Bench selections" value={amEntries.filter(r => r.type === "selection" && r.source === "Bench").length} color="neutral" />
-        <MetricCard label="Partner selections" value={amEntries.filter(r => r.type === "selection" && r.source === "Partner").length} color="amber" />
-      </div> */}
 
-      {["selection", "onboarding", "offboarding"].map(type => (
-        <div key={type}>
-          <p className="section-title" style={{ marginTop: 14 }}>
-            {type.charAt(0).toUpperCase() + type.slice(1)}s
-          </p>
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Date</th><th>Client</th><th>Vertical</th>
-                  <th>Source</th><th>Emp Type</th><th>Candidate</th><th>Remarks</th><th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {amEntries.filter(r => r.type === type).length === 0
-                  ? <tr><td colSpan="8" className="empty-cell">No entries</td></tr>
-                  : amEntries.filter(r => r.type === type).map(r => (
-                    <tr key={r.id} style={{ background: editingId === r.id ? "#f8faff" : undefined }}>
-                      {editingId === r.id ? (
-                        <>
-                          <td>{field("date")}</td>
-                          <td>{field("client", meta.clients)}</td>
-                          <td>{field("vertical", meta.verticals)}</td>
-                          <td>{field("source", ["Bench", "Partner"])}</td>
-                          <td>{field("empType", ["T&M", "ODC"])}</td>
-                          <td>{field("candidateName")}</td>
-                          <td>{field("remarks")}</td>
-                          <td>
-                            <div style={{ display: "flex", gap: 4 }}>
-                              <button className="btn-save" onClick={() => saveEdit(r.id)}>✓</button>
-                              <button className="btn-ghost" onClick={cancelEdit}>✕</button>
-                            </div>
-                          </td>
-                        </>
-                      ) : (
-                        <>
-                          <td>{fmt(r.date)}</td>
-                          <td><strong>{r.client}</strong></td>
-                          <td>{r.vertical}</td>
-                          <td><Badge type={r.source} /></td>
-                          <td>{r.empType || "—"}</td>
-                          <td>{r.candidateName || "—"}</td>
-                          <td className="muted">{r.remarks || "—"}</td>
-                          <td>
-                            <div style={{ display: "flex", gap: 4 }}>
-                              <button className="btn-edit" onClick={() => startEdit(r)}>✏️</button>
-                              <button className="btn-danger" onClick={() => confirmDelete(r.id)}>🗑️</button>
-                            </div>
-                          </td>
-                        </>
-                      )}
-                    </tr>
-                  ))
-                }
-              </tbody>
-            </table>
-          </div>
-        </div>
-      ))}
+      {loading ? (
+        <div style={{ textAlign: "center", padding: "40px 0" }}><Spinner /></div>
+      ) : (
+        <>
+          {[
+            { label: "Selections",   rows: selectionDetails   },
+            { label: "Onboardings",  rows: onboardingDetails  },
+            { label: "Offboardings", rows: offboardingDetails },
+          ].map(({ label, rows }) => (
+            <div key={label}>
+              <p className="section-title" style={{ marginTop: 14 }}>{label}</p>
+              <RecordsTable rows={rows} />
+            </div>
+          ))}
+        </>
+      )}
     </>
   );
 }
