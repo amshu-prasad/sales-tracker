@@ -23,6 +23,16 @@ def convert_ui_date(date_str):
         "%d-%m-%Y"
     ).strftime("%Y-%m-%d")
 
+def convert_db_date(date_str):
+
+    if not date_str:
+        return None
+
+    return datetime.strptime(
+        date_str,
+        "%Y-%m-%d"
+    ).strftime("%Y-%m-%d")
+
 async def upload_document(file, user):
 
     if file.content_type not in ALLOWED_TYPES:
@@ -531,6 +541,7 @@ from collections import defaultdict
 def get_admin_dashboard_service(
     client=None,
     vertical=None,
+    am=None,
     source=None,
     from_date=None,
     to_date=None
@@ -541,6 +552,8 @@ def get_admin_dashboard_service(
     # ---------------------------------------------------
 
     opportunity_query = {}
+    if am:
+        opportunity_query["AM"] = am
 
     if client:
         opportunity_query["client"] = client
@@ -553,10 +566,12 @@ def get_admin_dashboard_service(
         opportunity_query["reqdate"] = {}
 
         if from_date:
-            opportunity_query["reqdate"]["$gte"] = convert_ui_date(from_date)
+            opportunity_query["reqdate"]["$gte"] = from_date
 
         if to_date:
-            opportunity_query["reqdate"]["$lte"] = convert_ui_date(to_date)
+            opportunity_query["reqdate"]["$lte"] = to_date
+
+        
 
     opportunities = find_many(
         "opportunities",
@@ -583,10 +598,13 @@ def get_admin_dashboard_service(
     # ---------------------------------------------------
 
     profile_query = {
-        "opportunity_id": {
-            "$in": opportunity_ids
-        }
+    "opportunity_id": {
+        "$in": opportunity_ids
     }
+    }
+
+    if am:
+        profile_query["AM"] = am
 
     if source:
         profile_query["source"] = source
@@ -604,6 +622,9 @@ def get_admin_dashboard_service(
 
     offboarding_query = {}
 
+    if am:
+        offboarding_query["AM"] = am
+
     if client:
         offboarding_query["client_name"] = client
 
@@ -612,10 +633,10 @@ def get_admin_dashboard_service(
         offboarding_query["offboarding_date"] = {}
 
         if from_date:
-            offboarding_query["offboarding_date"]["$gte"] = convert_ui_date(from_date)
+            offboarding_query["offboarding_date"]["$gte"] = from_date
 
         if to_date:
-            offboarding_query["offboarding_date"]["$lte"] = convert_ui_date(to_date)
+            offboarding_query["offboarding_date"]["$lte"] = to_date
 
     offboarding_profiles = find_many(
         "offboarding_profiles",
@@ -740,7 +761,7 @@ def get_admin_dashboard_service(
             - dashboard[am]["offboardings"]
         )
 
-    # ---------------------------------------------------
+    # ---------------------------------------------------#
     # CONVERT CHARTS
     # ---------------------------------------------------
 
