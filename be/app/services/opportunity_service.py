@@ -23,6 +23,16 @@ def convert_ui_date(date_str):
         "%d-%m-%Y"
     ).strftime("%Y-%m-%d")
 
+def convert_db_date(date_str):
+
+    if not date_str:
+        return None
+
+    return datetime.strptime(
+        date_str,
+        "%Y-%m-%d"
+    ).strftime("%Y-%m-%d")
+
 async def upload_document(file, user):
 
     if file.content_type not in ALLOWED_TYPES:
@@ -370,19 +380,19 @@ def get_opportunities_by_filter_service(
     
     onboardings = len(onboarding_profiles)
 
-    print("Profiles:", len(profiles))
-    print("Onboarded Profiles:", len(onboarding_profiles))
-    print("Profiles Found:", len(profiles))
+    # print("Profiles:", len(profiles))
+    # print("Onboarded Profiles:", len(onboarding_profiles))
+    # print("Profiles Found:", len(profiles))
 
-    for p in profiles:
-        if p.get("client_onboarding_date"):
-         print(
-            p.get("engg_name"),
-            p.get("client_onboarding_date"),
-            p.get("source")
-        )
+    # for p in profiles:
+    #     if p.get("client_onboarding_date"):
+    #      print(
+    #         p.get("engg_name"),
+    #         p.get("client_onboarding_date"),
+    #         p.get("source")
+    #     )
 
-    print("Onboarded Profiles:", len(onboarding_profiles))
+    # print("Onboarded Profiles:", len(onboarding_profiles))
 
     
 
@@ -522,6 +532,276 @@ def get_opportunities_by_filter_service(
 
 # End of new opportunities code - Shivanand Magadum
 ############################################
+
+
+##admin_dashboard_start
+
+from collections import defaultdict
+
+def get_admin_dashboard_service(
+    client=None,
+    vertical=None,
+    am=None,
+    source=None,
+    from_date=None,
+    to_date=None
+):
+
+    # ---------------------------------------------------
+    # OPPORTUNITY FILTER
+    # ---------------------------------------------------
+
+    opportunity_query = {}
+    if am:
+        opportunity_query["AM"] = am
+
+    if client:
+        opportunity_query["client"] = client
+
+    if vertical:
+        opportunity_query["vertical"] = vertical
+
+    if from_date or to_date:
+
+        opportunity_query["reqdate"] = {}
+
+        if from_date:
+            opportunity_query["reqdate"]["$gte"] = from_date
+
+        if to_date:
+            opportunity_query["reqdate"]["$lte"] = to_date
+
+        
+
+    opportunities = find_many(
+        "opportunities",
+        query=opportunity_query,
+        limit=100000,
+        skip=0
+    )
+
+    opportunity_map = {
+        opp["opportunity_id"]: opp
+        for opp in opportunities
+    }
+
+    opportunity_ids = [
+        opp["opportunity_id"]
+        for opp in opportunities
+    ]
+
+    if not opportunity_ids:
+        return []
+
+    # ---------------------------------------------------
+    # PROFILE FILTER
+    # ---------------------------------------------------
+
+    profile_query = {
+    "opportunity_id": {
+        "$in": opportunity_ids
+    }
+    }
+
+    if am:
+        profile_query["AM"] = am
+
+    if source:
+        profile_query["source"] = source
+
+    profiles = find_many(
+        "profiles",
+        query=profile_query,
+        limit=100000,
+        skip=0
+    )
+
+    # ---------------------------------------------------
+    # OFFBOARDINGS
+    # ---------------------------------------------------
+
+    offboarding_query = {}
+
+    if am:
+        offboarding_query["AM"] = am
+
+    if client:
+        offboarding_query["client_name"] = client
+
+    if from_date or to_date:
+
+        offboarding_query["offboarding_date"] = {}
+
+        if from_date:
+            offboarding_query["offboarding_date"]["$gte"] = from_date
+
+        if to_date:
+            offboarding_query["offboarding_date"]["$lte"] = to_date
+
+    offboarding_profiles = find_many(
+        "offboarding_profiles",
+        query=offboarding_query,
+        limit=100000,
+        skip=0
+    )
+
+    # ---------------------------------------------------
+    # AM WISE DASHBOARD
+    # ---------------------------------------------------
+
+    dashboard = defaultdict(
+        lambda: {
+            "AM": "",
+            "demands": 0,
+            "positions": 0,
+            "selections": 0,
+            "onboardings": 0,
+            "offboardings": 0,
+            "net_adds": 0,
+            "charts": {
+                "selections_by_source": defaultdict(int),
+                "onboardings_by_source": defaultdict(int),
+                "selections_by_vertical": defaultdict(int),
+                "onboardings_by_vertical": defaultdict(int)
+            }
+        }
+    )
+
+    # ---------------------------------------------------
+    # DEMANDS / POSITIONS
+    # ---------------------------------------------------
+
+    for opp in opportunities:
+
+        am = opp.get("AM", "Unknown")
+
+        dashboard[am]["AM"] = am
+        dashboard[am]["demands"] += 1
+        dashboard[am]["positions"] += int(
+            opp.get("no_of_positions", 0)
+        )
+
+    # ---------------------------------------------------
+    # SELECTIONS / ONBOARDINGS
+    # ---------------------------------------------------
+
+    for profile in profiles:
+
+        am = profile.get("AM", "Unknown")
+
+        dashboard[am]["AM"] = am
+
+        source_name = profile.get("source", "Unknown")
+
+        opp = opportunity_map.get(
+            profile.get("opportunity_id")
+        )
+
+        vertical_name = (
+            opp.get("vertical", "Unknown")
+            if opp else "Unknown"
+        )
+
+        # -------------------------
+        # SELECTIONS
+        # -------------------------
+
+        if profile.get("profile_status") == "Final Selection":
+
+            dashboard[am]["selections"] += 1
+
+            dashboard[am]["charts"][
+                "selections_by_source"
+            ][source_name] += 1
+
+            dashboard[am]["charts"][
+                "selections_by_vertical"
+            ][vertical_name] += 1
+
+        # -------------------------
+        # ONBOARDINGS
+        # -------------------------
+
+        if (
+            profile.get("client_onboarding_date")
+            and str(
+                profile.get("client_onboarding_date")
+            ).strip() != ""
+        ):
+
+            dashboard[am]["onboardings"] += 1
+
+            dashboard[am]["charts"][
+                "onboardings_by_source"
+            ][source_name] += 1
+
+            dashboard[am]["charts"][
+                "onboardings_by_vertical"
+            ][vertical_name] += 1
+
+    # ---------------------------------------------------
+    # OFFBOARDINGS
+    # ---------------------------------------------------
+
+    for offboarding in offboarding_profiles:
+
+        am = offboarding.get("AM", "Unknown")
+
+        dashboard[am]["AM"] = am
+        dashboard[am]["offboardings"] += 1
+
+    # ---------------------------------------------------
+    # NET ADDS
+    # ---------------------------------------------------
+
+    for am in dashboard:
+
+        dashboard[am]["net_adds"] = (
+            dashboard[am]["onboardings"]
+            - dashboard[am]["offboardings"]
+        )
+
+    # ---------------------------------------------------#
+    # CONVERT CHARTS
+    # ---------------------------------------------------
+
+    response = []
+
+    for am, data in dashboard.items():
+
+        data["charts"]["selections_by_source"] = [
+            {"name": k, "count": v}
+            for k, v in data["charts"][
+                "selections_by_source"
+            ].items()
+        ]
+
+        data["charts"]["onboardings_by_source"] = [
+            {"name": k, "count": v}
+            for k, v in data["charts"][
+                "onboardings_by_source"
+            ].items()
+        ]
+
+        data["charts"]["selections_by_vertical"] = [
+            {"name": k, "count": v}
+            for k, v in data["charts"][
+                "selections_by_vertical"
+            ].items()
+        ]
+
+        data["charts"]["onboardings_by_vertical"] = [
+            {"name": k, "count": v}
+            for k, v in data["charts"][
+                "onboardings_by_vertical"
+            ].items()
+        ]
+
+        response.append(data)
+
+    return response
+
+##admindashboard_end
 
 def get_opportunity_by_id_service(opportunity_id: str, user):
 

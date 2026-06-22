@@ -42,52 +42,52 @@ async function request(path, options = {}, isRetry = false) {
 }
 
 export const api = {
-  meta: () => request("/meta"),
-  months: () => request("/months"),
+  // meta: () => request("/meta"),
+  // months: () => request("/months"),
 
-  getEntries: (params = {}) => {
-    const q = new URLSearchParams(
-      Object.fromEntries(Object.entries(params).filter(([, v]) => v && v !== "ALL"))
-    ).toString();
-    return request(`/entries${q ? "?" + q : ""}`);
-  },
+  // getEntries: (params = {}) => {
+  //   const q = new URLSearchParams(
+  //     Object.fromEntries(Object.entries(params).filter(([, v]) => v && v !== "ALL"))
+  //   ).toString();
+  //   return request(`/entries${q ? "?" + q : ""}`);
+  // },
 
-  createEntry: (body) =>
-    request("/entries", { method: "POST", body: JSON.stringify(body) }),
+  // createEntry: (body) =>
+  //   request("/entries", { method: "POST", body: JSON.stringify(body) }),
 
-  updateEntry: (id, body) =>
-    request(`/entries/${id}`, { method: "PUT", body: JSON.stringify(body) }),
+  // updateEntry: (id, body) =>
+  //   request(`/entries/${id}`, { method: "PUT", body: JSON.stringify(body) }),
 
-  deleteEntry: (id) =>
-    request(`/entries/${id}`, { method: "DELETE" }),
+  // deleteEntry: (id) =>
+  //   request(`/entries/${id}`, { method: "DELETE" }),
 
-  summary: (params = {}) => {
-    const q = new URLSearchParams(
-      Object.fromEntries(Object.entries(params).filter(([, v]) => v && v !== "ALL"))
-    ).toString();
-    return request(`/stats/summary${q ? "?" + q : ""}`);
-  },
+  // summary: (params = {}) => {
+  //   const q = new URLSearchParams(
+  //     Object.fromEntries(Object.entries(params).filter(([, v]) => v && v !== "ALL"))
+  //   ).toString();
+  //   return request(`/stats/summary${q ? "?" + q : ""}`);
+  // },
 
-  byAM: (params = {}) => {
-    const q = new URLSearchParams(
-      Object.fromEntries(Object.entries(params).filter(([, v]) => v && v !== "ALL"))
-    ).toString();
-    return request(`/stats/by-am${q ? "?" + q : ""}`);
-  },
+  // byAM: (params = {}) => {
+  //   const q = new URLSearchParams(
+  //     Object.fromEntries(Object.entries(params).filter(([, v]) => v && v !== "ALL"))
+  //   ).toString();
+  //   return request(`/stats/by-am${q ? "?" + q : ""}`);
+  // },
 
-  byVertical: (params = {}) => {
-    const q = new URLSearchParams(
-      Object.fromEntries(Object.entries(params).filter(([, v]) => v && v !== "ALL"))
-    ).toString();
-    return request(`/stats/by-vertical${q ? "?" + q : ""}`);
-  },
+  // byVertical: (params = {}) => {
+  //   const q = new URLSearchParams(
+  //     Object.fromEntries(Object.entries(params).filter(([, v]) => v && v !== "ALL"))
+  //   ).toString();
+  //   return request(`/stats/by-vertical${q ? "?" + q : ""}`);
+  // },
 
-  byClient: (params = {}) => {
-    const q = new URLSearchParams(
-      Object.fromEntries(Object.entries(params).filter(([, v]) => v && v !== "ALL"))
-    ).toString();
-    return request(`/stats/by-client${q ? "?" + q : ""}`);
-  },
+  // byClient: (params = {}) => {
+  //   const q = new URLSearchParams(
+  //     Object.fromEntries(Object.entries(params).filter(([, v]) => v && v !== "ALL"))
+  //   ).toString();
+  //   return request(`/stats/by-client${q ? "?" + q : ""}`);
+  // },
 
   rollup: () => request("/stats/rollup"),
 };

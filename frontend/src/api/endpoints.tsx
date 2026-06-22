@@ -19,6 +19,7 @@ export const GET_FINAL_SELECTION_PROFILES = `${AUTH_API_BASE_URL}/profiles-final
 export const GET_ON_BOARD_OFF_BOARD_PROFILES = `${AUTH_API_BASE_URL}/profiles-client-onboarding`;
 export const CREATE_OFFBOARDING_PROFILE = `${AUTH_API_BASE_URL}/create-offboarding-profile`;
 export const DASHBOARD = `${AUTH_API_BASE_URL}/dashboard`;
+export const ADMIN_DASHBOARD = `${AUTH_API_BASE_URL}/admin-dashboard`;
 
 
 
