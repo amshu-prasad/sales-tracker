@@ -89,14 +89,17 @@ async def get_opportunities_by_filter(
 async def get_admin_dashboard(
     client: str = Query(None),
     vertical: str = Query(None),
+    am: str = Query(None),
     source: str = Query(None),
     from_date: str = Query(None),
     to_date: str = Query(None)
 ):
+
     return {
         "data": get_admin_dashboard_service(
             client,
             vertical,
+            am,
             source,
             from_date,
             to_date
